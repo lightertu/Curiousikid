@@ -7,19 +7,29 @@ auth() {
   export AWS_DEFAULT_REGION='us-east-1'
 }
 
-
 clean() {
-  rm -rf node_modules
+  rm -rf .venv
 }
 
 release() {
-  pnpm install
-  # pnpm db:setup
-  # pnpm db:migrate
-  # pnpm db:seed
-  pnpm dev
+  source .venv/bin/activate
+  poetry install
 }
 
+mac_setup() {
+  # Install pyenv
+  brew update
+  brew install pyenv
+
+  # Install poetry
+  brew install pipx
+  pipx ensurepath
+  pipx install poetry 
+}
+
+run_agent() {
+  .venv/bin/python src/holdon/agent/entrypoint.py dev
+}
 
 # Execute given command with remaining arguments, defaulting the command to release
 if [[ $# -eq 0 ]]; then COMMAND="release"; else COMMAND="$1"; fi
