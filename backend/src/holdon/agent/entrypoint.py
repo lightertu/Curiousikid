@@ -27,7 +27,8 @@ async def entrypoint(ctx: JobContext):
     agent = VoicePipelineAgent(
         vad=silero.VAD.load(),
         stt=deepgram.STT(),
-        llm=openai.LLM(),
+        llm=openai.LLM(model="gpt-3.5-turbo"),
+        # yo
         tts=openai.TTS(),
         chat_ctx=initial_ctx,
     )
