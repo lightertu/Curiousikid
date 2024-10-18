@@ -103,7 +103,7 @@ function useKeyboardNavigation() {
   return { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation };
 }
 
-export function PlaybackProvider({ children }: { children: ReactNode }) {
+export function PlaybackContextProvider({ children }: { children: ReactNode }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
   const [currentTime, setCurrentTime] = useState(0);

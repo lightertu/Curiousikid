@@ -4,6 +4,8 @@
 
 @layer base {
   :root {
+    --lk-va-bar-width: 72px;
+    --lk-control-bar-height: unset;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -32,6 +34,8 @@
   }
 
   .dark {
+    --lk-va-bar-width: 72px;
+    --lk-control-bar-height: unset;
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -72,4 +76,16 @@
 /* There's custom focus styles for the TrackTable */
 tr:focus {
   outline: none;
+}
+
+.agent-visualizer > .lk-audio-bar {
+  width: 72px;
+}
+
+.lk-agent-control-bar {
+  @apply border-t-0 p-0 h-min mr-4;
+}
+
+.lk-disconnect-button {
+  @apply h-[36px] hover:bg-[#6b221a] hover:text-[white] bg-[#31100c] border-[#6b221a];
 }

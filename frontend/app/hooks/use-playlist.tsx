@@ -23,7 +23,7 @@ type OptimisticAction =
   | { type: 'update'; id: string; updates: Partial<Playlist> }
   | { type: 'delete'; id: string };
 
-export function PlaylistProvider({
+export function PlaylistContextProvider({
   children,
   playlistsPromise,
 }: {

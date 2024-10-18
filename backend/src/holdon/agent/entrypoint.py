@@ -3,6 +3,7 @@ import logging
 
 from livekit.agents import JobContext, llm, AutoSubscribe, WorkerOptions
 from livekit.agents.cli import cli
+from livekit.agents.llm import ChatContext, LLMStream
 from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import deepgram, openai, silero
 from holdon.envionrment import ENV
@@ -24,12 +25,19 @@ async def entrypoint(ctx: JobContext):
 
     # wait for the first participant to connect
 
+    def rag(agent: VoicePipelineAgent, chat_ctx: ChatContext) -> LLMStream:
+        logger.info(f"chat_ctx: {chat_ctx._metadata}")
+        return agent.llm.chat(
+            chat_ctx=chat_ctx,
+            fnc_ctx=agent.fnc_ctx,
+        )
+
     agent = VoicePipelineAgent(
         vad=silero.VAD.load(),
         stt=deepgram.STT(),
         llm=openai.LLM(model="gpt-3.5-turbo"),
-        # yo
         tts=openai.TTS(),
+        before_llm_cb=rag,
         chat_ctx=initial_ctx,
     )
 

@@ -182,9 +182,11 @@ function TrackRow({
           </DropdownMenu>
         </div>
       </td>
-      {(isSelected || isFocused) && (
-        <div className="absolute inset-0 border border-[#1e3a8a] pointer-events-none" />
-      )}
+
+      {/*(isSelected || isFocused) && (
+        <div className="absolute inset-0 border border-[#1e3a8a] pointer-events-none">
+        </div>
+      )*/}
     </tr>
   );
 }

@@ -14,9 +14,6 @@ clean() {
 
 release() {
   pnpm install
-  # pnpm db:setup
-  # pnpm db:migrate
-  # pnpm db:seed
   pnpm dev
 }
 

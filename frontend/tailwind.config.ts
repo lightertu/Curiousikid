@@ -74,6 +74,9 @@ const config: Config = {
         'now-playing-2': 'now-playing-2 1s ease-in-out infinite',
         'now-playing-3': 'now-playing-3 1.2s ease-in-out infinite',
       },
+      maxWidth: {
+        '50vh': '50vh',
+      },
     },
   },
   plugins: [
