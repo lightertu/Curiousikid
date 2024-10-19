@@ -22,18 +22,17 @@ async def entrypoint(ctx: JobContext):
         ),
     )
 
-    @ctx.room.on(event="participant_connected")
-    def participant_connected(remote_participant: RemoteParticipant):
-        print(f"remote: {remote_participant.metadata}")
-
     logger.info(f"connecting to room {ctx.room.name}")
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+
+    logger.info(f"waiting for participant to join")
     participant = await ctx.wait_for_participant()
 
     # wait for the first participant to connect
 
     def rag(agent: VoicePipelineAgent, chat_ctx: ChatContext) -> LLMStream:
-        logger.info(f"chat_ctx: {chat_ctx._metadata}")
+        print(ctx.room.remote_participants.get(participant.identity).metadata)
+
         return agent.llm.chat(
             chat_ctx=chat_ctx,
             fnc_ctx=agent.fnc_ctx,
