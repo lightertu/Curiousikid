@@ -125,6 +125,15 @@ export function PlaybackContextProvider({ children }: { children: ReactNode }) {
     }
   }, [isPlaying]);
 
+  const pausePlay = useCallback(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  }, [isPlaying]);
+
   const playTrack = useCallback(
     (track: Song) => {
       setCurrentTrack(track);
@@ -194,6 +203,7 @@ export function PlaybackContextProvider({ children }: { children: ReactNode }) {
         currentTime,
         duration,
         togglePlayPause,
+        pausePlay,
         playTrack,
         playNextTrack,
         playPreviousTrack,

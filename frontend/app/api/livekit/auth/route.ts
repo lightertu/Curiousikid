@@ -1,46 +1,59 @@
 import {
   AccessToken,
   AccessTokenOptions,
-  VideoGrant,
+  VideoGrant
 } from "livekit-server-sdk";
 import { NextResponse } from "next/server";
 
-const API_KEY = process.env.LIVEKIT_API_KEY;
+const API_KEY = process.env.LIVEKIT_API_KEY as string;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
-export type ConnectionDetails = {
+export type LiveKitAuthPutResponse = {
   serverUrl: string;
   roomName: string;
   participantName: string;
   participantToken: string;
+  podcastId: string;
+  podcastTimestamp: string;
 };
 
-export async function GET(request: Request) {
+export interface LiveKitAuthPutRequest {
+  participantIdentity: string;
+  podcastId: string;
+  podcastTimestamp: string;
+}
+
+export async function PUT(request: Request) {
+  if (LIVEKIT_URL === undefined) {
+    throw new Error("LIVEKIT_URL is not defined");
+  }
+
   try {
-    // Generate participant token
-    const participantIdentity = `voice_assistant_user_${Math.round(
-      Math.random() * 10_000
-    )}`;
+    const requestPayload: LiveKitAuthPutRequest = await request.json()
+    const roomName: string = `${requestPayload.podcastId}-${requestPayload.participantIdentity}`;
     const participantToken = await createParticipantToken(
-      {
-        identity: participantIdentity,
-      },
-      "roomName"
+        {
+          identity: requestPayload.participantIdentity,
+          metadata: JSON.stringify({
+            podcastId: requestPayload.podcastId,
+            podcastTimestamp: requestPayload.podcastTimestamp
+          })
+        },
+        roomName
     );
 
-    if (LIVEKIT_URL === undefined) {
-      throw new Error("LIVEKIT_URL is not defined");
-    }
-
     // Return connection details
-    const data: ConnectionDetails = {
+    const response: LiveKitAuthPutResponse = {
       serverUrl: LIVEKIT_URL,
-      roomName: "voice_assistant_room",
+      roomName: roomName,
       participantToken: participantToken,
-      participantName: participantIdentity,
+      participantName: participantToken,
+      podcastId: requestPayload.podcastId,
+      podcastTimestamp: requestPayload.podcastTimestamp,
     };
-    return NextResponse.json(data);
+
+    return NextResponse.json(response);
   } catch (error) {
     if (error instanceof Error) {
       console.error(error);

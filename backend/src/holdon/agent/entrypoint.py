@@ -6,6 +6,8 @@ from livekit.agents.cli import cli
 from livekit.agents.llm import ChatContext, LLMStream
 from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import deepgram, openai, silero
+from livekit.rtc import RemoteParticipant
+
 from holdon.envionrment import ENV
 
 logger = logging.getLogger("chatroom")
@@ -20,8 +22,13 @@ async def entrypoint(ctx: JobContext):
         ),
     )
 
+    @ctx.room.on(event="participant_connected")
+    def participant_connected(remote_participant: RemoteParticipant):
+        print(f"remote: {remote_participant.metadata}")
+
     logger.info(f"connecting to room {ctx.room.name}")
     await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+    participant = await ctx.wait_for_participant()
 
     # wait for the first participant to connect
 

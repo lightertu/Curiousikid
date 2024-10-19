@@ -7,32 +7,43 @@ import {
   BarVisualizer,
   RoomAudioRenderer,
   VoiceAssistantControlBar,
-  AgentState,
-  DisconnectButton,
+  AgentState
 } from "@livekit/components-react";
 import { useCallback, useEffect, useState } from "react";
 import { MediaDeviceFailure } from "livekit-client";
-import type { ConnectionDetails } from "@/app/api/livekit/auth/route";
+import type { LiveKitAuthPutResponse } from "@/app/api/livekit/auth/route";
 import { NoAgentNotification } from "@/components/livekit/NoAgentNotification";
-import { CloseIcon } from "@/components/livekit/CloseIcon";
 import { useKrispNoiseFilter } from "@livekit/components-react/krisp";
+import {usePlayback} from "@/app/playback-context";
 
 export function VoiceConsole() {
   const [connectionDetails, setConnectionDetails] = useState<
-    ConnectionDetails | undefined
+    LiveKitAuthPutResponse | undefined
   >(undefined);
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
+  const { currentTrack, currentTime, pausePlay } = usePlayback();
 
-  const onConnectButtonClicked = useCallback(async () => {
+  const onConnectButtonClicked = useCallback(async (currentTrack, currentTime) => {
+    pausePlay();
     const url = new URL(
       process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ??
         "/api/livekit/auth",
       window.location.origin
     );
-    const response = await fetch(url.toString());
-    const connectionDetailsData = await response.json();
-    setConnectionDetails(connectionDetailsData);
-  }, []);
+    console.log(currentTime)
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        participantIdentity: "raytu",
+        podcastId: currentTrack.id,
+        podcastTimestamp: currentTime,
+      })
+    });
+
+    setConnectionDetails(await response.json());
+  }, [currentTrack, currentTime]);
+
 
   return (
     <main
@@ -53,7 +64,7 @@ export function VoiceConsole() {
       >
         <SimpleVoiceAssistant onStateChange={setAgentState} />
         <ControlBar
-          onConnectButtonClicked={onConnectButtonClicked}
+          onConnectButtonClicked={() => onConnectButtonClicked(currentTrack, currentTime)}
           agentState={agentState}
         />
         <RoomAudioRenderer />
@@ -77,7 +88,10 @@ function SimpleVoiceAssistant(props: {
         barCount={3}
         trackRef={audioTrack}
         className="agent-visualizer"
-        options={{ minHeight: 24 }}
+        options={{
+          minHeight: 20,
+          maxHeight: 30
+        }}
       />
     </div>
   );
@@ -91,6 +105,7 @@ function ControlBar(props: {
    * Use Krisp background noise reduction when available.
    * Note: This is only available on paid plans, see {@link https://livekit.io/pricing | LiveKit Pricing} for more details.
    */
+  const { togglePlayPause, currentTrack, currentTime, pausePlay } = usePlayback();
   const krisp = useKrispNoiseFilter();
   useEffect(() => {
     krisp.setNoiseFilterEnabled(true);
@@ -106,7 +121,9 @@ function ControlBar(props: {
             exit={{ opacity: 0, top: "-10px" }}
             transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
             className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
-            onClick={() => props.onConnectButtonClicked()}
+            onClick={() => {
+              props.onConnectButtonClicked()
+            }}
           >
             Start a conversation
           </motion.button>
@@ -122,10 +139,7 @@ function ControlBar(props: {
               transition={{ duration: 0.4, ease: [0.09, 1.04, 0.245, 1.055] }}
               className="flex h-8 absolute left-1/2 -translate-x-1/2  justify-center"
             >
-              <VoiceAssistantControlBar controls={{ leave: false }} />
-              <DisconnectButton>
-                <CloseIcon />
-              </DisconnectButton>
+              <VoiceAssistantControlBar controls={{ leave: true }} />
             </motion.div>
           )}
       </AnimatePresence>
