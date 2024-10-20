@@ -4,6 +4,7 @@ import {
   VideoGrant
 } from "livekit-server-sdk";
 import { NextResponse } from "next/server";
+import {Song} from "@/lib/db/types";
 
 const API_KEY = process.env.LIVEKIT_API_KEY as string;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -14,13 +15,11 @@ export type LiveKitAuthPutResponse = {
   roomName: string;
   participantName: string;
   participantToken: string;
-  podcastId: string;
-  podcastTimestamp: string;
 };
 
 export interface LiveKitAuthPutRequest {
   participantIdentity: string;
-  podcastId: string;
+  podcast: Song;
   podcastTimestamp: string;
 }
 
@@ -31,12 +30,12 @@ export async function PUT(request: Request) {
 
   try {
     const requestPayload: LiveKitAuthPutRequest = await request.json()
-    const roomName: string = `${requestPayload.podcastId}-${requestPayload.participantIdentity}`;
+    const roomName: string = `${requestPayload.podcast.id}-${requestPayload.participantIdentity}`;
     const participantToken = await createParticipantToken(
         {
           identity: requestPayload.participantIdentity,
           metadata: JSON.stringify({
-            podcastId: requestPayload.podcastId,
+            podcas: requestPayload.podcast,
             podcastTimestamp: requestPayload.podcastTimestamp
           })
         },
@@ -49,8 +48,6 @@ export async function PUT(request: Request) {
       roomName: roomName,
       participantToken: participantToken,
       participantName: participantToken,
-      podcastId: requestPayload.podcastId,
-      podcastTimestamp: requestPayload.podcastTimestamp,
     };
 
     return NextResponse.json(response);
@@ -75,6 +72,7 @@ function createParticipantToken(
     canPublish: true,
     canPublishData: true,
     canSubscribe: true,
+    canUpdateOwnMetadata: true,
   };
   at.addGrant(grant);
   return at.toJwt();

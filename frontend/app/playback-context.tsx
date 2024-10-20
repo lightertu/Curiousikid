@@ -19,6 +19,8 @@ type PlaybackContextType = {
   currentTime: number;
   duration: number;
   togglePlayPause: () => void;
+  pausePlay: () => void;
+  resumePlay: () => void;
   playTrack: (track: Song) => void;
   playNextTrack: () => void;
   playPreviousTrack: () => void;
@@ -130,7 +132,14 @@ export function PlaybackContextProvider({ children }: { children: ReactNode }) {
       if (isPlaying) {
         audioRef.current.pause();
       }
-      setIsPlaying(!isPlaying);
+      setIsPlaying(false);
+    }
+  }, [isPlaying]);
+
+  const resumePlay = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
     }
   }, [isPlaying]);
 
@@ -204,6 +213,7 @@ export function PlaybackContextProvider({ children }: { children: ReactNode }) {
         duration,
         togglePlayPause,
         pausePlay,
+        resumePlay,
         playTrack,
         playNextTrack,
         playPreviousTrack,
