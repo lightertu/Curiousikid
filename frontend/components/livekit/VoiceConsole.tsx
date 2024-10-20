@@ -22,7 +22,7 @@ export function VoiceConsole() {
   const [connectionDetails, setConnectionDetails] = useState<
     LiveKitAuthPutResponse | undefined
   >(undefined);
-  const [agentState, setAgentState] = useState<AgentState>("disconnected");
+  const [agentState, setAgentState] = useState<AgentState>("initializing");
   const { currentTrack } = usePlayback();
   const connectRoom = () => {
     const url = new URL(
