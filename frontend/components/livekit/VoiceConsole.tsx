@@ -119,6 +119,14 @@ function ControlBar(props: {
 
   }, [currentTime, currentTrack, currentRoom]);
 
+  useEffect(() => {
+    return () => {
+      currentRoom.disconnect(true).then(() => {
+        console.log(currentRoom);
+      })
+    }
+  }, [currentRoom]);
+
   const onUnmuteClicked = () => {
     console.log(`From inside: ${currentTimeRef.current}`)
     pausePlay();
