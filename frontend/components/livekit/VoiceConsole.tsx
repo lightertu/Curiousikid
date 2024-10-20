@@ -1,7 +1,6 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import type { Room } from 'livekit-client';
 import {v4 as uuidv4} from 'uuid';
 import {
   LiveKitRoom,
@@ -11,7 +10,7 @@ import {
   useRoomContext,
   AgentState,
 } from "@livekit/components-react";
-import { useEffect, useState } from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import { MediaDeviceFailure } from "livekit-client";
 import type { LiveKitAuthPutResponse } from "@/app/api/livekit/auth/route";
 import { NoAgentNotification } from "@/components/livekit/NoAgentNotification";
@@ -24,20 +23,21 @@ export function VoiceConsole() {
     LiveKitAuthPutResponse | undefined
   >(undefined);
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
-  const { currentTrack, currentTime, pausePlay } = usePlayback();
+  const { currentTrack } = usePlayback();
   const connectRoom = () => {
     const url = new URL(
         process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ??
         "/api/livekit/auth",
         window.location.origin
     );
+    const participantId = "raytu";
+    const roomName = `${participantId}-${currentTrack?.id}-${uuidv4()}`;
     fetch(url.toString(), {
       method: "PUT",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
-        participantIdentity: `raytu-${uuidv4()}`,
-        podcast: currentTrack,
-        podcastTimestamp: currentTime,
+        participantId: participantId,
+        roomName: roomName
       })
     })
     .then(response => response.json())
@@ -107,60 +107,68 @@ function ControlBar(props: {
    * Note: This is only available on paid plans, see {@link https://livekit.io/pricing | LiveKit Pricing} for more details.
    */
   const { currentTrack, currentTime, pausePlay, resumePlay } = usePlayback();
-  const room = useRoomContext();
-  const krisp = useKrispNoiseFilter();
+  const currentRoom = useRoomContext();
+  const currentTimeRef = useRef(currentTime);
+  const currentTrackRef = useRef(currentTrack);
+  const currentRoomRef = useRef(currentRoom);
+
   useEffect(() => {
-    krisp.setNoiseFilterEnabled(true);
-  }, []);
+    currentTimeRef.current = currentTime;
+    currentTrackRef.current = currentTrack;
+    currentRoomRef.current = currentRoom;
+
+  }, [currentTime, currentTrack, currentRoom]);
+
+  const onUnmuteClicked = () => {
+    console.log(`From inside: ${currentTimeRef.current}`)
+    pausePlay();
+    currentRoom.localParticipant.setMetadata(JSON.stringify({
+      podcast: currentTrackRef.current,
+      podcastTimestamp: currentTimeRef.current,
+    }))
+  }
 
   return (
-      <div className="relative h-[100px]">
-        <AnimatePresence>
-          {props.agentState === "disconnected" && (
-              <motion.button
-                  initial={{opacity: 0, top: 0}}
-                  animate={{opacity: 1}}
-                  exit={{opacity: 0, top: "-10px"}}
-                  transition={{duration: 1, ease: [0.09, 1.04, 0.245, 1.055]}}
-                  className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
-                  onClick={() => {
-                    props.onConnectButtonClicked()
-                  }}
-              >
-                Reconnect
-              </motion.button>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {props.agentState !== "disconnected" && (
-            <motion.div
-              initial={{opacity: 0, top: "10px"}}
-              animate={{opacity: 1, top: 0}}
-              exit={{opacity: 0, top: "-10px"}}
-              transition={{duration: 0.4, ease: [0.09, 1.04, 0.245, 1.055]}}
-              className="flex h-8 absolute left-1/2 -translate-x-1/2  justify-center"
-            >
-              <CustomVoiceAssistantControlBar
-                controls={{
-                  microphone: true,
-                  onMute: () => {
-                    resumePlay()
-                  },
-                  onUnmute: () => {
-                    pausePlay();
-                    room.localParticipant.setMetadata(JSON.stringify({
-                      podcast: currentTrack,
-                      podcastTimestamp: currentTime,
-                    }))
-                  }
-                }}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-)
-  ;
+    <div className="relative h-[100px]">
+      <AnimatePresence>
+        {props.agentState === "disconnected" && (
+          <motion.button
+            initial={{opacity: 0, top: 0}}
+            animate={{opacity: 1}}
+            exit={{opacity: 0, top: "-10px"}}
+            transition={{duration: 1, ease: [0.09, 1.04, 0.245, 1.055]}}
+            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
+            onClick={() => {
+              props.onConnectButtonClicked()
+            }}
+          >
+          Reconnect
+          </motion.button>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {!["initializing", "connecting", "disconnected"].includes(props.agentState) && (
+          <motion.div
+            initial={{opacity: 0, top: "10px"}}
+            animate={{opacity: 1, top: 0}}
+            exit={{opacity: 0, top: "-10px"}}
+            transition={{duration: 0.4, ease: [0.09, 1.04, 0.245, 1.055]}}
+            className="flex h-8 absolute left-1/2 -translate-x-1/2  justify-center"
+          >
+            <CustomVoiceAssistantControlBar
+              controls={{
+                microphone: true,
+                onMute: () => {
+                  resumePlay()
+                },
+                onUnmute: onUnmuteClicked,
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 function onDeviceFailure(error?: MediaDeviceFailure) {

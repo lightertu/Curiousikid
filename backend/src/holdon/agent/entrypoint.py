@@ -31,7 +31,9 @@ async def entrypoint(ctx: JobContext):
     # wait for the first participant to connect
 
     def rag(agent: VoicePipelineAgent, chat_ctx: ChatContext) -> LLMStream:
+        print()
         print(ctx.room.remote_participants.get(participant.identity).metadata)
+        print()
 
         return agent.llm.chat(
             chat_ctx=chat_ctx,

@@ -4,23 +4,21 @@ import {
   VideoGrant
 } from "livekit-server-sdk";
 import { NextResponse } from "next/server";
-import {Song} from "@/lib/db/types";
 
 const API_KEY = process.env.LIVEKIT_API_KEY as string;
-const API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL;
+const API_SECRET = process.env.LIVEKIT_API_SECRET as string;
+const LIVEKIT_URL = process.env.LIVEKIT_URL as string;
 
 export type LiveKitAuthPutResponse = {
   serverUrl: string;
   roomName: string;
-  participantName: string;
+  participantId: string;
   participantToken: string;
 };
 
 export interface LiveKitAuthPutRequest {
-  participantIdentity: string;
-  podcast: Song;
-  podcastTimestamp: string;
+  participantId: string;
+  roomName: string;
 }
 
 export async function PUT(request: Request) {
@@ -30,24 +28,19 @@ export async function PUT(request: Request) {
 
   try {
     const requestPayload: LiveKitAuthPutRequest = await request.json()
-    const roomName: string = `${requestPayload.podcast.id}-${requestPayload.participantIdentity}`;
     const participantToken = await createParticipantToken(
         {
-          identity: requestPayload.participantIdentity,
-          metadata: JSON.stringify({
-            podcas: requestPayload.podcast,
-            podcastTimestamp: requestPayload.podcastTimestamp
-          })
+          identity: requestPayload.participantId,
         },
-        roomName
+        requestPayload.roomName
     );
 
     // Return connection details
     const response: LiveKitAuthPutResponse = {
       serverUrl: LIVEKIT_URL,
-      roomName: roomName,
+      roomName: requestPayload.roomName,
       participantToken: participantToken,
-      participantName: participantToken,
+      participantId: requestPayload.participantId,
     };
 
     return NextResponse.json(response);

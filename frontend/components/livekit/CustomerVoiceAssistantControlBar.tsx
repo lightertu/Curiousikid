@@ -11,7 +11,6 @@ import {
   useLocalParticipantPermissions,
   usePersistentUserChoices,
 } from "@livekit/components-react";
-import {usePlayback} from "@/app/playback-context";
 
 
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
