@@ -1,0 +1,15 @@
+podcasts:
+  - id:  '1'
+    name: 'Dr. Victor Carrión: How to Heal From Post-Traumatic Stress Disorder (PTSD)'
+    artist: 'Andrew Huberman'
+    album: 'Huberman Lab'
+    duration: 8818
+    imageUrl: 'https://megaphone.imgix.net/podcasts/042e6144-725e-11ec-a75d-c38f702aecad/image/Huberman-Lab-Podcast-Thumbnail-3000x3000.png?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=format,compress'
+    audioUrl: 'https://dcs-spotify.megaphone.fm/SCIM6456251481.mp3?key=35e96ab6e76366104fc4100b969a39d5&request_event_id=ca383c29-36f0-4abd-9fb9-ac24dc64ca9f&timetoken=1728844385_528C76F0658DC9C55E80F982FFC903B3'
+  - id:  '2'
+    name: 'Dr. Victor Carrión: How to Heal From Post-Traumatic Stress Disorder (PTSD)'
+    artist: 'Andrew Huberman'
+    album: 'Huberman Lab'
+    duration: 8818
+    imageUrl: 'https://megaphone.imgix.net/podcasts/042e6144-725e-11ec-a75d-c38f702aecad/image/Huberman-Lab-Podcast-Thumbnail-3000x3000.png?ixlib=rails-4.3.1&max-w=3000&max-h=3000&fit=crop&auto=format,compress'
+    audioUrl: 'https://dcs-spotify.megaphone.fm/SCIM6456251481.mp3?key=35e96ab6e76366104fc4100b969a39d5&request_event_id=ca383c29-36f0-4abd-9fb9-ac24dc64ca9f&timetoken=1728844385_528C76F0658DC9C55E80F982FFC903B3'

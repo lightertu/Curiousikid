@@ -5,7 +5,7 @@ from fastapi import FastAPI, BackgroundTasks
 from holdon.envionrment import ENV
 
 app = FastAPI()
-transcribe_client = boto3.client('transcribe')
+transcribe_client = boto3.client('_transcribe')
 
 LISTEN_NOTES_API_KEY = "your_listen_notes_api_key"
 API_URL = "https://listen-api.listennotes.com/api/v2/podcasts"
@@ -61,12 +61,12 @@ async def stream_to_transcribe(podcast_id: str, audio_url: str):
             for chunk in audio_stream.aiter_bytes():
                 # In this example, assume the chunk is in the correct format.
                 # You might need to convert the chunk to PCM if required.
-
                 # Send the chunk to Amazon Transcribe
                 send_audio_chunk_to_transcribe(chunk, transcribe_stream)
 
     # Complete the transcription session
     transcribe_client.get_transcription_job(TranscriptionJobName=transcription_job_name)
+
 
 
 def send_audio_chunk_to_transcribe(audio_chunk, transcribe_stream):

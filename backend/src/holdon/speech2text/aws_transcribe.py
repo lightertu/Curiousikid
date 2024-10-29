@@ -14,7 +14,7 @@ TRANSCRIBE_LANGUAGE_CODE = 'en-US'
 class BatchSpeech2TextConverter:
     def __init__(self):
         # Initialize the Transcribe client
-        self.transcribe_client = boto3.client('transcribe')
+        self.transcribe_client = boto3.client('_transcribe')
         self.s3 = s3fs.S3FileSystem()
 
     def convert(self, job_name: str, media_url: str, bucket: str):
@@ -27,7 +27,7 @@ class BatchSpeech2TextConverter:
                                        language_code: str = TRANSCRIBE_LANGUAGE_CODE):
         s3_path = await self.persist_file(url=media_url, bucket=bucket)
         session = aioboto3.Session()
-        async with session.client('transcribe') as transcribe_client:
+        async with session.client('_transcribe') as transcribe_client:
             # Start transcription job
             response = await transcribe_client.start_transcription_job(
                 TranscriptionJobName=job_name,
