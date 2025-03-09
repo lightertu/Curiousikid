@@ -5,6 +5,7 @@ import styled from "styled-components";
 import StoryCover from "./StoryCover";
 import { Song } from "../data";
 import { VoiceConsole } from "./livekit/VoiceConsole";
+import { VoiceAssistantControlBar } from "@livekit/components-react";
 
 interface PlayerProps {
 	currentSong: Song;
@@ -162,9 +163,10 @@ const Player: React.FC<PlayerProps> = ({
 
 	return (
 		<>
-		<StoryCover currentSong={currentSong} />
-
-		<VoiceConsole />
+		{/* <StoryCover currentSong={currentSong} /> */}
+		<div style={{border: '3px solid red', margin: '20px', minHeight: '200px'}}>
+			<VoiceConsole />
+		</div>
 		<PlayerContainer>
 			<TimeControlContainer isDisabled={isMicActive}>
 				<P isDisabled={isMicActive}>{getTime(songInfo.currentTime || 0)}</P>
