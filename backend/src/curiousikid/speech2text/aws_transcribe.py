@@ -6,7 +6,7 @@ import aiohttp
 import boto3
 import s3fs
 
-from holdon.envionrment import ENV
+from curiousikid.envionrment import ENV
 
 TRANSCRIBE_LANGUAGE_CODE = 'en-US'
 

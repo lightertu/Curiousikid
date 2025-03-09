@@ -8,7 +8,7 @@ from livekit.agents.pipeline import VoicePipelineAgent
 from livekit.plugins import deepgram, openai, silero
 from livekit.rtc import RemoteParticipant
 
-from holdon.envionrment import ENV
+from curiousikid.envionrment import ENV
 
 logger = logging.getLogger("chatroom")
 

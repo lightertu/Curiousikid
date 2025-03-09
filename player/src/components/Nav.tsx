@@ -1,7 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMusic } from "@fortawesome/free-solid-svg-icons";
+import { faBookOpenReader } from "@fortawesome/free-solid-svg-icons";
 
 interface NavProps {
 	libraryStatus: boolean;
@@ -15,10 +15,10 @@ interface H1Props {
 const Nav: React.FC<NavProps> = ({ libraryStatus, setLibraryStatus }) => {
 	return (
 		<NavContainer>
-			<H1 libraryStatus={libraryStatus}>Vibes</H1>
+			<H1 libraryStatus={libraryStatus}>Current Playing</H1>
 			<Button onClick={() => setLibraryStatus(!libraryStatus)}>
 				<span>Library</span>
-				<FontAwesomeIcon icon={faMusic} />
+				<FontAwesomeIcon icon={faBookOpenReader} />
 			</Button>
 		</NavContainer>
 	);

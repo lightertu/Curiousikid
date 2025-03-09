@@ -2,21 +2,21 @@ import React from "react";
 import styled from "styled-components";
 import { Song as SongType } from "../data";
 
-interface SongProps {
+interface StoryCoverProps {
 	currentSong: SongType;
 }
 
-const Song: React.FC<SongProps> = ({ currentSong }) => {
+const StoryCover: React.FC<StoryCoverProps> = ({ currentSong }) => {
 	return (
-		<SongContainer>
+		<StoryCoverContainer>
 			<Img src={currentSong.cover} alt={currentSong.name}></Img>
 			<H1>{currentSong.name}</H1>
 			<H2>{currentSong.artist}</H2>
-		</SongContainer>
+		</StoryCoverContainer>
 	);
 };
 
-const SongContainer = styled.div`
+const StoryCoverContainer = styled.div`
 	margin-top: 10vh;
 	min-height: 50vh;
 	max-height: 60vh;
@@ -42,4 +42,4 @@ const H2 = styled.h3`
 	font-size: 1rem;
 `;
 
-export default Song;
+export default StoryCover;

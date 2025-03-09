@@ -24,8 +24,8 @@ install:
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
     # Install Node.js 16 and use it
-    nvm install 16
-    nvm use 16
+    nvm install 18
+    nvm use 18
     
     # Install yarn if not already installed
     if ! command -v yarn &> /dev/null; then
@@ -125,8 +125,8 @@ start:
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     
-    # Use Node.js 16
-    nvm use 16
+    # Use Node.js 18
+    nvm use 18
     
     # Install yarn if not already installed
     if ! command -v yarn &> /dev/null; then

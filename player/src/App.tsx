@@ -4,7 +4,7 @@ import "./App.css";
 
 // Import components
 import Player from "./components/Player";
-import Song from "./components/Song";
+import StoryCover from "./components/StoryCover";
 import Library from "./components/Library";
 import Nav from "./components/Nav";
 import Credit from "./components/Credit";
@@ -71,7 +71,6 @@ const App: React.FC = () => {
 	return (
 		<AppContainer libraryStatus={libraryStatus}>
 			<Nav libraryStatus={libraryStatus} setLibraryStatus={setLibraryStatus} />
-			<Song currentSong={currentSong} />
 			<Player
 				isPlaying={isPlaying}
 				setIsPlaying={setIsPlaying}

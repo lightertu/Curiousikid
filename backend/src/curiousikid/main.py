@@ -2,7 +2,7 @@ import boto3
 import httpx
 from fastapi import FastAPI, BackgroundTasks
 
-from holdon.envionrment import ENV
+from curiousikid.envionrment import ENV
 
 app = FastAPI()
 transcribe_client = boto3.client('_transcribe')
