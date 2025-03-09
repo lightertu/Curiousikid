@@ -1,0 +1,45 @@
+# List all available recipes
+default:
+    @just --list
+
+# Set strict shell options for all recipes
+set shell := ["bash", "-eux", "-c"]
+
+# Update AWS credentials
+auth:
+    ~/.toolbox/bin/ada credentials update --account=026090537351 --provider=conduit --role=IibsAdminAccess-DO-NOT-DELETE --once
+    export AWS_DEFAULT_REGION='us-east-1'
+
+# Remove node_modules directory
+clean:
+    rm -rf node_modules
+
+# Install dependencies and start development server
+install:
+  #!/usr/bin/env bash
+  set -eu
+  if [ ! -d "$HOME/.nvm" ]; then 
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
+    export NVM_DIR="$HOME/.nvm" 
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+  fi
+
+  # Load nvm
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+  # Install Node.js 18 and use it
+  nvm install 18
+  nvm use 18
+
+  if ! command -v pnpm &> /dev/null; then
+    npm install -g pnpm
+  fi
+
+  pnpm install
+  pnpm dev
+
+start: 
+  #!/usr/bin/env bash
+  set -eu
+  pnpm dev

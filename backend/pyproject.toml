@@ -1,42 +1,37 @@
-[tool.poetry]
-name = "holdon"
+[project]
+name = "Holdon"
 version = "0.1.0"
-description = "Chat with your podcast host during podcast"
-authors = ["Rui Tu <this.ruitu@gmail.com>"]
+description = "Demo"
 readme = "README.md"
+requires-python = ">=3.10"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-boto3 = "^1.34.70"
-streamlit = "^1.39.0"
-pygame = "^2.6.1"
-fastapi = "^0.115.0"
-httpx = "^0.27.2"
-dynaconf = "^3.2.6"
-websockets = "^13.1"
-amazon-transcribe = "^0.6.2"
-aiohttp = "^3.10.10"
-ffmpeg-python = "^0.2.0"
-aiostream = "^0.6.3"
-s3fs = "^2024.9.0"
-aioboto3 = "^13.1.1"
-moviepy = "^1.0.3"
-llvmlite = { version = ">=0.34.0", allow-prereleases = true }
-setuptools = "^75.1.0"
-cython = "^3.0.11"
-numba = "0.60.0"
-numpy = "<2.0.0"
-torch = "2.2.2"
-openai-whisper = "20240930"
-groq = "^0.11.0"
-livekit-agents = "^0.10.1"
-pip = "^24.2"
-livekit-plugins-deepgram = "^0.6.8"
-livekit-plugins-elevenlabs = "^0.7.5"
-livekit-plugins-openai = "^0.10.3"
-livekit-plugins-silero = "^0.7.1"
-pyyaml = "^6.0.2"
+dependencies = [
+    "boto3>=1.34.70",
+    "streamlit>=1.39.0",
+    "pygame>=2.6.1",
+    "fastapi>=0.115.0",
+    "httpx>=0.27.2",
+    "dynaconf>=3.2.6",
+    "websockets>=13.1",
+    "aiohttp>=3.10.10",
+    "ffmpeg-python>=0.2.0",
+    "aiostream>=0.6.3",
+    "s3fs>=2024.9.0",
+    "aioboto3>=13.1.1",
+    "openai-whisper==20240930",
+    "livekit-agents>=0.10.1",
+    "livekit-plugins-deepgram>=0.6.8",
+    "livekit-plugins-elevenlabs>=0.7.5",
+    "livekit-plugins-openai>=0.10.3",
+    "livekit-plugins-silero>=0.7.1",
+    "pyyaml>=6.0.2",
+]
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.pytest.ini_options]
+python_classes = ["Test", "Describe"]
+python_functions = ["test_", "it_", "and_", "but_", "they_"]
+python_files = ["test_*.py",]
+testpaths = ["tests",]
+
+[tool.uv]
+package = true
