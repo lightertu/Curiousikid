@@ -3,8 +3,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faPlay, faPause, faMicrophone } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import StoryCover from "./StoryCover";
-import { Song, Song as SongType } from "../data";
-// Define interfaces
+import { Song } from "../data";
+import { VoiceConsole } from "./livekit/VoiceConsole";
+
 interface PlayerProps {
 	currentSong: Song;
 	setCurrentSong: React.Dispatch<React.SetStateAction<Song>>;
@@ -161,7 +162,7 @@ const Player: React.FC<PlayerProps> = ({
 
 	return (
 		<>
-		{/* <StoryCover currentSong={currentSong} /> */}
+		<StoryCover currentSong={currentSong} />
 
 		<VoiceConsole />
 		<PlayerContainer>

@@ -1,13 +1,10 @@
 import React, { useState, useRef } from "react";
 import styled from "styled-components";
-import "./App.css";
 
 // Import components
 import Player from "./components/Player";
-import StoryCover from "./components/StoryCover";
 import Library from "./components/Library";
 import Nav from "./components/Nav";
-import Credit from "./components/Credit";
 // Import data
 import data, { Song as SongType } from "./data";
 
@@ -90,7 +87,6 @@ const App: React.FC = () => {
 				setSongs={setSongs}
 				libraryStatus={libraryStatus}
 			/>
-			<Credit />
 			<audio
 				onLoadedMetadata={updateTimeHandler}
 				onTimeUpdate={updateTimeHandler}
