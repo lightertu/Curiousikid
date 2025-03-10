@@ -1,11 +1,10 @@
-import React, { RefObject, useState } from "react";
+import React, { RefObject, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faPlay, faPause, faMicrophone } from "@fortawesome/free-solid-svg-icons";
 import styled from "styled-components";
 import StoryCover from "./StoryCover";
 import { Song } from "../data";
-import { VoiceConsole } from "./livekit/VoiceConsole";
-import { VoiceAssistantControlBar } from "@livekit/components-react";
+import { VoiceConsole, VoiceConsoleRef } from "./livekit/VoiceConsole";
 
 interface PlayerProps {
 	currentSong: Song;
@@ -73,11 +72,14 @@ const Player: React.FC<PlayerProps> = ({
 	setSongs,
 }) => {
 	// Add a new state to track microphone active state
-	const [isMicActive, setIsMicActive] = useState<boolean>(false);
+	const [micState, setMicState] = useState<"inactive" | "connecting" | "active">("inactive");
+	
+	const voiceConsoleRef = useRef<VoiceConsoleRef>(null);
+
 	
 	// Event handlers with disabled state handling
 	const playSongHandler = (): void => {
-		if (isMicActive) return; // Don't do anything if mic is active
+		if (micState in ["connecting", "active"]) return; // Don't do anything if mic is connecting or active
 		
 		if (isPlaying && audioRef.current) {
 			audioRef.current.pause();
@@ -91,16 +93,30 @@ const Player: React.FC<PlayerProps> = ({
 
 	// Add new handler for microphone toggle
 	const toggleMicHandler = (): void => {
-		setIsMicActive(!isMicActive);
-		
-		// If activating mic, pause any playing audio
-		if (!isMicActive && isPlaying && audioRef.current) {
+		if (micState === "inactive") {
+			handleActivateMic();
+		} else if (micState === "active") {
+			handleDeactivateMic();
+		}
+	};
+	
+	const handleActivateMic = async () => {
+		// step 0: Set the mic status to be connecting, so we have a icon spinning where the mic is
+		// step 1: connect to livekit
+		// step 2: set the mic status to be active after livekit is connected
+		if (isPlaying && audioRef.current) {
 			audioRef.current.pause();
 			setIsPlaying(false);
 		}
-		
-		console.log("Microphone is now:", !isMicActive ? "active" : "inactive");
-	};
+		setMicState("connecting");
+		await voiceConsoleRef.current?.connect({ timestamp: Date.now() });
+		setMicState("active");
+	}
+	
+	const handleDeactivateMic = async () => {
+		await voiceConsoleRef.current?.disconnect();
+		setMicState("inactive");
+	}
 
 	const togglePlayPauseIcon = () => {
 		if (isPlaying) {
@@ -124,8 +140,6 @@ const Player: React.FC<PlayerProps> = ({
 	};
 
 	const skipTrackHandler = async (direction: string): Promise<void> => {
-		if (isMicActive) return; // Don't do anything if mic is active
-		
 		let currentIndex = songs.findIndex((song) => song.id === currentSong.id);
 		if (direction === "skip-forward") {
 			await setCurrentSong(songs[(currentIndex + 1) % songs.length]);
@@ -161,12 +175,12 @@ const Player: React.FC<PlayerProps> = ({
 		setSongs(newSongs);
 	};
 
+	const isMicActive = micState === "active";
+
 	return (
 		<>
-		{/* <StoryCover currentSong={currentSong} /> */}
-		<div style={{border: '3px solid red', margin: '20px', minHeight: '200px'}}>
-			<VoiceConsole />
-		</div>
+		<StoryCover currentSong={currentSong} />
+		<VoiceConsole ref={voiceConsoleRef} />
 		<PlayerContainer>
 			<TimeControlContainer isDisabled={isMicActive}>
 				<P isDisabled={isMicActive}>{getTime(songInfo.currentTime || 0)}</P>

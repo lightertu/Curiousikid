@@ -9,6 +9,10 @@ set shell := ["bash", "-eux", "-c"]
 clean:
     rm -rf node_modules
 
+reinstall:
+    #!/usr/bin/env bash
+    just clean install
+
 # Install dependencies
 install:
     #!/usr/bin/env bash

@@ -14,14 +14,37 @@ import {
 import { useKrispNoiseFilter } from "@livekit/components-react/krisp";
 import { AnimatePresence, motion } from "framer-motion";
 import { MediaDeviceFailure } from "livekit-client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
 import type { ConnectionDetails } from "../../api/livekit";
+import { LiveKitApi } from "../../api/livekit";
+export interface StoryContext {
+  timestamp: number;
+}
 
-export function VoiceConsole() {
+export interface VoiceConsoleRef {
+  connect: (storyContext: StoryContext) => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+export interface VoiceConsoleProps {
+}
+
+
+export const VoiceConsole = forwardRef<VoiceConsoleRef, VoiceConsoleProps>((props, ref) => {
   const [connectionDetails, updateConnectionDetails] = useState<ConnectionDetails | undefined>(
     undefined
   );
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
+  
+  useImperativeHandle(ref, () => ({
+    connect: async (storyContext: StoryContext) => {
+      await onConnectButtonClicked();
+    },
+    disconnect: async () => {
+    },
+  }));
+  
+  const liveKitApi = new LiveKitApi();
 
   const onConnectButtonClicked = useCallback(async () => {
     // Generate room connection details, including:
@@ -33,23 +56,17 @@ export function VoiceConsole() {
     // In real-world application, you would likely allow the user to specify their
     // own participant name, and possibly to choose from existing rooms to join.
 
-    const url = new URL(
-      process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/connection-details",
-      window.location.origin
-    );
-    const response = await fetch(url.toString());
-    const connectionDetailsData = await response.json();
+    const connectionDetailsData = await liveKitApi.getConnectionDetails() as ConnectionDetails;
     updateConnectionDetails(connectionDetailsData);
+  }, []);
+
+  const onDisconnectButtonClicked = useCallback(async (storyContext: StoryContext) => {
+    console.log("Disconnecting from story context:", storyContext);
   }, []);
 
   return (
     <>
-      {/* Tailwind Test Component - Remove after debugging */}
-      <div className="p-4 m-4 bg-black text-white rounded-lg font-bold border-2 border-red-500">
-        Tailwind Test - If you see this styled, Tailwind is working
-      </div>
-      
-      <main data-lk-theme="white" className="h-full grid content-center bg-[var(--lk-bg)]">
+      <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">
         <LiveKitRoom
           token={connectionDetails?.participantToken}
           serverUrl={connectionDetails?.serverUrl}
@@ -63,14 +80,14 @@ export function VoiceConsole() {
           className="grid grid-rows-[2fr_1fr] items-center"
         >
           <SimpleVoiceAssistant onStateChange={setAgentState} />
-          <ControlBar onConnectButtonClicked={onConnectButtonClicked} agentState={agentState} />
+          <ControlBar agentState={agentState} />
           <RoomAudioRenderer />
           <NoAgentNotification state={agentState} />
         </LiveKitRoom>
       </main>
     </>
   );
-}
+});
 
 function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => void }) {
   const { state, audioTrack } = useVoiceAssistant();
@@ -90,7 +107,7 @@ function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => voi
   );
 }
 
-function ControlBar(props: { onConnectButtonClicked: () => void; agentState: AgentState }) {
+function ControlBar(props: { agentState: AgentState }) {
   /**
    * Use Krisp background noise reduction when available.
    * Note: This is only available on Scale plan, see {@link https://livekit.io/pricing | LiveKit Pricing} for more details.
@@ -102,20 +119,6 @@ function ControlBar(props: { onConnectButtonClicked: () => void; agentState: Age
 
   return (
     <div className="relative h-[100px]">
-      <AnimatePresence>
-        {props.agentState === "disconnected" && (
-          <motion.button
-            initial={{ opacity: 0, top: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, top: "-10px" }}
-            transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
-            onClick={() => props.onConnectButtonClicked()}
-          >
-            Start a conversation
-          </motion.button>
-        )}
-      </AnimatePresence>
       <AnimatePresence>
         {props.agentState !== "disconnected" && props.agentState !== "connecting" && (
           <motion.div
@@ -134,7 +137,7 @@ function ControlBar(props: { onConnectButtonClicked: () => void; agentState: Age
       </AnimatePresence>
     </div>
   );
-}
+};
 
 function onDeviceFailure(error?: MediaDeviceFailure) {
   console.error(error);
