@@ -94,8 +94,6 @@ const Player: React.FC<PlayerProps> = ({
 	
 	// Event handlers with disabled state handling
 	const playSongHandler = (): void => {
-		if (micActive) return; // Don't do anything if mic is active
-		
 		if (isPlaying && audioRef.current) {
 			audioRef.current.pause();
 			setIsPlaying(!isPlaying);
@@ -131,6 +129,7 @@ const Player: React.FC<PlayerProps> = ({
 	const handleDeactivateMic = async () => {
 		try {
 			await handleDisconnect();
+			playSongHandler();
 			setMicActive(false);
 		} catch (error) {
 			console.error("Error disconnecting:", error);
