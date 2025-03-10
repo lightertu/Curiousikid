@@ -1,15 +1,18 @@
 {
 	"folders": [
-		{
-			"path": "backend"
-		},
-		{
-			"path": "frontend"
-		},
-		{
-			"path": "player"
-		}
-	],
+        {
+            "path": "backend"
+        },
+        {
+            "path": "frontend"
+        },
+        {
+            "path": "player"
+        },
+        {
+            "path": "next-player"
+        }
+    ],
 	"settings": {
         "remote.portsAttributes": {
 			"3000": {
@@ -41,6 +44,9 @@
                 "remotePort": 7880,
                 "name": "LiveKit Server"
             }
-        ]
+        ],
+        "search.exclude": {
+            "**/node_modules": false
+        }
     }
 }

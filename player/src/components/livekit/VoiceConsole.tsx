@@ -57,7 +57,7 @@ export const VoiceConsole = forwardRef<VoiceConsoleRef, VoiceConsoleProps>((prop
     // own participant name, and possibly to choose from existing rooms to join.
 
     const connectionDetailsData = await liveKitApi.getConnectionDetails() as ConnectionDetails;
-    updateConnectionDetails(connectionDetailsData);
+    // updateConnectionDetails(connectionDetailsData);
   }, []);
 
   const onDisconnectButtonClicked = useCallback(async (storyContext: StoryContext) => {
