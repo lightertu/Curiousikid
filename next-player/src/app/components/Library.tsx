@@ -23,7 +23,7 @@ const Library: React.FC<LibraryProps> = ({
 	return (
 		<div 
 			className={clsx(
-				"fixed z-10 top-0 left-0 w-70 h-full bg-white shadow-lg select-none overflow-scroll transition-all duration-500 ease-in-out",
+				"fixed z-10 top-0 left-0 w-100 h-full bg-white shadow-lg select-none overflow-scroll transition-all duration-500 ease-in-out",
 				libraryStatus ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0", "library-scrollbar"
 			)}
 			style={{

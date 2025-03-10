@@ -9,6 +9,8 @@ import Library from "./components/Library";
 import Nav from "./components/Nav";
 // Import data
 import data, { Song as SongType } from "./data";
+import { LiveKitApi } from "./api/livekit";
+import styled from "styled-components";
 
 // Define interfaces
 interface SongInfo {
@@ -16,10 +18,14 @@ interface SongInfo {
 	duration: number;
 }
 
+interface AppContainerProps {
+	libraryStatus: boolean;
+}
+
 const App: React.FC = () => {
 	// Ref
 	const audioRef = useRef<HTMLAudioElement>(null);
-
+	
 	// State
 	const [songs, setSongs] = useState<SongType[]>(data());
 	const [currentSong, setCurrentSong] = useState<SongType>(songs[0]);
@@ -65,7 +71,9 @@ const App: React.FC = () => {
 
 	return (
 		<div className={clsx(
-			"flex flex-col justify-center transition-all duration-500 ease-in-out ml-80 md:ml-0"
+			"flex flex-col justify-center transition-all duration-500 ease-in-out",
+			libraryStatus ? "md:ml-80" : "ml-0",
+			"max-md:ml-0"
 		)}>
 			<Nav libraryStatus={libraryStatus} setLibraryStatus={setLibraryStatus} />
 			<Player
@@ -97,5 +105,13 @@ const App: React.FC = () => {
 		</div>
 	);
 };
+
+const AppContainer = styled.div<AppContainerProps>`
+	transition: all 0.5s ease;
+	margin-left: ${(p) => (p.libraryStatus ? "20rem" : "0")};
+	@media screen and (max-width: 768px) {
+		margin-left: 0;
+	}
+`;
 
 export default App;
