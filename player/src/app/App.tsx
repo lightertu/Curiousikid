@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import clsx from "clsx";
 
 // Import components
@@ -10,7 +10,9 @@ import Nav from "./components/Nav";
 // Import data
 import data, { Song as SongType } from "./data";
 import styled from "styled-components";
-
+import { LiveKitRoom } from "@livekit/components-react";
+import { LiveKitAuthPutResponse } from "./api/livekit/auth/route";
+import { v4 as uuidv4 } from 'uuid';
 // Define interfaces
 interface SongInfo {
 	currentTime: number;
@@ -34,6 +36,9 @@ const App: React.FC = () => {
 		currentTime: 0,
 		duration: 0,
 	});
+	const [connectionDetails, setConnectionDetails] = useState<LiveKitAuthPutResponse | undefined>(
+		undefined
+	);
 
 	// Functions
 	const updateTimeHandler = (e: React.SyntheticEvent<HTMLAudioElement>): void => {
@@ -44,8 +49,8 @@ const App: React.FC = () => {
 	};
 
 	const songEndHandler = async (): Promise<void> => {
-		let currentIndex = songs.findIndex((song) => song.id === currentSong.id);
-		let nextSong = songs[(currentIndex + 1) % songs.length];
+		const currentIndex = songs.findIndex((song) => song.id === currentSong.id);
+		const nextSong = songs[(currentIndex + 1) % songs.length];
 		await setCurrentSong(nextSong);
 
 		const newSongs = songs.map((song) => {
@@ -68,6 +73,34 @@ const App: React.FC = () => {
 		}
 	};
 
+	const handleConnectToLiveKit = useCallback(async () => {
+		// Generate room connection details, including:
+		//   - A random Room name
+		//   - A random Participant name
+		//   - An Access Token to permit the participant to join the room
+		//   - The URL of the LiveKit server to connect to
+		//
+		// In real-world application, you would likely allow the user to specify their
+		// own participant name, and possibly to choose from existing rooms to join.
+
+		const url = new URL(
+		  process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/livekit/auth",
+		  window.location.origin
+		);
+		const response = await fetch(url.toString(), {
+		  method: "PUT",
+		  headers: {"Content-Type": "application/json"},
+		  body: JSON.stringify({
+			participantId: "raytu",
+			roomName: "raytu-test-" + uuidv4()
+		  })
+		});
+
+		const connectionDetailsData = await response.json();
+		setConnectionDetails(connectionDetailsData);
+	  }, []
+	);
+
 	return (
 		<div className={clsx(
 			"flex flex-col justify-center transition-all duration-500 ease-in-out",
@@ -75,17 +108,31 @@ const App: React.FC = () => {
 			"max-md:ml-0"
 		)}>
 			<Nav libraryStatus={libraryStatus} setLibraryStatus={setLibraryStatus} />
-			<Player
-				isPlaying={isPlaying}
-				setIsPlaying={setIsPlaying}
-				currentSong={currentSong}
-				setCurrentSong={setCurrentSong}
-				audioRef={audioRef}
-				songInfo={songInfo}
-				setSongInfo={setSongInfo}
-				songs={songs}
-				setSongs={setSongs}
-			/>
+		  	<LiveKitRoom
+		  	  token={connectionDetails?.participantToken}
+		  	  serverUrl={connectionDetails?.serverUrl}
+		  	  connect={connectionDetails !== undefined}
+		  	  audio={true}
+		  	  video={false}
+		  	  onMediaDeviceFailure={onDeviceFailure}
+		  	  onDisconnected={() => {
+		  	    setConnectionDetails(undefined);
+		  	  }}
+		  	  className="grid grid-rows-[2fr_1fr] items-center"
+			>
+				<Player
+					isPlaying={isPlaying}
+					setIsPlaying={setIsPlaying}
+					connectToLiveKit={handleConnectToLiveKit}
+					currentSong={currentSong}
+					setCurrentSong={setCurrentSong}
+					audioRef={audioRef}
+					songInfo={songInfo}
+					setSongInfo={setSongInfo}
+					songs={songs}
+					setSongs={setSongs}
+				/>
+			</LiveKitRoom>
 			<Library
 				songs={songs}
 				setCurrentSong={setCurrentSong}
@@ -112,5 +159,12 @@ const AppContainer = styled.div<AppContainerProps>`
 		margin-left: 0;
 	}
 `;
+
+function onDeviceFailure(error?: MediaDeviceFailure) {
+  console.error(error);
+  alert(
+    "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
+  );
+}
 
 export default App;

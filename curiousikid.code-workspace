@@ -25,7 +25,7 @@
             },
             "7880": {
                 "label": "LiveKit Server",
-                "protocol": "http"
+                "protocol": "http",
             }
         },
         "remote.SSH.defaultForwardedPorts": [

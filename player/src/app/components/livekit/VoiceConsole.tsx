@@ -1,22 +1,16 @@
 "use client";
 
-import { CloseIcon } from "./CloseIcon";
 import { NoAgentNotification } from "./NoAgentNotification";
 import {
   AgentState,
   BarVisualizer,
   DisconnectButton,
-  LiveKitRoom,
   RoomAudioRenderer,
   VoiceAssistantControlBar,
-  useDisconnectButton,
   useVoiceAssistant,
 } from "@livekit/components-react";
 import { AnimatePresence, motion } from "framer-motion";
-import { MediaDeviceFailure } from "livekit-client";
-import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
-import type { LiveKitAuthPutResponse } from "@/app/api/livekit/auth/route";
-import { v4 as uuidv4 } from 'uuid';
+import { useEffect, useState } from "react";
 
 export interface StoryContext {
   timestamp: number;
@@ -28,66 +22,29 @@ export interface VoiceConsoleRef {
 }
 
 export interface VoiceConsoleProps {
+  readonly onAgentStateChange?: (state: AgentState) => void;
 }
 
-
-export function VoiceConsole() {
-  const [connectionDetails, updateConnectionDetails] = useState<LiveKitAuthPutResponse | undefined>(
-    undefined
-  );
+export function VoiceConsole({ onAgentStateChange }: VoiceConsoleProps) {
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
 
-  const onConnectButtonClicked = useCallback(async () => {
-    // Generate room connection details, including:
-    //   - A random Room name
-    //   - A random Participant name
-    //   - An Access Token to permit the participant to join the room
-    //   - The URL of the LiveKit server to connect to
-    //
-    // In real-world application, you would likely allow the user to specify their
-    // own participant name, and possibly to choose from existing rooms to join.
-
-    const url = new URL(
-      process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/livekit/auth",
-      window.location.origin
-    );
-    const response = await fetch(url.toString(), {
-      method: "PUT",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        participantId: "raytu",
-        roomName: "raytu-test-" + uuidv4()
-      })
-    });
-
-    const connectionDetailsData = await response.json();
-    updateConnectionDetails(connectionDetailsData);
-  }, []);
+  // Update setAgentState to also call the parent's handler
+  const handleAgentStateChange = (state: AgentState) => {
+    setAgentState(state);
+    onAgentStateChange?.(state);
+  };
 
   return (
-    <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">
-      <LiveKitRoom
-        token={connectionDetails?.participantToken}
-        serverUrl={connectionDetails?.serverUrl}
-        connect={connectionDetails !== undefined}
-        audio={true}
-        video={false}
-        onMediaDeviceFailure={onDeviceFailure}
-        onDisconnected={() => {
-          updateConnectionDetails(undefined);
-        }}
-        className="grid grid-rows-[2fr_1fr] items-center"
-      >
-        <SimpleVoiceAssistant onStateChange={setAgentState} />
-        <ControlBar onConnectButtonClicked={onConnectButtonClicked} agentState={agentState} />
-        <RoomAudioRenderer />
-        <NoAgentNotification state={agentState} />
-      </LiveKitRoom>
+    <main data-lk-theme="white" className="h-full grid content-center bg-[var(--lk-bg)]">
+      <SimpleVoiceAssistant onStateChange={handleAgentStateChange} />
+      <ControlBar agentState={agentState} />
+      <RoomAudioRenderer />
+      <NoAgentNotification state={agentState} />
     </main>
   );
 }
 
-function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => void }) {
+function SimpleVoiceAssistant(props: { readonly onStateChange: (state: AgentState) => void }) {
   const { state, audioTrack } = useVoiceAssistant();
   useEffect(() => {
     props.onStateChange(state);
@@ -105,7 +62,7 @@ function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => voi
   );
 }
 
-function ControlBar(props: { onConnectButtonClicked: () => void; agentState: AgentState }) {
+function ControlBar(props: { readonly agentState: AgentState }) {
   /**
    * Use Krisp background noise reduction when available.
    * Note: This is only available on Scale plan, see {@link https://livekit.io/pricing | LiveKit Pricing} for more details.
@@ -115,20 +72,6 @@ function ControlBar(props: { onConnectButtonClicked: () => void; agentState: Age
   return (
     <div className="relative h-[100px]">
       <AnimatePresence>
-        {props.agentState === "disconnected" && (
-          <motion.button
-            initial={{ opacity: 0, top: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, top: "-10px" }}
-            transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
-            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
-            onClick={() => props.onConnectButtonClicked()}
-          >
-            Start a conversation
-          </motion.button>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
         {props.agentState !== "disconnected" && props.agentState !== "connecting" && (
           <motion.div
             initial={{ opacity: 0, top: "10px" }}
@@ -137,20 +80,10 @@ function ControlBar(props: { onConnectButtonClicked: () => void; agentState: Age
             transition={{ duration: 0.4, ease: [0.09, 1.04, 0.245, 1.055] }}
             className="flex h-8 absolute left-1/2 -translate-x-1/2  justify-center"
           >
-            <VoiceAssistantControlBar controls={{ leave: false }} />
-            <DisconnectButton>
-              <CloseIcon />
-            </DisconnectButton>
+            <VoiceAssistantControlBar controls={{ leave: false }}/>
           </motion.div>
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function onDeviceFailure(error?: MediaDeviceFailure) {
-  console.error(error);
-  alert(
-    "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
   );
 }
