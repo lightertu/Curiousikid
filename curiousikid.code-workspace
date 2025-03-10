@@ -4,14 +4,8 @@
             "path": "backend"
         },
         {
-            "path": "frontend"
-        },
-        {
             "path": "player"
         },
-        {
-            "path": "next-player"
-        }
     ],
 	"settings": {
         "remote.portsAttributes": {
