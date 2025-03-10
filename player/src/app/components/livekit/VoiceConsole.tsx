@@ -9,20 +9,21 @@ import {
   LiveKitRoom,
   RoomAudioRenderer,
   VoiceAssistantControlBar,
+  useDisconnectButton,
   useVoiceAssistant,
 } from "@livekit/components-react";
-import { useKrispNoiseFilter } from "@livekit/components-react/krisp";
 import { AnimatePresence, motion } from "framer-motion";
 import { MediaDeviceFailure } from "livekit-client";
 import { useCallback, useEffect, useState, forwardRef, useImperativeHandle } from "react";
-import type { ConnectionDetails } from "../../api/livekit";
-import { LiveKitApi } from "../../api/livekit";
+import type { LiveKitAuthPutResponse } from "@/app/api/livekit/auth/route";
+import { v4 as uuidv4 } from 'uuid';
+
 export interface StoryContext {
   timestamp: number;
 }
 
 export interface VoiceConsoleRef {
-  connect: (storyContext: StoryContext) => Promise<void>;
+  isConnected: boolean;
   disconnect: () => Promise<void>;
 }
 
@@ -30,21 +31,11 @@ export interface VoiceConsoleProps {
 }
 
 
-export const VoiceConsole = forwardRef<VoiceConsoleRef, VoiceConsoleProps>((props, ref) => {
-  const [connectionDetails, updateConnectionDetails] = useState<ConnectionDetails | undefined>(
+export function VoiceConsole() {
+  const [connectionDetails, updateConnectionDetails] = useState<LiveKitAuthPutResponse | undefined>(
     undefined
   );
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
-  
-  useImperativeHandle(ref, () => ({
-    connect: async (storyContext: StoryContext) => {
-      await onConnectButtonClicked();
-    },
-    disconnect: async () => {
-    },
-  }));
-  
-  const liveKitApi = new LiveKitApi();
 
   const onConnectButtonClicked = useCallback(async () => {
     // Generate room connection details, including:
@@ -56,38 +47,45 @@ export const VoiceConsole = forwardRef<VoiceConsoleRef, VoiceConsoleProps>((prop
     // In real-world application, you would likely allow the user to specify their
     // own participant name, and possibly to choose from existing rooms to join.
 
-    const connectionDetailsData = await liveKitApi.getConnectionDetails() as ConnectionDetails;
-    // updateConnectionDetails(connectionDetailsData);
-  }, []);
+    const url = new URL(
+      process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? "/api/livekit/auth",
+      window.location.origin
+    );
+    const response = await fetch(url.toString(), {
+      method: "PUT",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        participantId: "raytu",
+        roomName: "raytu-test-" + uuidv4()
+      })
+    });
 
-  const onDisconnectButtonClicked = useCallback(async (storyContext: StoryContext) => {
-    console.log("Disconnecting from story context:", storyContext);
+    const connectionDetailsData = await response.json();
+    updateConnectionDetails(connectionDetailsData);
   }, []);
 
   return (
-    <>
-      <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">
-        <LiveKitRoom
-          token={connectionDetails?.participantToken}
-          serverUrl={connectionDetails?.serverUrl}
-          connect={connectionDetails !== undefined}
-          audio={true}
-          video={false}
-          onMediaDeviceFailure={onDeviceFailure}
-          onDisconnected={() => {
-            updateConnectionDetails(undefined);
-          }}
-          className="grid grid-rows-[2fr_1fr] items-center"
-        >
-          <SimpleVoiceAssistant onStateChange={setAgentState} />
-          <ControlBar agentState={agentState} />
-          <RoomAudioRenderer />
-          <NoAgentNotification state={agentState} />
-        </LiveKitRoom>
-      </main>
-    </>
+    <main data-lk-theme="default" className="h-full grid content-center bg-[var(--lk-bg)]">
+      <LiveKitRoom
+        token={connectionDetails?.participantToken}
+        serverUrl={connectionDetails?.serverUrl}
+        connect={connectionDetails !== undefined}
+        audio={true}
+        video={false}
+        onMediaDeviceFailure={onDeviceFailure}
+        onDisconnected={() => {
+          updateConnectionDetails(undefined);
+        }}
+        className="grid grid-rows-[2fr_1fr] items-center"
+      >
+        <SimpleVoiceAssistant onStateChange={setAgentState} />
+        <ControlBar onConnectButtonClicked={onConnectButtonClicked} agentState={agentState} />
+        <RoomAudioRenderer />
+        <NoAgentNotification state={agentState} />
+      </LiveKitRoom>
+    </main>
   );
-});
+}
 
 function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => void }) {
   const { state, audioTrack } = useVoiceAssistant();
@@ -107,18 +105,29 @@ function SimpleVoiceAssistant(props: { onStateChange: (state: AgentState) => voi
   );
 }
 
-function ControlBar(props: { agentState: AgentState }) {
+function ControlBar(props: { onConnectButtonClicked: () => void; agentState: AgentState }) {
   /**
    * Use Krisp background noise reduction when available.
    * Note: This is only available on Scale plan, see {@link https://livekit.io/pricing | LiveKit Pricing} for more details.
    */
-  const krisp = useKrispNoiseFilter();
-  useEffect(() => {
-    krisp.setNoiseFilterEnabled(true);
-  }, []);
+
 
   return (
     <div className="relative h-[100px]">
+      <AnimatePresence>
+        {props.agentState === "disconnected" && (
+          <motion.button
+            initial={{ opacity: 0, top: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, top: "-10px" }}
+            transition={{ duration: 1, ease: [0.09, 1.04, 0.245, 1.055] }}
+            className="uppercase absolute left-1/2 -translate-x-1/2 px-4 py-2 bg-white text-black rounded-md"
+            onClick={() => props.onConnectButtonClicked()}
+          >
+            Start a conversation
+          </motion.button>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {props.agentState !== "disconnected" && props.agentState !== "connecting" && (
           <motion.div
@@ -137,7 +146,7 @@ function ControlBar(props: { agentState: AgentState }) {
       </AnimatePresence>
     </div>
   );
-};
+}
 
 function onDeviceFailure(error?: MediaDeviceFailure) {
   console.error(error);

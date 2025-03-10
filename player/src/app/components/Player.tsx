@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAngleLeft, faAngleRight, faPlay, faPause, faMicrophone } from "@fortawesome/free-solid-svg-icons";
 import StoryCover from "./StoryCover";
 import { Song } from "../data";
-import { VoiceConsole, VoiceConsoleRef } from "./livekit/VoiceConsole";
+import { VoiceConsole } from "./livekit/VoiceConsole";
 import clsx from "clsx";
 
 interface PlayerProps {
@@ -51,8 +51,6 @@ const Player: React.FC<PlayerProps> = ({
 	const [progressWidth, setProgressWidth] = useState<number>(0);
 	const progressInterval = useRef<NodeJS.Timeout | null>(null);
 	
-	const voiceConsoleRef = useRef<VoiceConsoleRef>(null);
-
 	// Use effect to handle smooth progress bar animation using setInterval
 	useEffect(() => {
 		// Clear any existing interval
@@ -117,7 +115,6 @@ const Player: React.FC<PlayerProps> = ({
 		}
 		
 		try {
-			await voiceConsoleRef.current?.connect({ timestamp: Date.now() });
 			setMicActive(true);
 		} catch (error) {
 			console.error("Failed to connect microphone:", error);
@@ -126,7 +123,6 @@ const Player: React.FC<PlayerProps> = ({
 	
 	const handleDeactivateMic = async () => {
 		try {
-			await voiceConsoleRef.current?.disconnect();
 			setMicActive(false);
 		} catch (error) {
 			console.error("Error disconnecting:", error);
@@ -192,8 +188,9 @@ const Player: React.FC<PlayerProps> = ({
 
 	return (
 		<>
-		<StoryCover currentSong={currentSong} isPlaying={isPlaying} micActive={micActive} />
-		<div className="min-h-[10vh] flex flex-col items-center justify-between">
+		{/* <StoryCover currentSong={currentSong} isPlaying={isPlaying} /> */}
+		<VoiceConsole />
+		<div className="min-h-[14vh] flex flex-col items-center justify-between">
 			<div className={clsx(
 				"w-1/2 flex items-center md:w-[40%]",
 				micActive && "opacity-50 pointer-events-none"

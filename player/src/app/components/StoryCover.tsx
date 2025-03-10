@@ -5,14 +5,13 @@ import clsx from "clsx";
 interface StoryCoverProps {
 	currentSong: SongType;
 	isPlaying?: boolean;
-	micActive?: boolean;
 }
 
 const StoryCover: React.FC<StoryCoverProps> = ({ 
 	currentSong, 
 	isPlaying = false,
-	micActive = false 
 }) => {
+	const micActive = false 
 	return (
 		<div className="mt-[10vh] min-h-[50vh] max-h-[60vh] flex flex-col items-center justify-center">
 			<img 

@@ -29,7 +29,7 @@ install:
 
 # Run the agent with dev configuration
 run_agent:
-    .venv/bin/python src/holdon/agent/entrypoint.py dev
+    .venv/bin/python src/curiousikid/agent/entrypoint.py dev
 
 serve-livekit:
     livekit-server --dev --bind 0.0.0.0

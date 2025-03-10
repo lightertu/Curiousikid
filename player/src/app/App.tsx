@@ -1,5 +1,7 @@
+"use client";
+
 import React, { useState, useRef } from "react";
-import styled from "styled-components";
+import clsx from "clsx";
 
 // Import components
 import Player from "./components/Player";
@@ -7,6 +9,7 @@ import Library from "./components/Library";
 import Nav from "./components/Nav";
 // Import data
 import data, { Song as SongType } from "./data";
+import styled from "styled-components";
 
 // Define interfaces
 interface SongInfo {
@@ -21,7 +24,7 @@ interface AppContainerProps {
 const App: React.FC = () => {
 	// Ref
 	const audioRef = useRef<HTMLAudioElement>(null);
-
+	
 	// State
 	const [songs, setSongs] = useState<SongType[]>(data());
 	const [currentSong, setCurrentSong] = useState<SongType>(songs[0]);
@@ -66,7 +69,11 @@ const App: React.FC = () => {
 	};
 
 	return (
-		<AppContainer libraryStatus={libraryStatus}>
+		<div className={clsx(
+			"flex flex-col justify-center transition-all duration-500 ease-in-out",
+			libraryStatus ? "md:ml-80" : "ml-0",
+			"max-md:ml-0"
+		)}>
 			<Nav libraryStatus={libraryStatus} setLibraryStatus={setLibraryStatus} />
 			<Player
 				isPlaying={isPlaying}
@@ -94,7 +101,7 @@ const App: React.FC = () => {
 				ref={audioRef}
 				src={currentSong.audio}
 			/>
-		</AppContainer>
+		</div>
 	);
 };
 

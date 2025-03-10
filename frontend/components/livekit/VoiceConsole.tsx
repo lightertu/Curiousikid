@@ -14,7 +14,6 @@ import {useCallback, useEffect, useRef, useState} from "react";
 import { MediaDeviceFailure } from "livekit-client";
 import type { LiveKitAuthPutResponse } from "@/app/api/livekit/auth/route";
 import { NoAgentNotification } from "@/components/livekit/NoAgentNotification";
-import { useKrispNoiseFilter } from "@livekit/components-react/krisp";
 import {usePlayback} from "@/app/playback-context";
 import {CustomVoiceAssistantControlBar} from "@/components/livekit/CustomerVoiceAssistantControlBar";
 
