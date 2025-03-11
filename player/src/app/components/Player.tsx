@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAngleLeft, faAngleRight, faPlay, faPause, faMicrophone } from "@fortawesome/free-solid-svg-icons";
+import { faAngleLeft, faAngleRight, faPlay, faPause, faComments } from "@fortawesome/free-solid-svg-icons";
 import StoryCover from "./StoryCover";
 import { Song } from "../data";
 import { VoiceConsole } from "./livekit/VoiceConsole";
@@ -7,7 +7,7 @@ import clsx from "clsx";
 import { RefObject, useEffect } from "react";
 import { useRef } from "react";
 import { useState } from "react";
-import { useRoomContext } from "@livekit/components-react";
+import { AgentState, useRoomContext } from "@livekit/components-react";
 
 interface PlayerProps {
 	currentSong: Song;
@@ -52,10 +52,12 @@ const Player: React.FC<PlayerProps> = ({
 	connectToLiveKit,
 }) => {
 	// Add a new state to track microphone active state
-	const [micActive, setMicActive] = useState<boolean>(false);
+	const [chatActive, setChatActive] = useState<boolean>(false);
 	const [progressWidth, setProgressWidth] = useState<number>(0);
 	const progressInterval = useRef<NodeJS.Timeout | null>(null);
 	const room = useRoomContext();
+	const [agentState, setAgentState] = useState<AgentState>("disconnected");
+
 	
 	// Use effect to handle smooth progress bar animation using setInterval
 	useEffect(() => {
@@ -105,7 +107,7 @@ const Player: React.FC<PlayerProps> = ({
 
 	// Add new handler for microphone toggle
 	const toggleMicHandler = async (): Promise<void> => {
-		if (micActive) {
+		if (chatActive) {
 			await handleDeactivateMic();
 		} else {
 			await handleActivateMic();
@@ -120,7 +122,7 @@ const Player: React.FC<PlayerProps> = ({
 		
 		try {
 			await connectToLiveKit();
-			setMicActive(true);
+			setChatActive(true);
 		} catch (error) {
 			console.error("Failed to connect microphone:", error);
 		}
@@ -130,7 +132,7 @@ const Player: React.FC<PlayerProps> = ({
 		try {
 			await handleDisconnect();
 			playSongHandler();
-			setMicActive(false);
+			setChatActive(false);
 		} catch (error) {
 			console.error("Error disconnecting:", error);
 		}
@@ -198,15 +200,15 @@ const Player: React.FC<PlayerProps> = ({
 	}
 	return (
 		<>
-			{micActive ? (
-				<VoiceConsole />
+			{chatActive ? (
+				<VoiceConsole onAgentStateChange={setAgentState} />
 			) : (
 				<StoryCover currentSong={currentSong} isPlaying={isPlaying} />
 			)}
 			<div className="min-h-[14vh] flex flex-col items-center justify-between">
 				<div className={clsx(
 					"w-1/2 flex items-center md:w-[40%]",
-					micActive && "opacity-50 pointer-events-none"
+					chatActive && "opacity-50 pointer-events-none"
 				)}>
 					<p className="px-4">{getTime(songInfo.currentTime || 0)}</p>
 					<div className="relative w-full h-4 rounded-full overflow-hidden"
@@ -219,7 +221,7 @@ const Player: React.FC<PlayerProps> = ({
 						
 						{/* Input on top with z-index to ensure it receives clicks */}
 						<input
-							onChange={micActive ? undefined : dragHandler}
+							onChange={chatActive ? undefined : dragHandler}
 							min={0}
 							max={songInfo.duration || 0}
 							value={songInfo.currentTime}
@@ -234,10 +236,10 @@ const Player: React.FC<PlayerProps> = ({
 
 				<div className="flex justify-between items-center p-4 w-[25%] md:w-[25%]">
 					<button 
-						onClick={micActive ? undefined : () => skipTrackHandler("skip-back")}
+						onClick={chatActive ? undefined : () => skipTrackHandler("skip-back")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							micActive 
+							chatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
@@ -250,10 +252,10 @@ const Player: React.FC<PlayerProps> = ({
 					</button>
 					
 					<button 
-						onClick={micActive ? undefined : playSongHandler}
+						onClick={chatActive ? undefined : playSongHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							micActive 
+							chatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
@@ -269,23 +271,23 @@ const Player: React.FC<PlayerProps> = ({
 						onClick={toggleMicHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							micActive 
+							chatActive 
 								? "bg-black/15 shadow-inner translate-y-0.5 text-blue-500" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5"
 						)}
 					>
 						<FontAwesomeIcon
-							className="mic"
-							icon={faMicrophone}
+							className="chat"
+							icon={faComments}
 							size="2x"
 						/>
 					</button>
 					
 					<button 
-						onClick={micActive ? undefined : () => skipTrackHandler("skip-forward")}
+						onClick={chatActive ? undefined : () => skipTrackHandler("skip-forward")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							micActive 
+							chatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
