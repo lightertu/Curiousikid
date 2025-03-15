@@ -2,21 +2,17 @@ import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpenReader } from "@fortawesome/free-solid-svg-icons";
+import useGlobalState from "../GlobalState";
 
-interface NavProps {
-	libraryStatus: boolean;
-	setLibraryStatus: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-interface H1Props {
-	libraryStatus: boolean;
-}
-
-const Nav: React.FC<NavProps> = ({ libraryStatus, setLibraryStatus }) => {
+const Nav: React.FC = () => {
+	const { libraryStatus, setLibraryStatus } = useGlobalState();
+	const toggleLibraryStatus = () => {
+		setLibraryStatus(!libraryStatus);
+	}
 	return (
 		<NavContainer>
 			<H1 $libraryStatus={libraryStatus}>Current Playing</H1>
-			<Button onClick={() => setLibraryStatus(!libraryStatus)}>
+			<Button onClick={toggleLibraryStatus}>
 				<span>Library</span>
 				<FontAwesomeIcon icon={faBookOpenReader} />
 			</Button>

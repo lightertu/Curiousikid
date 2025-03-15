@@ -1,25 +1,12 @@
-import React, { RefObject } from "react";
+import React from "react";
 import LibrarySong from "./LibrarySong";
 import clsx from "clsx";
-import { Song as SongType } from "../data";
+import useGlobalState from "../GlobalState";
 
-interface LibraryProps {
-	songs: SongType[];
-	setCurrentSong: React.Dispatch<React.SetStateAction<SongType>>;
-	audioRef: RefObject<HTMLAudioElement | null>;
-	isPlaying: boolean;
-	setSongs: React.Dispatch<React.SetStateAction<SongType[]>>;
-	libraryStatus: boolean;
-}
 
-const Library: React.FC<LibraryProps> = ({ 
-	songs, 
-	setCurrentSong, 
-	audioRef, 
-	isPlaying, 
-	setSongs, 
-	libraryStatus 
-}) => {
+const Library: React.FC = () => {
+	const { tracks, libraryStatus } = useGlobalState();
+
 	return (
 		<div 
 			className={clsx(
@@ -33,15 +20,8 @@ const Library: React.FC<LibraryProps> = ({
 		>
 			<h2 className="p-8">Library</h2>
 			<div className="flex flex-col bg-white">
-				{songs.map((song) => (
-					<LibrarySong
-						song={song}
-						songs={songs}
-						setCurrentSong={setCurrentSong}
-						key={song.id}
-						audioRef={audioRef}
-						isPlaying={isPlaying}
-						setSongs={setSongs}
+				{tracks.map((track) => (
+					<LibrarySong track={track} key={track.id}
 					/>
 				))}
 			</div>
