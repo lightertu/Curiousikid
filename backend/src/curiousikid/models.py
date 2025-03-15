@@ -14,7 +14,12 @@ class Story(BaseModel):
 
 
 class Action(BaseModel):
-    """Model representing an action to be sent to the frontend"""
-    action_type: str
+    """
+    Model representing an action to be sent to the frontend.
+    
+    This is provided for backward compatibility with older code.
+    New code should use the Message models from websocket.message_types.
+    """
+    type: str  # Changed from action_type to match new protocol
     payload: Dict[str, Any]
     timestamp: Optional[float] = None 

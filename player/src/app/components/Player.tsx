@@ -8,11 +8,9 @@ import useGlobalState from "../GlobalState";
 
 const Player: React.FC = () => {
 	// Add a new state to track microphone active state
-	const [chatActive, setChatActive] = useState<boolean>(false);
 	const [progressWidth, setProgressWidth] = useState<number>(0);
 	const progressInterval = useRef<NodeJS.Timeout | null>(null);
-	const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying } = useGlobalState();
-
+	const { currentTrack, setCurrentTrack, isPlaying, setIsPlaying, isChatActive, setIsChatActive } = useGlobalState();
 	
 	// Use effect to handle smooth progress bar animation using setInterval
 	useEffect(() => {
@@ -56,7 +54,7 @@ const Player: React.FC = () => {
 
 	// Add new handler for microphone toggle
 	const toggleMicHandler = async (): Promise<void> => {
-		if (chatActive) {
+		if (isChatActive) {
 			await handleDeactivateMic();
 		} else {
 			await handleActivateMic();
@@ -64,9 +62,9 @@ const Player: React.FC = () => {
 	};
 	
 	const handleActivateMic = async () => {
-		
 		try {
-			setChatActive(true);
+			setIsChatActive(true);
+			playSongHandler();
 		} catch (error) {
 			console.error("Failed to connect microphone:", error);
 		}
@@ -75,7 +73,7 @@ const Player: React.FC = () => {
 	const handleDeactivateMic = async () => {
 		try {
 			playSongHandler();
-			setChatActive(false);
+			setIsChatActive(false);
 		} catch (error) {
 			console.error("Error disconnecting:", error);
 		}
@@ -116,7 +114,7 @@ const Player: React.FC = () => {
 			<div className="min-h-[14vh] flex flex-col items-center justify-between">
 				<div className={clsx(
 					"w-1/2 flex items-center md:w-[40%]",
-					chatActive && "opacity-50 pointer-events-none"
+					isChatActive && "opacity-50 pointer-events-none"
 				)}>
 					<p className="px-4">{getTime(currentTrack.currentTime || 0)}</p>
 					<div className="relative w-full h-4 rounded-full overflow-hidden"
@@ -129,7 +127,7 @@ const Player: React.FC = () => {
 						
 						{/* Input on top with z-index to ensure it receives clicks */}
 						<input
-							onChange={chatActive ? undefined : dragHandler}
+							onChange={isChatActive ? undefined : dragHandler}
 							min={0}
 							max={currentTrack.duration || 0}
 							value={currentTrack.currentTime}
@@ -144,10 +142,10 @@ const Player: React.FC = () => {
 
 				<div className="flex justify-between items-center p-4 w-[25%] md:w-[25%]">
 					<button 
-						onClick={chatActive ? undefined : () => skipTrackHandler("skip-back")}
+						onClick={isChatActive ? undefined : () => skipTrackHandler("skip-back")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							chatActive 
+							isChatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
@@ -160,10 +158,10 @@ const Player: React.FC = () => {
 					</button>
 					
 					<button 
-						onClick={chatActive ? undefined : playSongHandler}
+						onClick={isChatActive ? undefined : playSongHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							chatActive 
+							isChatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
@@ -179,7 +177,7 @@ const Player: React.FC = () => {
 						onClick={toggleMicHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							chatActive 
+							isChatActive 
 								? "bg-black/15 shadow-inner translate-y-0.5 text-blue-500" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5"
 						)}
@@ -192,10 +190,10 @@ const Player: React.FC = () => {
 					</button>
 					
 					<button 
-						onClick={chatActive ? undefined : () => skipTrackHandler("skip-forward")}
+						onClick={isChatActive ? undefined : () => skipTrackHandler("skip-forward")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							chatActive 
+							isChatActive 
 								? "opacity-50 cursor-not-allowed" 
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}

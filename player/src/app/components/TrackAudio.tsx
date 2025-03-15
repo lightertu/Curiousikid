@@ -1,16 +1,34 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import useGlobalState from "../GlobalState";
-
+import { useWebSocket } from "../contexts/WebSocketContext";
 
 const TrackAudio: React.FC = () => {
 	const audioRef = useRef<HTMLAudioElement>(null);
 	const { currentTrack, tracks, setCurrentTrack, isPlaying, setIsPlaying } = useGlobalState();
+	const { sendTrackContextUpdate } = useWebSocket();
+	
+	// Add this state to track the last sent time
+	const [lastSentTime, setLastSentTime] = useState<number>(-1);
+	
 	// Functions
 	const updateTimeHandler = (e: React.SyntheticEvent<HTMLAudioElement>): void => {
 		const target = e.target as HTMLAudioElement;
 		const currentTime = target.currentTime;
 		const duration = target.duration;
+		
+		// Update local state
 		setCurrentTrack({ ...currentTrack, currentTime, duration });
+		
+		// Send update to backend with proper throttling
+		const currentSecond = Math.floor(currentTime);
+		if (currentSecond % 2 === 0 && currentSecond !== lastSentTime) {
+			sendTrackContextUpdate(
+				currentTrack.id,
+				duration,
+				currentTime
+			);
+			setLastSentTime(currentSecond);
+		}
 	};
 
 	const songEndHandler = async (): Promise<void> => {

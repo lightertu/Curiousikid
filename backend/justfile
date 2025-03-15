@@ -31,5 +31,15 @@ install:
 run_agent:
     .venv/bin/python src/curiousikid/agent/entrypoint.py dev
 
+# Start the FastAPI server
+serve:
+    @echo "Starting FastAPI server on http://0.0.0.0:8000"
+    @.venv/bin/python -m src.curiousikid.main
+
+# Start the FastAPI server in debug mode with more verbose output
+serve-debug:
+    @echo "Starting FastAPI server in debug mode on http://0.0.0.0:8000"
+    @PYTHONPATH=. LOG_LEVEL=DEBUG .venv/bin/python -m src.curiousikid.main
+
 serve-livekit:
     livekit-server --dev --bind 0.0.0.0

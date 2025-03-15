@@ -1,6 +1,7 @@
 import json
 import time
 import asyncio
+import logging
 from typing import List
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -8,6 +9,14 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from curiousikid.models import Story, Action
 from curiousikid.data import SAMPLE_STORIES
+from curiousikid.websocket import WebSocketManager, MessageType
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(title="Curiousikid API", version="0.1.0")
@@ -21,7 +30,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Connection manager for WebSockets
+# Create WebSocket manager instance
+websocket_manager = WebSocketManager()
+
+# Legacy connection manager for older endpoints
 class ConnectionManager:
     def __init__(self):
         self.active_connections: List[WebSocket] = []
@@ -35,75 +47,49 @@ class ConnectionManager:
             self.active_connections.remove(websocket)
 
     async def send_action(self, action: Action, websocket: WebSocket):
-        await websocket.send_json(action.model_dump())
+        await websocket.send_text(action.json())
 
     async def broadcast(self, action: Action):
         for connection in self.active_connections:
-            await connection.send_json(action.model_dump())
+            await connection.send_text(action.json())
 
-# Initialize the connection manager
 manager = ConnectionManager()
 
-# REST endpoint to list stories
+# API endpoints
 @app.get("/api/stories", response_model=List[Story])
 async def list_stories():
-    """Returns a list of available stories"""
+    """Get a list of available stories."""
     return SAMPLE_STORIES
 
-# WebSocket endpoint
+# New WebSocket endpoint with protocol support
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+    """
+    WebSocket endpoint supporting the full protocol features.
+    Handles protocol messages, binary data, and client state management.
+    """
+    # Accept and register the connection
+    connection_id = await websocket_manager.connect(websocket)
+    
     try:
-        # Send a welcome action when client connects
-        welcome_action = Action(
-            action_type="WELCOME", 
-            payload={"message": "Connected to Curiousikid WebSocket"}, 
-            timestamp=time.time()
-        )
-        await manager.send_action(welcome_action, websocket)
-        
-        # Listen for events from the client
+        # Handle incoming messages
         while True:
-            # Wait for message from client
-            data = await websocket.receive_text()
+            # Wait for both text and binary messages
+            message_data = await websocket.receive()
             
-            # Process incoming data
-            try:
-                event_data = json.loads(data)
-                event_type = event_data.get("event_type", "")
-                
-                # Create an appropriate action based on the event
-                response_action = Action(
-                    action_type="EVENT_RECEIVED",
-                    payload={
-                        "received_event": event_type,
-                        "message": f"Server received event: {event_type}",
-                        "data": event_data
-                    },
-                    timestamp=time.time()
-                )
-                
-                # Send action back to client
-                await manager.send_action(response_action, websocket)
-                
-            except json.JSONDecodeError:
-                # If not valid JSON, send error
-                error_action = Action(
-                    action_type="ERROR",
-                    payload={"message": "Invalid JSON format"},
-                    timestamp=time.time()
-                )
-                await manager.send_action(error_action, websocket)
-                
+            if "text" in message_data:
+                # Handle text message
+                await websocket_manager.handle_message(connection_id, message_data["text"])
+            elif "bytes" in message_data:
+                # Handle binary message
+                await websocket_manager.handle_binary(connection_id, message_data["bytes"])
     except WebSocketDisconnect:
-        manager.disconnect(websocket)
-        
-        # Notify other clients (optional)
-        disconnect_action = Action(
-            action_type="USER_DISCONNECTED",
-            payload={"message": "A client has disconnected"},
-            timestamp=time.time()
-        )
-        if manager.active_connections:  # Only broadcast if there are still connections
-            await manager.broadcast(disconnect_action) 
+        # Clean up on disconnect
+        websocket_manager.disconnect(connection_id)
+    except Exception as e:
+        logger.error(f"Error in WebSocket endpoint: {e}")
+        # Try to disconnect cleanly if possible
+        try:
+            websocket_manager.disconnect(connection_id)
+        except:
+            pass 
