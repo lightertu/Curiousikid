@@ -110,7 +110,7 @@ class WebSocketManager:
             import boto3
             polly = boto3.client('polly')
             response = polly.synthesize_speech(
-                Text="Gliding above the forests of the Pacific Northwest, "
+                Text="<speak><prosody rate=\"slow\">Gliding above the forests of the Pacific Northwest, "
                      "a hawk surveys its surroundings under the warm afternoon sun. "
                      "The winding river below snakes between towering evergreen trees, "
                      "where soft moss carpets ancient logs fallen across the banks. "
@@ -118,8 +118,8 @@ class WebSocketManager:
                      "Sunlight filters through the leaves, casting intricate patterns of dancing shadows across the forest floor. "
                      "It is a realm of quiet resilience, shaped by centuries of growth and renewal. "
                      "Even in stillness, the hush of life pulses through every leaf and branch, "
-                     "and the hawk, in its silent watch, bears witness to nature's timeless serenity.",
-                OutputFormat='mp3',
+                     "and the hawk, in its silent watch, bears witness to nature's timeless serenity.</prosody></speak>",
+                OutputFormat='ogg_vorbis',  # Uncompressed audio
                 VoiceId='Joanna'  # Choose voice
             )
             
@@ -141,7 +141,6 @@ class WebSocketManager:
                     chunk_count += 1
                     
             print(f"Sent {chunk_count} chunks")
-            await asyncio.sleep(10)  # Control streaming rate
             await self.send_message(
                 connection_id,
                 MessageType.AI_VOICE_STREAMING_END,
