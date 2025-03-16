@@ -102,8 +102,10 @@ export default class WebSocketManager extends EventEmitter {
    * Routes messages to appropriate handlers based on type.
    */
   private handleMessage(event: MessageEvent): void {
-    // Binary data needs special handling for audio streaming
+    // Handle binary data
     if (event.data instanceof ArrayBuffer || event.data instanceof Blob) {
+      console.log("Binary data received:", 
+        event.data instanceof ArrayBuffer ? `${event.data.byteLength} bytes` : `${event.data.size} bytes`);
       this.handleBinaryData(event.data);
       return;
     }
@@ -223,5 +225,24 @@ export default class WebSocketManager extends EventEmitter {
   
   public isConnected(): boolean {
     return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+  }
+  
+  private handleBinaryData(data: ArrayBuffer | Blob): void {
+    // Log the binary data for debugging
+    console.log(`Received binary data: ${data instanceof ArrayBuffer ? 
+      `ArrayBuffer of ${data.byteLength} bytes` : 
+      `Blob of ${data.size} bytes`}`);
+
+    // 1. Emit an event that components can listen for using EventEmitter
+    this.emit('binary', data);
+    
+    // 2. Call all registered binary handlers
+    this.binaryHandlers.forEach(handler => {
+      try {
+        handler(data);
+      } catch (error) {
+        console.error('Error in binary data handler:', error);
+      }
+    });
   }
 } 

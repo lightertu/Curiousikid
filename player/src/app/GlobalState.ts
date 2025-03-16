@@ -7,7 +7,7 @@ interface CurrentTrack extends Track {
     duration: number;
 }
 
-interface GlobalState {
+export interface GlobalState {
   isPlaying: boolean;
   tracks: Track[];
   currentTrack: CurrentTrack;
@@ -20,6 +20,8 @@ interface GlobalState {
   setIsChatActive: (isChatActive: boolean) => void;
   isAIVoiceStreaming: boolean;
   setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => void;
+  isAIVoicePlaying: boolean;
+  setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => void;
 }
 
 const ALL_TRACKS = [
@@ -43,12 +45,14 @@ const useGlobalState = create<GlobalState>((set) => ({
     }, 
     isChatActive: false,
     isAIVoiceStreaming: false,
+    isAIVoicePlaying: false,
     setIsPlaying: (isPlaying: boolean) => set({ isPlaying }), 
     setCurrentTrack: (currentTrack: CurrentTrack) => set({ currentTrack }),
     setTracks: (tracks: Track[]) => set({ tracks }),
     setLibraryStatus: (libraryStatus: boolean) => set({ libraryStatus }),
     setIsChatActive: (isChatActive: boolean) => set({ isChatActive }),
     setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => set({ isAIVoiceStreaming }),
+    setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => set({ isAIVoicePlaying }),
 }));
 
 export default useGlobalState;

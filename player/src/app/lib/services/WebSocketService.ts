@@ -5,25 +5,39 @@ import {
   PlaybackControlPayload,
   StateUpdatePayload,
   NotificationPayload,
-  UpdateTrackContextPayload
+  UpdateTrackContextPayload,
+  AIVoiceStreamingEndPayload,
+  AIVoiceStreamingStartPayload
 } from '../websocket/protocols/MessageTypes';
 import MicrophoneManager from '../audio/MicrophoneManager';
 import AudioOutputManager from '../audio/AudioOutputManager';
 import useGlobalState from '../../GlobalState';
+import { GlobalState } from '../../GlobalState';
 
 export default class WebSocketService {
   private static instance: WebSocketService;
-  private wsManager: WebSocketManager;
-  private micManager: MicrophoneManager;
-  private audioManager: AudioOutputManager;
-  private serverUrl: string;
+  private readonly wsManager: WebSocketManager;
+  private readonly micManager: MicrophoneManager;
+  private readonly audioManager: AudioOutputManager;
+  private readonly serverUrl: string;
   private isVoiceStreaming = false;
-  
+  private globalState: GlobalState;
   private constructor(serverUrl: string) {
     this.serverUrl = serverUrl;
     this.wsManager = new WebSocketManager(serverUrl);
     this.micManager = new MicrophoneManager();
-    this.audioManager = new AudioOutputManager();
+    this.audioManager = new AudioOutputManager({
+      onStart: async () => {
+        const globalState = useGlobalState.getState();
+        await globalState.setIsAIVoicePlaying(true);
+        await globalState.setIsPlaying(false);
+      },
+      onEnd: async () => {
+        const globalState = useGlobalState.getState();
+        await globalState.setIsAIVoicePlaying(false);
+      }
+    });
+    this.globalState = useGlobalState.getState();
     
     this.setupEventHandlers();
   }
@@ -49,20 +63,11 @@ export default class WebSocketService {
     this.wsManager.onMessage(MessageType.PLAYBACK_CONTROL, this.handlePlaybackControl.bind(this));
     this.wsManager.onMessage(MessageType.STATE_UPDATE, this.handleStateUpdate.bind(this));
     this.wsManager.onMessage(MessageType.NOTIFICATION, this.handleNotification.bind(this));
+    this.wsManager.onMessage(MessageType.AI_VOICE_STREAMING_START, this.handleAIVoiceStreamingStart.bind(this));
+    this.wsManager.onMessage(MessageType.AI_VOICE_STREAMING_END, this.handleAIVoiceStreamingEnd.bind(this));
     
     // Handle binary audio data
     this.wsManager.onBinary(this.handleIncomingAudio.bind(this));
-    
-    // Set up audio output callbacks
-    this.audioManager.onStart(() => {
-      const globalState = useGlobalState.getState();
-      globalState.setIsAIVoiceStreaming(true);
-    });
-    
-    this.audioManager.onEnd(() => {
-      const globalState = useGlobalState.getState();
-      globalState.setIsAIVoiceStreaming(false);
-    });
     
     // Set up microphone audio data handler
     this.micManager.onAudioData(this.handleOutgoingAudio.bind(this));
@@ -92,6 +97,16 @@ export default class WebSocketService {
     }
   }
   
+  private handleAIVoiceStreamingStart(payload: AIVoiceStreamingStartPayload): void {
+    console.log('AIVoiceStreamingStart received:', payload);
+    this.audioManager.start();
+  }
+
+  private handleAIVoiceStreamingEnd(payload: AIVoiceStreamingEndPayload): void {
+    console.log('AIVoiceStreamingEnd received:', payload);
+    this.audioManager.setStreamEnded();
+  }
+
   private handleHandshakeResponse(payload: HandshakeResponsePayload): void {
     console.log('Handshake response received:', payload);
     
@@ -173,7 +188,6 @@ export default class WebSocketService {
   
   private handleIncomingAudio(data: ArrayBuffer | Blob): void {
     // Process and queue incoming audio for playback
-    this.audioManager.switchToStreamMode();
     this.audioManager.enqueueAudio(data);
   }
   

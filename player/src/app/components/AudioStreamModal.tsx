@@ -3,11 +3,11 @@ import useGlobalState from '../GlobalState';
 import { motion, AnimatePresence } from 'framer-motion'; // If you use framer-motion
 
 const AIVoiceModal: React.FC = () => {
-  const { isAIVoiceStreaming } = useGlobalState();
+  const { isAIVoicePlaying } = useGlobalState();
   
   // Optional: prevent background scrolling when modal is open
   useEffect(() => {
-    if (isAIVoiceStreaming) {
+    if (isAIVoicePlaying) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
@@ -15,11 +15,11 @@ const AIVoiceModal: React.FC = () => {
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [isAIVoiceStreaming]);
+  }, [isAIVoicePlaying]);
 
   return (
     <AnimatePresence>
-      {isAIVoiceStreaming && (
+      {isAIVoicePlaying && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}

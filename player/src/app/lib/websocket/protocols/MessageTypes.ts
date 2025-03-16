@@ -22,7 +22,11 @@ export enum MessageType {
   
   // Notifications/UI
   NOTIFICATION = 'NOTIFICATION',
-  ERROR = 'ERROR'
+  ERROR = 'ERROR',
+
+  // AI Voice Streaming
+  AI_VOICE_STREAMING_START = 'AI_VOICE_STREAMING_START',
+  AI_VOICE_STREAMING_END = 'AI_VOICE_STREAMING_END',
 }
 
 // Protocol Payload Types
@@ -76,6 +80,18 @@ export interface NotificationPayload {
   duration?: number;
 }
 
+export interface AIVoiceStreamingStartPayload {
+  trackId: string;
+  duration: number;
+  currentTime: number;
+}
+
+export interface AIVoiceStreamingEndPayload {
+  trackId: string;
+  duration: number;
+  currentTime: number;
+}
+
 // Combine all message types with their payloads
 export type ProtocolMessage<T extends MessageType> = 
   T extends MessageType.HANDSHAKE ? { type: T; payload: HandshakePayload } :
@@ -83,6 +99,8 @@ export type ProtocolMessage<T extends MessageType> =
   T extends MessageType.PLAYBACK_CONTROL ? { type: T; payload: PlaybackControlPayload } :
   T extends MessageType.PLAYBACK_STATE ? { type: T; payload: PlaybackStatePayload } :
   T extends MessageType.UPDATE_TRACK_CONTEXT ? { type: T; payload: UpdateTrackContextPayload } :
+  T extends MessageType.AI_VOICE_STREAMING_START ? { type: T; payload: AIVoiceStreamingStartPayload } :
+  T extends MessageType.AI_VOICE_STREAMING_END ? { type: T; payload: AIVoiceStreamingEndPayload } :
   T extends MessageType.VOICE_STREAM_START ? { type: T; payload: VoiceStreamStartPayload } :
   T extends MessageType.NOTIFICATION ? { type: T; payload: NotificationPayload } :
   { type: T; payload: any }; 
@@ -92,10 +110,14 @@ export type ClientMessage =
   | ProtocolMessage<MessageType.HANDSHAKE>
   | ProtocolMessage<MessageType.PLAYBACK_CONTROL>
   | ProtocolMessage<MessageType.UPDATE_TRACK_CONTEXT>
+  | ProtocolMessage<MessageType.AI_VOICE_STREAMING_START>
+  | ProtocolMessage<MessageType.AI_VOICE_STREAMING_END>
   | ProtocolMessage<MessageType.VOICE_STREAM_START>;
 
 // Server message types (used when receiving)
 export type ServerMessage = 
   | ProtocolMessage<MessageType.HANDSHAKE_RESPONSE>
   | ProtocolMessage<MessageType.STATE_UPDATE>
-  | ProtocolMessage<MessageType.PLAYBACK_STATE>; 
+  | ProtocolMessage<MessageType.PLAYBACK_STATE>
+  | ProtocolMessage<MessageType.NOTIFICATION>
+  | ProtocolMessage<MessageType.ERROR>;

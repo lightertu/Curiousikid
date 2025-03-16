@@ -4,7 +4,7 @@ import { useWebSocket } from "../contexts/WebSocketContext";
 
 const TrackAudio: React.FC = () => {
 	const audioRef = useRef<HTMLAudioElement>(null);
-	const { currentTrack, tracks, setCurrentTrack, isPlaying, setIsPlaying } = useGlobalState();
+	const { currentTrack, tracks, setCurrentTrack, isPlaying, setIsPlaying, isAIVoiceStreaming } = useGlobalState();
 	const { sendTrackContextUpdate } = useWebSocket();
 	
 	// Add this state to track the last sent time
@@ -38,21 +38,45 @@ const TrackAudio: React.FC = () => {
         setIsPlaying(true);
 	};
 
-	// Add this useEffect to control audio playback when isPlaying changes
+	// Add this useEffect to control audio playback when isPlaying or isAIVoiceStreaming changes
 	useEffect(() => {
 		if (!audioRef.current) return;
 		
+		// If AI voice is streaming, pause the audio regardless of isPlaying state
+		if (isAIVoiceStreaming) {
+			console.log("Pausing audio for AI voice");
+			setIsPlaying(false);
+			audioRef.current.pause();
+			return;
+		}
+		
+		// Normal playback control when AI isn't speaking
 		if (isPlaying) {
-            console.log("Playing");
+			console.log("Playing");
 			audioRef.current.play().catch(error => {
 				console.error("Audio playback failed:", error);
 				setIsPlaying(false); // Revert state if autoplay is blocked
 			});
 		} else {
-            console.log("Pause");
+			console.log("Pause");
 			audioRef.current.pause();
 		}
-	}, [isPlaying, setIsPlaying]);
+	}, [isPlaying, isAIVoiceStreaming, setIsPlaying]);
+
+	// Add this useEffect to control the audio timestamp when currentTrack.currentTime changes externally
+	useEffect(() => {
+		if (!audioRef.current || !currentTrack) return;
+		
+		// Get the current playback time from the audio element
+		const audioCurrentTime = audioRef.current.currentTime;
+		
+		// Check if the currentTrack.currentTime is significantly different from the audio element's time
+		// This prevents a loop since updateTimeHandler also updates currentTrack.currentTime
+		if (Math.abs(audioCurrentTime - currentTrack.currentTime) > 1) {
+			console.log(`Seeking to ${currentTrack.currentTime}`);
+			audioRef.current.currentTime = currentTrack.currentTime;
+		}
+	}, [currentTrack]);
 
 	return (
         <audio

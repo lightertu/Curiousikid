@@ -1,8 +1,9 @@
+import asyncio
 import json
 import time
 import uuid
 import logging
-from typing import Dict, List, Any, Callable, Awaitable, Optional, Set
+from typing import Dict, List, Any, Callable, Awaitable, Optional, Self, Set
 
 from fastapi import WebSocket
 from pydantic import BaseModel, ValidationError
@@ -56,28 +57,31 @@ class WebSocketManager:
         """
         Handle track context update from a client.
         """
-        connection_id = next(
-            (cid for cid, ws in self.active_connections.items() if ws == websocket),
-            None
-        )
-        
-        if not connection_id:
+        connection_state = self.get_connection_state(websocket)
+        if connection_state is None:
             logger.error("Could not find connection_id for track context update")
             return
             
         try:
             # Validate the payload
-            track_data = UpdateTrackContextPayload(**payload)
+            current_track_context = UpdateTrackContextPayload(**payload)
             
             # Store the track context in the connection state
-            if connection_id in self.connection_states:
-                self.connection_states[connection_id].track_context = track_data
+            connection_state.track_context = connection_state.track_context or current_track_context
+            last_current_time = connection_state.track_context.currentTime
+            connection_state.track_context = current_track_context
             
             logger.info(
-                f"Track context update from {connection_id}: "
-                f"Track {track_data.trackId}, "
-                f"position {track_data.currentTime:.2f}s / {track_data.duration:.2f}s"
+                f"Track context update from {connection_state.connection_id}: "
+                f"Track {current_track_context.trackId}, "
+                f"position {current_track_context.currentTime:.2f}s / {current_track_context.duration:.2f}s"
             )
+            
+            logger.info(f"Last current time: {last_current_time}")
+            if current_track_context.currentTime - last_current_time > 2:
+                logger.info(f"Generating voice for {connection_state.connection_id}")
+                await self.generate_and_stream_voice(connection_state.connection_id)
+                logger.info(f"Finished generating voice for {connection_state.connection_id}")
             
             # Here you would store or process the track context
             # For example, updating a database, triggering analytics, etc.
@@ -92,10 +96,66 @@ class WebSocketManager:
         except ValidationError as e:
             logger.warning(f"Invalid track context update payload: {e}")
             await self.send_error(
-                connection_id,
+                connection_state.connection_id,
                 "INVALID_TRACK_UPDATE",
                 "Invalid track context update request",
                 e.errors()
+            )
+    
+    async def generate_and_stream_voice(self, connection_id: str):
+        """Generate voice using TTS and stream to client"""
+        try:
+            # 2. Generate voice using TTS service
+            # Example with AWS Polly (you'll need boto3)
+            import boto3
+            polly = boto3.client('polly')
+            response = polly.synthesize_speech(
+                Text="Gliding above the forests of the Pacific Northwest, "
+                     "a hawk surveys its surroundings under the warm afternoon sun. "
+                     "The winding river below snakes between towering evergreen trees, "
+                     "where soft moss carpets ancient logs fallen across the banks. "
+                     "A gentle breeze drifts through the branches, stirring up the scent of damp earth and pine needles. "
+                     "Sunlight filters through the leaves, casting intricate patterns of dancing shadows across the forest floor. "
+                     "It is a realm of quiet resilience, shaped by centuries of growth and renewal. "
+                     "Even in stillness, the hush of life pulses through every leaf and branch, "
+                     "and the hawk, in its silent watch, bears witness to nature's timeless serenity.",
+                OutputFormat='mp3',
+                VoiceId='Joanna'  # Choose voice
+            )
+            
+            # 3. Send notification that voice is coming
+            await self.send_message(
+                connection_id,
+                MessageType.AI_VOICE_STREAMING_START,
+                {"trackId": "123", "duration": 10.0, "currentTime": 0.0}
+            )
+            
+            # 4. Stream the audio in chunks
+            audio_stream = response['AudioStream']
+            chunk_size = 4096  # Adjust as needed
+            
+            chunk_count = 0
+            while chunk := audio_stream.read(chunk_size):
+                if chunk:
+                    await self.send_binary(connection_id, chunk)
+                    chunk_count += 1
+                    
+            print(f"Sent {chunk_count} chunks")
+            await asyncio.sleep(10)  # Control streaming rate
+            await self.send_message(
+                connection_id,
+                MessageType.AI_VOICE_STREAMING_END,
+                {"trackId": "123", "duration": 10.0, "currentTime": 10.0}
+            )
+            
+        except Exception as e:
+            logger.error(f"Error generating voice: {e}")
+        finally:
+            # Send error notification
+            await self.send_message(
+                connection_id,
+                MessageType.AI_VOICE_STREAMING_END,
+                {}
             )
 
     async def handle_handshake(self, websocket: WebSocket, payload: dict):

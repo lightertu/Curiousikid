@@ -17,8 +17,8 @@ class MessageType(str, Enum):
     PLAYBACK_STATE = "PLAYBACK_STATE"
     
     # Voice Communication
-    VOICE_STREAM_START = "VOICE_STREAM_START"
-    VOICE_STREAM_END = "VOICE_STREAM_END"
+    AI_VOICE_STREAMING_START = "AI_VOICE_STREAMING_START"
+    AI_VOICE_STREAMING_END = "AI_VOICE_STREAMING_END"
     VOICE_DATA = "VOICE_DATA"
     
     # Application State
@@ -53,18 +53,20 @@ class PlaybackControlPayload(BaseModel):
     position: Optional[float] = None
 
 
-class VoiceStreamStartPayload(BaseModel):
-    format: str
-    sampleRate: int
-    channels: int
+class AIVoiceStreamingStartPayload(BaseModel):
+    trackId: str
+    duration: float
+    currentTime: float
 
+class AIVoiceStreamingEndPayload(BaseModel):
+    trackId: str
+    duration: float
+    currentTime: float
 
 class StateSyncRequestPayload(BaseModel):
     clientTime: int
 
 
-class VoiceStreamEndPayload(BaseModel):
-    timestamp: Optional[int] = None
 
 
 # Response payload models
