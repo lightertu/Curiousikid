@@ -31,5 +31,69 @@ install:
 run_agent:
     .venv/bin/python src/curiousikid/agent/entrypoint.py dev
 
+# Run the RAG indexer
+run_rag_indexer:
+    .venv/bin/python src/curiousikid/agent/rag_index.py
+
+# Run the audio story generator
+run_audio_story_generator:
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --claude-api-key "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" \
+        --title "The Magic Forest" \
+        --theme "fantasy" \
+        --mood "warm" \
+        --elements "friendship" "magic" "adventure"
+
+# Run the audio story generator with OpenAI voice
+run_audio_story_openai transcript="":
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --claude-api-key "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" \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "The Magic Forest" \
+        --theme "fantasy" \
+        --mood "warm" \
+        --elements "friendship" "magic" "adventure" \
+        {{ if transcript != "" { "--transcript \"" + transcript + "\"" } else { "" } }}
+
+# Run the audio story generator with OpenAI voice using a transcript from a file
+run_audio_story_openai_file file:
+    #!/usr/bin/env bash
+    TRANSCRIPT="$(cat {{file}})"
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --claude-api-key "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" \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "The Frightened Lion" \
+        --theme "animal" \
+        --mood "gentle" \
+        --elements "Imagination" "Fear" "Surprise" "Friendship" \
+        --transcript "$TRANSCRIPT"
+
+# Run the audio story generator with custom parameters (replace with your values)
+run_custom_story *ARGS:
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py {{ARGS}}
+
+# Run the LiveKit server
 serve-livekit:
     livekit-server --dev --bind 0.0.0.0
+
+# Generate a story with a custom title from a transcript file
+story_from_transcript title file theme="fantasy" mood="warm":
+    #!/usr/bin/env bash
+    TRANSCRIPT="$(cat {{file}})"
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "{{title}}" \
+        --theme "{{theme}}" \
+        --mood "{{mood}}" \
+        --elements "friendship" "magic" "adventure" \
+        --transcript "$TRANSCRIPT"

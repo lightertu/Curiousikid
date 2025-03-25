@@ -24,7 +24,13 @@ dependencies = [
     "livekit-plugins-elevenlabs>=0.7.5",
     "livekit-plugins-openai>=0.10.3",
     "livekit-plugins-silero>=0.7.1",
+    "livekit-plugins-anthropic",
     "pyyaml>=6.0.2",
+    "sentence_transformers",
+    "annoy",
+    "datasets", 
+    "elevenlabs", 
+    "pydub"
 ]
 
 [tool.pytest.ini_options]
