@@ -1,7 +1,7 @@
 [project]
-name = "Holdon"
+name = "curiousikid"
 version = "0.1.0"
-description = "Demo"
+description = "CuriousiKid"
 readme = "README.md"
 requires-python = ">=3.10"
 
@@ -25,6 +25,10 @@ dependencies = [
     "livekit-plugins-openai>=0.10.3",
     "livekit-plugins-silero>=0.7.1",
     "pyyaml>=6.0.2",
+    "jsonpath-ng>=1.5.3",
+    "pydantic>=2.10.2",
+    "pipecat>=0.3.0",
+    "uvicorn>=0.34.0",
 ]
 
 [tool.pytest.ini_options]
