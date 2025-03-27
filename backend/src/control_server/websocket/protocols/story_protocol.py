@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 
 from pydantic import BaseModel
 
-from control_server.core.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory
+from control_server.core.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory, DeviceState
 from control_server.websocket.message import MessageType, TextMessage
 
 from ..connection import ConnectionManager
@@ -30,6 +30,7 @@ class SetStoryProgressMessage(TextMessage):
 class SetQuestionPointPayload(BaseModel):
   storyId: str
   questionPointId: str
+  connectAt: float
   interruptAt: float
 
 class SetQuestionPointMessage(TextMessage):
@@ -68,7 +69,7 @@ class StoryProtocol(Protocol):
         """Shutdown the story protocol."""
         logger.info("Shutting down story protocol")
         
-    async def handle_get_story_list(self, connection_id: str, payload: Dict[str, Any]) -> None:
+    async def handle_get_story_list(self, connection_id: str, message: Dict[str, Any]) -> None:
         """
         Handle a request for the list of available stories.
         
@@ -81,17 +82,18 @@ class StoryProtocol(Protocol):
         try:
             # Get the list of available stories
             # Parse the payload correctly based on the structure
-            user_id = payload.get("userId", "unknown")
+            user_id = message.get("userId", "unknown")
             logger.info(f"Fetching stories for user: {user_id}")
             stories = INIT_STORY_LIST
             
             # Send the list of stories
-            logger.info(f"Sending story list to {connection_id}, {stories}")
+            message = SendStoryListMessage(
+                payload=stories
+            ).model_dump_json()
+            logger.info(f"Sending story list to {connection_id}, {message}")
             await self.connection_manager.send_text(
                 connection_id,
-                SendStoryListMessage(
-                    payload=stories
-                ).model_dump_json()
+                message
             )
         except Exception as e:
             logger.error(f"Error handling story list request: {str(e)}")
@@ -103,37 +105,40 @@ class StoryProtocol(Protocol):
                 "story_list_error"
             )
     
-    async def handle_set_story_progress(self, connection_id: str, payload: Dict[str, Any]) -> None:
+    async def handle_set_story_progress(self, connection_id: str, message: Dict[str, Any]) -> None:
         """
         Handle a request to set the progress of a story.
         """
         logger.info(f"Handling set story progress request from {connection_id}")
-        payload = SetStoryProgressMessage(**payload).payload
+        message = SetStoryProgressMessage(**message).payload
         device_state = self.connection_manager.get_connection_state(connection_id).device_state
-        device_state.currentStory = payload
+        device_state.currentStory = message
         
         question_point = 100
-        delta = question_point - payload.currentTime
+        delta = question_point - message.currentTime
         if delta < 10 and delta > 0:
-            logger.info(f"Detected question point for {payload.id} at {payload.currentTime}")
+            logger.info(f"Detected question point for {message.id} at {message.currentTime}")
             await self.send_message(
                 connection_id,
                 SetQuestionPointMessage(
                     payload=SetQuestionPointPayload(    
-                        storyId=payload.id,
+                        storyId=message.id,
                         questionPointId="question point 1",
-                        interruptAt=payload.currentTime + 10
+                        connectAt=message.currentTime + 5,
+                        interruptAt=message.currentTime + 10
                     )
                 )
-            )
+                )
 
-    async def handle_ack_set_question_point(self, connection_id: str, payload: Dict[str, Any]) -> None:
+    async def handle_ack_set_question_point(self, connection_id: str, message: Dict[str, Any]) -> None:
         """
         Handle a request to acknowledge a question point.
         """
         logger.info(f"Handling ack set question point request from {connection_id}")
-        payload = ACKSetQuestionPointMessage(**payload)
-        self.story_service.set_question_point(payload.story_id, payload.checkpoint_id, payload.interrupt_at)
+        message = ACKSetQuestionPointMessage(**message)
+        device_state: DeviceState = self.connection_manager.get_connection_state(connection_id).device_state
+        device_state.questionPoint = message.payload
+        logger.info(f"Updated device state: {device_state}")
     
     
     

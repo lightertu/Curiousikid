@@ -17,6 +17,12 @@ class StoryMetadata(BaseModel):
 
 class CurrentStory(StoryMetadata):
     currentTime: float
+    
+class QuestionPoint(BaseModel):
+    storyId: str
+    questionPointId: str
+    connectAt: float
+    interruptAt: float
 
 # This is just a default list, similar to your INIT_STORY_LIST in TS
 INIT_STORY_LIST = [
@@ -46,6 +52,7 @@ class DeviceState(BaseModel):
             currentTime=0.0
         )
     )
+    questionPoint: Optional[QuestionPoint] = None
     libraryStatus: bool = False
     isChatActive: bool = False
     isWebSocketConnected: bool = False
