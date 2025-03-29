@@ -3,7 +3,6 @@ import { EventEmitter } from 'events';
 import { WebSocketConnection, ProtocolRegistry } from './Protocol';
 import { MessageType } from './MessageTypes';
 import { StoryProtocol } from './protocols/StoryProtocol';
-import { MicrophoneProtocol } from './protocols/MicrophoneProtocol';
 
 /**
  * WebSocketManager handles all WebSocket communication with the server.
@@ -18,7 +17,6 @@ export default class WebSocketManager extends EventEmitter implements WebSocketC
   // Protocol registry and specific protocols
   private readonly protocolRegistry: ProtocolRegistry;
   private readonly storyProtocol: StoryProtocol;
-  private readonly microphoneProtocol: MicrophoneProtocol;
   
   // Reconnection logic variables
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -34,11 +32,9 @@ export default class WebSocketManager extends EventEmitter implements WebSocketC
     // Create protocols and registry
     this.protocolRegistry = new ProtocolRegistry(this);
     this.storyProtocol = new StoryProtocol(this);
-    this.microphoneProtocol = new MicrophoneProtocol(this);
     
     // Register protocols
     this.protocolRegistry.registerProtocol(this.storyProtocol);
-    this.protocolRegistry.registerProtocol(this.microphoneProtocol);
   }
   
   /**
@@ -231,13 +227,6 @@ export default class WebSocketManager extends EventEmitter implements WebSocketC
    */
   public getStoryProtocol(): StoryProtocol {
     return this.storyProtocol;
-  }
-  
-  /**
-   * Get the microphone protocol for direct interaction
-   */
-  public getMicrophoneProtocol(): MicrophoneProtocol {
-    return this.microphoneProtocol;
   }
   
   /**

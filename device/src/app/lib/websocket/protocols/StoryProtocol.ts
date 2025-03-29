@@ -1,7 +1,7 @@
 import { DeviceState, StoryMetadata, CurrentStory } from '@/app/GlobalState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
-import { WebSocketConnection } from '../Protocol';
+import { MessageHandler, WebSocketConnection } from '../Protocol';
 import useGlobalState from '../../../GlobalState';
 
 
@@ -16,9 +16,7 @@ export interface GetStoryListMessage extends Message {
 // Type definitions for story payloads
 export interface SendStoryListMessage extends Message {
   type: MessageType.SEND_STORY_LIST;
-  payload: {
-    stories: StoryMetadata[];
-  };
+  payload: StoryMetadata[];
 }
 
 // Type definitions for story payloads
@@ -32,6 +30,7 @@ export interface SetQuestionPointMessage extends Message {
   payload: {
     storyId: string;
     questionPointId: string;
+    connectAt: number;
     interruptAt: number;
   };
 }
@@ -51,23 +50,17 @@ export class StoryProtocol extends BaseProtocol {
   private stories: StoryMetadata[] = [];
   private readonly globalState: DeviceState;
   
-  // Callbacks for external components to hook into
-  private onStoriesReceived?: (stories: StoryMetadata[]) => void;
-  
   constructor(connection: WebSocketConnection) {
     super(
       'story',
       connection,
-      [
-        MessageType.GET_STORY_LIST,
-        MessageType.STORY_SELECTED,
-        MessageType.STORY_STARTED,
-        MessageType.STORY_PAUSED,
-      ]
+      new Map<string, MessageHandler>([
+        [MessageType.SEND_STORY_LIST, (payload: unknown) => this.handleStoryList(payload)],
+        [MessageType.SET_QUESTION_POINT, (payload: unknown) => this.handleSetQuestionPoint(payload)],
+      ])
     );
     this.globalState = useGlobalState.getState();  
   }
-  
   /**
    * Initialize the protocol
    */
@@ -104,11 +97,60 @@ export class StoryProtocol extends BaseProtocol {
   /**
    * Handle STORY_LIST message
    */
-  protected async handleStoryList(payload: SendStoryListMessage): Promise<void> {
-    this.stories = payload.payload.stories;
-    this.globalState.setStories(this.stories);
-    if (this.onStoriesReceived) {
-      this.onStoriesReceived(this.stories);
-    }
+  protected async handleStoryList(raw: unknown): Promise<void> {
+    // Type guard to check if raw has the structure we expect
+    console.log("handleStoryList RAW", raw);
+    const message = raw as SendStoryListMessage;
+    this.globalState.setStories(message.payload);
   }
+
+  /**
+   * Handle SET_QUESTION_POINT message
+   */
+  protected async handleSetQuestionPoint(raw: unknown): Promise<void> {
+    // Type guard to check if raw has the structure we expect
+    const message = raw as SetQuestionPointMessage;
+    const { currentStory, isPlaying } = this.globalState;
+      
+    if (isPlaying && currentStory && currentStory.id === message.payload.storyId) {
+      // Only update the current story if the storyId matches
+      this.globalState.setQuestionPoint({
+        storyId: message.payload.storyId,
+        questionPointId: message.payload.questionPointId,
+        interruptAt: message.payload.interruptAt
+      });
+    }
+      
+    this.send(MessageType.ACK_SET_QUESTION_POINT, {...message});
+  }
+}
+
+// Type guards to verify message types
+function isStoryListMessage(msg: unknown): msg is SendStoryListMessage {
+  return (
+    typeof msg === 'object' && 
+    msg !== null && 
+    'type' in msg && 
+    msg.type === MessageType.SEND_STORY_LIST && 
+    'payload' in msg && 
+    typeof msg.payload === 'object' && 
+    msg.payload !== null && 
+    'stories' in msg.payload && 
+    Array.isArray(msg.payload.stories)
+  );
+}
+
+function isQuestionPointMessage(msg: unknown): msg is SetQuestionPointMessage {
+  return (
+    typeof msg === 'object' && 
+    msg !== null && 
+    'type' in msg && 
+    msg.type === MessageType.SET_QUESTION_POINT && 
+    'payload' in msg && 
+    typeof msg.payload === 'object' && 
+    msg.payload !== null && 
+    'storyId' in msg.payload && 
+    'questionPointId' in msg.payload && 
+    'interruptAt' in msg.payload
+  );
 } 

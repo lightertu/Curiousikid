@@ -34,7 +34,9 @@ export interface Protocol {
    * @param payload The message payload
    * @returns True if the message was handled, false otherwise
    */
-  handleMessage(messageType: string, payload: Record<string, unknown>): boolean | Promise<boolean>;
+  handleMessage(message: {
+    messageType: string, 
+    payload: Record<string, unknown>}): boolean | Promise<boolean>;
   
   /**
    * Optional method to handle binary data
@@ -154,7 +156,7 @@ export class ProtocolRegistry {
     
     for (const protocol of handlers) {
       try {
-        const success = await protocol.handleMessage(messageType, payload);
+        const success = await protocol.handleMessage({messageType, payload});
         handled = handled || success;
       } catch (error) {
         console.error(`Error in protocol ${protocol.name} handling message ${messageType}:`, error);

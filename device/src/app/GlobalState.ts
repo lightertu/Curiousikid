@@ -37,24 +37,33 @@ export interface DeviceState {
   isPlaying: boolean;
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
+  libraryStatus: boolean;
+  isChatActive: boolean;
+  isAIVoiceStreaming: boolean;
+  isAIVoicePlaying: boolean;
+  currentConversationId: string | null;
+  isWebSocketConnected: boolean;
+  questionPoint: {
+    storyId: string;
+    questionPointId: string;
+    interruptAt: number;
+  } | null;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentStory: (currentStory: CurrentStory | null) => void;
   setStories: (stories: StoryMetadata[]) => void;
-  libraryStatus: boolean;
   setLibraryStatus: (libraryStatus: boolean) => void;
-  isChatActive: boolean;
   setIsChatActive: (isChatActive: boolean) => void;
-  isAIVoiceStreaming: boolean;
   setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => void;
-  isAIVoicePlaying: boolean;
   setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => void;
-  currentConversationId: string | null;
   setCurrentConversationId: (currentConversationId: string) => void;
-  isWebSocketConnected: boolean;
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => void;
-
+  setQuestionPoint: (questionPoint: {
+    storyId: string;
+    questionPointId: string;
+    interruptAt: number;
+  } | null) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateSubtree: (jsonPath: string, newValue: any, callback: UpdateCallback) => void;
+  updateSubtree: (jsonPath: string, newValue: any) => void;
 }
 
 const useGlobalState = create<DeviceState>((set) => ({
@@ -70,6 +79,7 @@ const useGlobalState = create<DeviceState>((set) => ({
     duration: INIT_STORY_LIST[0].duration,
     thumbnailUrl: INIT_STORY_LIST[0].thumbnailUrl,
   },
+  questionPoint: null,
   libraryStatus: false,
   isChatActive: false,
   isAIVoiceStreaming: false,
@@ -77,74 +87,43 @@ const useGlobalState = create<DeviceState>((set) => ({
   currentConversationId: null,
   isWebSocketConnected: false,
 
-  setIsPlaying: (isPlaying: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.isPlaying", 
-      isPlaying, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.isPlaying", isPlaying)
-    ),
+  setIsPlaying: (isPlaying: boolean) => 
+    useGlobalState.getState().updateSubtree("$.isPlaying", isPlaying),
+          
+  setCurrentStory: (currentStory: CurrentStory | null) => 
+    useGlobalState.getState().updateSubtree("$.currentStory", currentStory),
     
-  setCurrentStory: (currentStory: CurrentStory | null, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.currentStory", 
-      currentStory, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.currentStory", currentStory)
-    ),
+  setStories: (stories: StoryMetadata[]) => 
+    useGlobalState.getState().updateSubtree("$.stories", stories),
     
-  setStories: (stories: StoryMetadata[], callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.stories", 
-      stories, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.stories", stories)
-    ),
+  setLibraryStatus: (libraryStatus: boolean) => 
+    useGlobalState.getState().updateSubtree("$.libraryStatus", libraryStatus),
     
-  setLibraryStatus: (libraryStatus: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.libraryStatus", 
-      libraryStatus, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.libraryStatus", libraryStatus)
-    ),
+  setIsChatActive: (isChatActive: boolean) => 
+    useGlobalState.getState().updateSubtree("$.isChatActive", isChatActive),
     
-  setIsChatActive: (isChatActive: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.isChatActive", 
-      isChatActive, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.isChatActive", isChatActive)
-    ),
+  setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => 
+    useGlobalState.getState().updateSubtree("$.isAIVoiceStreaming", isAIVoiceStreaming),
     
-  setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.isAIVoiceStreaming", 
-      isAIVoiceStreaming, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.isAIVoiceStreaming", isAIVoiceStreaming)
-    ),
+  setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => 
+    useGlobalState.getState().updateSubtree("$.isAIVoicePlaying", isAIVoicePlaying),
     
-  setIsAIVoicePlaying: (isAIVoicePlaying: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.isAIVoicePlaying", 
-      isAIVoicePlaying, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.isAIVoicePlaying", isAIVoicePlaying)
-    ),
+  setCurrentConversationId: (currentConversationId: string) => 
+    useGlobalState.getState().updateSubtree("$.currentConversationId", currentConversationId),
     
-  setCurrentConversationId: (currentConversationId: string, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.currentConversationId", 
-      currentConversationId, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.currentConversationId", currentConversationId)
-    ),
-    
-  setIsWebSocketConnected: (isWebSocketConnected: boolean, callback: UpdateCallback = NoOpsCallback) => 
-    useGlobalState.getState().updateSubtree("$.isWebSocketConnected", 
-      isWebSocketConnected, 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      (x, y) => callback("$.isWebSocketConnected", isWebSocketConnected)
-    ),
+  setIsWebSocketConnected: (isWebSocketConnected: boolean) => 
+    useGlobalState.getState().updateSubtree("$.isWebSocketConnected", isWebSocketConnected),
 
+  setQuestionPoint: (questionPoint: {
+    storyId: string;
+    questionPointId: string;
+    interruptAt: number;
+  } | null) => useGlobalState.getState().updateSubtree("$.questionPoint", questionPoint),
+  
   updateSubtree: (
     jsonPath: string,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    newValue: any,
-    callback: UpdateCallback = NoOpsCallback
+    newValue: any
   ) => {
     set((prevState) => {
       const clonedState = cloneDeep(prevState);
@@ -162,11 +141,6 @@ const useGlobalState = create<DeviceState>((set) => ({
   
       return clonedState;
     }, false);
-  
-    // Now that set has been invoked, optionally call your callback:
-    if (callback) {
-      callback(jsonPath, newValue);
-    }
   },
 }));
 
