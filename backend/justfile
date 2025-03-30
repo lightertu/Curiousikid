@@ -16,20 +16,13 @@ clean:
 
 install:
   #!/usr/bin/env bash
-  set -eu
-  if command -v uv &> /dev/null; then
-    uv self update
-  else
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-  fi
-  
   # https://docs.astral.sh/uv/reference/cli/#uv-sync
   uv sync
   source .venv/bin/activate
 
 # Run the agent with dev configuration
 run_agent:
-    .venv/bin/python src/curiousikid/agent/entrypoint.py dev
+    .venv/bin/python src/voice_agent/agent/entrypoint.py dev
 
 # Start the FastAPI server
 serve:
