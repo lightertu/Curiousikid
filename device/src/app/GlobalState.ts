@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { JSONPath } from 'jsonpath-plus';
 import { cloneDeep } from 'lodash';
+import { LiveKitConnectionDetails } from './api/livekit';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UpdateCallback<T = any> = (jsonPath: string, newValue: T, previousValue?: T) => void;
@@ -38,9 +39,6 @@ export interface DeviceState {
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
   libraryStatus: boolean;
-  isChatActive: boolean;
-  isAIVoiceStreaming: boolean;
-  isAIVoicePlaying: boolean;
   currentConversationId: string | null;
   isWebSocketConnected: boolean;
   questionPoint: {
@@ -48,13 +46,13 @@ export interface DeviceState {
     questionPointId: string;
     interruptAt: number;
   } | null;
+  isConnectingToLivekit: boolean;
+  livekitConnectionDetails: LiveKitConnectionDetails | null;
+  isLivekitRoomConnected: boolean;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentStory: (currentStory: CurrentStory | null) => void;
   setStories: (stories: StoryMetadata[]) => void;
   setLibraryStatus: (libraryStatus: boolean) => void;
-  setIsChatActive: (isChatActive: boolean) => void;
-  setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => void;
-  setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => void;
   setCurrentConversationId: (currentConversationId: string) => void;
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => void;
   setQuestionPoint: (questionPoint: {
@@ -62,6 +60,9 @@ export interface DeviceState {
     questionPointId: string;
     interruptAt: number;
   } | null) => void;
+  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
+  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
+  setIsLivekitRoomConnected: (isConnected: boolean) => void;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateSubtree: (jsonPath: string, newValue: any) => void;
 }
@@ -69,6 +70,9 @@ export interface DeviceState {
 const useGlobalState = create<DeviceState>((set) => ({
   isPlaying: false,
   stories: INIT_STORY_LIST,
+  livekitConnectionDetails: null,
+  isConnectingToLivekit: false,
+  isLivekitRoomConnected: false,
   currentStory: {
     currentTime: 0,
     id: INIT_STORY_LIST[0].id,
@@ -81,9 +85,6 @@ const useGlobalState = create<DeviceState>((set) => ({
   },
   questionPoint: null,
   libraryStatus: false,
-  isChatActive: false,
-  isAIVoiceStreaming: false,
-  isAIVoicePlaying: false,
   currentConversationId: null,
   isWebSocketConnected: false,
 
@@ -99,15 +100,6 @@ const useGlobalState = create<DeviceState>((set) => ({
   setLibraryStatus: (libraryStatus: boolean) => 
     useGlobalState.getState().updateSubtree("$.libraryStatus", libraryStatus),
     
-  setIsChatActive: (isChatActive: boolean) => 
-    useGlobalState.getState().updateSubtree("$.isChatActive", isChatActive),
-    
-  setIsAIVoiceStreaming: (isAIVoiceStreaming: boolean) => 
-    useGlobalState.getState().updateSubtree("$.isAIVoiceStreaming", isAIVoiceStreaming),
-    
-  setIsAIVoicePlaying: (isAIVoicePlaying: boolean) => 
-    useGlobalState.getState().updateSubtree("$.isAIVoicePlaying", isAIVoicePlaying),
-    
   setCurrentConversationId: (currentConversationId: string) => 
     useGlobalState.getState().updateSubtree("$.currentConversationId", currentConversationId),
     
@@ -119,6 +111,12 @@ const useGlobalState = create<DeviceState>((set) => ({
     questionPointId: string;
     interruptAt: number;
   } | null) => useGlobalState.getState().updateSubtree("$.questionPoint", questionPoint),
+
+  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => useGlobalState.getState().updateSubtree("$.isConnectingToLivekit", isConnectingToLivekit),
+
+  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => useGlobalState.getState().updateSubtree("$.livekitConnectionDetails", livekitConnectionDetails),
+
+  setIsLivekitRoomConnected: (isConnected: boolean) => useGlobalState.getState().updateSubtree("$.isLivekitRoomConnected", isConnected),
   
   updateSubtree: (
     jsonPath: string,

@@ -8,15 +8,25 @@ import Player from "./components/Player";
 import Library from "./components/Library";
 import Nav from "./components/Nav";
 import useGlobalState from "./GlobalState";
-import AIVoiceModal from "./components/AudioStreamModal";
+import AIVoiceModal from "./components/AIVoiceModal";
 import WebSocketHandler from "./components/WebSocketHandler";
 import WebSocketStatus from "./components/WebSocketStatus";
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
+import { LiveKitRoom } from "@livekit/components-react";
+import { MediaDeviceFailure } from "livekit-client";
 // Define interfaces
 //
+
 const App: React.FC = () => {
-	const { libraryStatus } = useGlobalState();
+	const { 
+		libraryStatus, 
+		livekitConnectionDetails, 
+		isLivekitRoomConnected, 
+		setIsLivekitRoomConnected,
+		isConnectingToLivekit,
+		setIsConnectingToLivekit
+	} = useGlobalState();
 	const { websocketService } = useWebSocket();
 
 	// Log that the app has loaded
@@ -37,15 +47,41 @@ const App: React.FC = () => {
 			"max-md:ml-0"
 		)}>
 			{/* WebSocketHandler manages connection - no UI */}
-			<WebSocketHandler />
-			<Nav />
-			<Player />
-			<Library />
-			<AIVoiceModal />
-			{/* Status indicator for WebSocket connection */}
-			<WebSocketStatus />
+			<LiveKitRoom 
+				serverUrl={livekitConnectionDetails?.serverUrl} 
+				token={livekitConnectionDetails?.participantToken}
+				audio={true}
+				video={false}
+				connect={livekitConnectionDetails !== null}
+				onConnected={() => {
+					setIsConnectingToLivekit(false)
+					setIsLivekitRoomConnected(true)
+					console.log("Connected to LiveKit");
+				}}
+				onDisconnected={() => {
+					setIsConnectingToLivekit(false)
+					setIsLivekitRoomConnected(false)
+					console.log("Disconnected from LiveKit");
+				}}
+				onMediaDeviceFailure={onDeviceFailure}
+			>
+				<WebSocketHandler />
+				<Nav />
+				<Player />
+				<Library />
+				<AIVoiceModal />
+				{/* Status indicator for WebSocket connection */}
+				<WebSocketStatus />
+			</LiveKitRoom>
 		</div>
 	);
 };
+
+function onDeviceFailure(error?: MediaDeviceFailure) {
+	console.error(error);
+	alert(
+	  "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
+	);
+  }
 
 export default App;

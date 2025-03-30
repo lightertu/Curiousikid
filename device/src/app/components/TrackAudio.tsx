@@ -2,10 +2,21 @@ import React, { useRef, useEffect, useState } from "react";
 import useGlobalState from "../GlobalState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
-
+import { LiveKitConnectionDetails, LiveKitApi } from "../api/livekit";
 const TrackAudio: React.FC = () => {
 	const audioRef = useRef<HTMLAudioElement>(null);
-	const { currentStory, stories, setCurrentStory, isPlaying, setIsPlaying, isAIVoiceStreaming } = useGlobalState();
+	const { 
+		currentStory, 
+		stories, 
+		setCurrentStory, 
+		isPlaying, 
+		setIsPlaying, 
+		isConnectingToLivekit, 
+		setIsConnectingToLivekit, 
+		setLivekitConnectionDetails,
+		livekitConnectionDetails,
+		isLivekitRoomConnected
+	} = useGlobalState();
 	const { websocketService } = useWebSocket();
 	
 	// Add this state to track the last sent time
@@ -16,7 +27,6 @@ const TrackAudio: React.FC = () => {
 		const target = e.target as HTMLAudioElement;
 		const currentTime = target.currentTime;
 		const duration = target.duration;
-		
 		if (!currentStory) return;
 		// Update local state
 		setCurrentStory({ ...currentStory, currentTime, duration });
@@ -32,7 +42,23 @@ const TrackAudio: React.FC = () => {
 			});
 			setLastSentTime(currentSecond);
 		}
+
+		if (currentStory.currentTime > 100 && !isConnectingToLivekit && !isLivekitRoomConnected) {
+			setIsConnectingToLivekit(true);
+			getLiveKitRoomConnectionDetails().then((connectionDetails) => {
+				console.log(`Connected to LiveKit, ${connectionDetails}`);
+				setLivekitConnectionDetails(connectionDetails);
+			}).catch((error) => {
+				setIsConnectingToLivekit(false);
+				console.error("Error connecting to LiveKit", error);
+			});
+		}
 	};
+
+	const getLiveKitRoomConnectionDetails = async (): Promise<LiveKitConnectionDetails> => {
+		const liveKitApi = new LiveKitApi();
+		return await liveKitApi.getConnectionDetails() as LiveKitConnectionDetails;
+	}
 
 	const songEndHandler = async (): Promise<void> => {
 		const currentIndex = stories.findIndex((song) => song.id === currentStory?.id);
@@ -46,7 +72,7 @@ const TrackAudio: React.FC = () => {
 		if (!audioRef.current) return;
 		
 		// If AI voice is streaming, pause the audio regardless of isPlaying state
-		if (isAIVoiceStreaming) {
+		if (isLivekitRoomConnected) {
 			console.log("Pausing audio for AI voice");
 			setIsPlaying(false);
 			audioRef.current.pause();
@@ -61,7 +87,7 @@ const TrackAudio: React.FC = () => {
 			console.log("Pause");
 			audioRef.current.pause();
 		}
-	}, [isPlaying, isAIVoiceStreaming, setIsPlaying]);
+	}, [isPlaying, setIsPlaying]);
 
 	// Add this useEffect to control the audio timestamp when currentTrack.currentTime changes externally
 	useEffect(() => {
