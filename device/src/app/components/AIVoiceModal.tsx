@@ -16,19 +16,26 @@ import {
 } from "@livekit/components-react";
 
 const AIVoiceModal: React.FC = () => {
-  const { isLivekitRoomConnected } = useGlobalState();
+  const { isLivekitRoomConnected, setIsPlaying } = useGlobalState();
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
+  const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
 
   useEffect(() => {
     setAgentState(state);
-  }, [state]);
+    const isAgentConnected = state === "speaking" || state === "listening" || state === "thinking";
+    setAgentConnected(isAgentConnected);
+    if (isAgentConnected) {
+      console.log("Agent is connected, set isPlaying to false");
+      setIsPlaying(false);
+    } 
+  }, [state, setIsPlaying]);
 
   return (
     <>
       {/* Always render these components regardless of state */}
       {/* Only show the modal when connected */}
-      {isLivekitRoomConnected && (
+      {isLivekitRoomConnected && agentConnected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Blurred backdrop */}
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>

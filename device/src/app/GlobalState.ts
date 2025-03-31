@@ -39,7 +39,7 @@ export interface DeviceState {
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
   libraryStatus: boolean;
-  currentConversationId: string | null;
+  currentConversationId: string;
   isWebSocketConnected: boolean;
   questionPoint: {
     storyId: string;
@@ -60,11 +60,12 @@ export interface DeviceState {
     questionPointId: string;
     interruptAt: number;
   } | null) => void;
-  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
+  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
   setIsLivekitRoomConnected: (isConnected: boolean) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateSubtree: (jsonPath: string, newValue: any) => void;
+  playAudio: () => void;
+  pauseAudio: () => void;
+  togglePlayPause: () => void;
 }
 
 const useGlobalState = create<DeviceState>((set) => ({
@@ -85,61 +86,47 @@ const useGlobalState = create<DeviceState>((set) => ({
   },
   questionPoint: null,
   libraryStatus: false,
-  currentConversationId: null,
+  currentConversationId: '',
   isWebSocketConnected: false,
 
   setIsPlaying: (isPlaying: boolean) => 
-    useGlobalState.getState().updateSubtree("$.isPlaying", isPlaying),
+    set({ isPlaying }),
           
   setCurrentStory: (currentStory: CurrentStory | null) => 
-    useGlobalState.getState().updateSubtree("$.currentStory", currentStory),
+    set({ currentStory }),
     
   setStories: (stories: StoryMetadata[]) => 
-    useGlobalState.getState().updateSubtree("$.stories", stories),
+    set({ stories }),
     
   setLibraryStatus: (libraryStatus: boolean) => 
-    useGlobalState.getState().updateSubtree("$.libraryStatus", libraryStatus),
+    set({ libraryStatus }),
     
   setCurrentConversationId: (currentConversationId: string) => 
-    useGlobalState.getState().updateSubtree("$.currentConversationId", currentConversationId),
+    set({ currentConversationId }),
     
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => 
-    useGlobalState.getState().updateSubtree("$.isWebSocketConnected", isWebSocketConnected),
+    set({ isWebSocketConnected }),
 
   setQuestionPoint: (questionPoint: {
     storyId: string;
     questionPointId: string;
     interruptAt: number;
-  } | null) => useGlobalState.getState().updateSubtree("$.questionPoint", questionPoint),
+  } | null) => set({ questionPoint }),
 
-  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => useGlobalState.getState().updateSubtree("$.isConnectingToLivekit", isConnectingToLivekit),
+  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => 
+    set({ isConnectingToLivekit }),
 
-  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => useGlobalState.getState().updateSubtree("$.livekitConnectionDetails", livekitConnectionDetails),
+  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => 
+    set({ livekitConnectionDetails }),
 
-  setIsLivekitRoomConnected: (isConnected: boolean) => useGlobalState.getState().updateSubtree("$.isLivekitRoomConnected", isConnected),
+  setIsLivekitRoomConnected: (isLivekitRoomConnected: boolean) => 
+    set({ isLivekitRoomConnected }),
   
-  updateSubtree: (
-    jsonPath: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    newValue: any
-  ) => {
-    set((prevState) => {
-      const clonedState = cloneDeep(prevState);
+  playAudio: () => set((state) => ({ isPlaying: true })),
   
-      const matches = JSONPath({
-        path: jsonPath,
-        json: clonedState,
-        resultType: 'all',
-      });
+  pauseAudio: () => set((state) => ({ isPlaying: false })),
   
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      matches.forEach((match: any) => {
-        match.parent[match.parentProperty] = newValue;
-      });
-  
-      return clonedState;
-    }, false);
-  },
+  togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
 }));
 
 export default useGlobalState;

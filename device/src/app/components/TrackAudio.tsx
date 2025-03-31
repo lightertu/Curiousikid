@@ -22,6 +22,23 @@ const TrackAudio: React.FC = () => {
 	// Add this state to track the last sent time
 	const [lastSentTime, setLastSentTime] = useState<number>(-1);
 	
+	// Component mount/unmount check
+	useEffect(() => {
+		console.log("TrackAudio component mounted");
+		
+		// Test direct subscription to state changes
+		const unsubscribe = useGlobalState.subscribe(
+			(state) => {
+				console.log("Direct subscription detected isPlaying:", state.isPlaying);
+			}
+		);
+		
+		return () => {
+			console.log("TrackAudio component unmounted");
+			unsubscribe();
+		};
+	}, []);
+	
 	// Functions
 	const updateTimeHandler = (e: React.SyntheticEvent<HTMLAudioElement>): void => {
 		const target = e.target as HTMLAudioElement;
@@ -43,7 +60,7 @@ const TrackAudio: React.FC = () => {
 			setLastSentTime(currentSecond);
 		}
 
-		if (currentStory.currentTime > 100 && !isConnectingToLivekit && !isLivekitRoomConnected) {
+		if (currentStory.currentTime > 100 && isPlaying && !isConnectingToLivekit && !isLivekitRoomConnected) {
 			setIsConnectingToLivekit(true);
 			getLiveKitRoomConnectionDetails().then((connectionDetails) => {
 				console.log(`Connected to LiveKit, ${connectionDetails}`);
@@ -67,24 +84,26 @@ const TrackAudio: React.FC = () => {
         setIsPlaying(true);
 	};
 
-	// Add this useEffect to control audio playback when isPlaying or isAIVoiceStreaming changes
 	useEffect(() => {
-		if (!audioRef.current) return;
-		
-		// If AI voice is streaming, pause the audio regardless of isPlaying state
-		if (isLivekitRoomConnected) {
-			console.log("Pausing audio for AI voice");
-			setIsPlaying(false);
-			audioRef.current.pause();
+		console.log("TrackAudio: isPlaying state changed to", isPlaying);
+		if (!audioRef.current) {
+			console.error("TrackAudio: No audio ref available");
 			return;
 		}
 		
-		// Normal playback control when AI isn't speaking
 		if (isPlaying) {
-			console.log("Playing");
+			console.log("TrackAudio: Attempting to play audio");
 			audioRef.current.play()
+				.then(() => {
+					console.log("TrackAudio: Audio playback started successfully");
+				})
+				.catch(error => {
+					console.error("TrackAudio: Error starting audio playback", error);
+					// This might be triggered by user interaction issues
+					setIsPlaying(false);
+				});
 		} else {
-			console.log("Pause");
+			console.log("TrackAudio: Pausing audio");
 			audioRef.current.pause();
 		}
 	}, [isPlaying, setIsPlaying]);
