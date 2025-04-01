@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Voice Agent",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.voice_agent.agent.entrypoint",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": ".",
+                "LOG_LEVEL": "DEBUG"
+            },
+            "cwd": "${workspaceFolder}/backend"
+        }
+    ]
+}

@@ -21,7 +21,7 @@ install:
   source .venv/bin/activate
 
 # Run the agent with dev configuration
-run_agent:
+serve-agent:
     .venv/bin/python src/voice_agent/agent/entrypoint.py dev
 
 # Start the FastAPI server

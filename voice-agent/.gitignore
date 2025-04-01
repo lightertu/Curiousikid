@@ -1,0 +1,20 @@
+.venv/
+# Ignore dynaconf secret files
+.secrets.*
+*.iml
+.idea/
+__pycache__/
+secrets.*
+*.mp3
+# *.wav
+# *.ogg
+.syncignore
+
+**/*.egg-info
+**/*.egg-info/**   
+*.dist-info/**
+*.whl
+*.tar.gz
+*.zip
+*.tar.bz2
+*.tar.xz

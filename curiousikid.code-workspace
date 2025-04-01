@@ -1,7 +1,10 @@
 {
 	"folders": [
         {
-            "path": "backend"
+            "path": "control-server"
+        },
+        {
+            "path": "voice-agent"
         },
         {
             "path": "device"

@@ -25,5 +25,7 @@ os.environ["LIVEKIT_API_SECRET"] = settings.LIVEKIT_API_SECRET
 os.environ["OPENAI_API_KEY"] = settings.OPENAI_API_KEY
 os.environ["DEEPGRAM_API_KEY"] = settings.DEEPGRAM_API_KEY
 
+print("settings.OPENAI_API_KEY", settings.OPENAI_API_KEY)
+
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.

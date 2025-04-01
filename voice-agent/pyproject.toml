@@ -1,9 +1,9 @@
 [project]
-name = "curiousikid"
+name = "voice-agent"
 version = "0.1.0"
-description = "CuriousiKid"
+description = "CuriousiKid-voice-agent"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 
 dependencies = [
     "boto3>=1.34.70",
@@ -19,16 +19,17 @@ dependencies = [
     "s3fs>=2024.9.0",
     "aioboto3>=13.1.1",
     "openai-whisper==20240930",
-    "livekit-agents>=0.10.1",
-    "livekit-plugins-deepgram>=0.6.8",
-    "livekit-plugins-elevenlabs>=0.7.5",
-    "livekit-plugins-openai>=0.10.3",
-    "livekit-plugins-silero>=0.7.1",
+    "livekit-plugins-deepgram~=1.0rc0",
+    "livekit-plugins-elevenlabs~=1.0rc0",
+    "livekit-plugins-openai~=1.0rc0",
+    "livekit-plugins-silero~=1.0rc0",
     "pyyaml>=6.0.2",
     "jsonpath-ng>=1.5.3",
     "pydantic>=2.10.2",
     "pipecat>=0.3.0",
     "uvicorn>=0.34.0",
+    "livekit-agents~=1.0rc0",
+    "ruff>=0.11.2",
 ]
 
 [tool.pytest.ini_options]
