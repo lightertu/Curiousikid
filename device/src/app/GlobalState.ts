@@ -45,6 +45,7 @@ export interface DeviceState {
     storyId: string;
     questionPointId: string;
     interruptAt: number;
+    connectAt: number;
   } | null;
   isConnectingToLivekit: boolean;
   livekitConnectionDetails: LiveKitConnectionDetails | null;
@@ -59,6 +60,7 @@ export interface DeviceState {
     storyId: string;
     questionPointId: string;
     interruptAt: number;
+    connectAt: number;
   } | null) => void;
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
   setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;

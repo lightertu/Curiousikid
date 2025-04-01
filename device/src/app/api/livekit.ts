@@ -13,10 +13,6 @@ const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
-console.log("LIVEKIT_API_KEY", LIVEKIT_API_KEY);
-console.log("LIVEKIT_API_SECRET", LIVEKIT_API_SECRET);
-console.log("LIVEKIT_URL", LIVEKIT_URL);
-
 export class LiveKitApi {
   async getConnectionDetails() {
     if (process.env.LIVEKIT_URL === undefined) {

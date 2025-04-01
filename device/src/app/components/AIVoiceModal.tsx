@@ -16,7 +16,7 @@ import {
 } from "@livekit/components-react";
 
 const AIVoiceModal: React.FC = () => {
-  const { isLivekitRoomConnected, setIsPlaying } = useGlobalState();
+  const { isLivekitRoomConnected, setIsPlaying, setQuestionPoint } = useGlobalState();
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
@@ -27,6 +27,7 @@ const AIVoiceModal: React.FC = () => {
     setAgentConnected(isAgentConnected);
     if (isAgentConnected) {
       console.log("Agent is connected, set isPlaying to false");
+      setQuestionPoint(null);
       setIsPlaying(false);
     } 
   }, [state, setIsPlaying]);

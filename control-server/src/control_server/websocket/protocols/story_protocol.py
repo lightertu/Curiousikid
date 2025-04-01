@@ -116,7 +116,7 @@ class StoryProtocol(Protocol):
         
         question_point = 100
         delta = question_point - message.currentTime
-        if delta < 10 and delta > 0:
+        if not device_state.questionPoint and delta < 10 and delta > 0:
             logger.info(f"Detected question point for {message.id} at {message.currentTime}")
             await self.send_message(
                 connection_id,
@@ -124,8 +124,8 @@ class StoryProtocol(Protocol):
                     payload=SetQuestionPointPayload(    
                         storyId=message.id,
                         questionPointId="question point 1",
-                        connectAt=message.currentTime + 5,
-                        interruptAt=message.currentTime + 10
+                        connectAt=question_point - 3,
+                        interruptAt=question_point
                     )
                 )
                 )

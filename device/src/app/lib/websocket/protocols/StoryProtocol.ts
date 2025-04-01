@@ -40,6 +40,7 @@ export interface ACKSetQuestionPointMessage extends Message {
   payload: {
     storyId: string;
     questionPointId: string;
+    connectAt: number;
     interruptAt: number;
   };
 }
@@ -47,9 +48,6 @@ export interface ACKSetQuestionPointMessage extends Message {
  * Protocol for handling story-related messages
  */
 export class StoryProtocol extends BaseProtocol {
-  private stories: StoryMetadata[] = [];
-  private readonly globalState: DeviceState;
-  
   constructor(connection: WebSocketConnection) {
     super(
       'story',
@@ -59,7 +57,6 @@ export class StoryProtocol extends BaseProtocol {
         [MessageType.SET_QUESTION_POINT, (payload: unknown) => this.handleSetQuestionPoint(payload)],
       ])
     );
-    this.globalState = useGlobalState.getState();  
   }
   /**
    * Initialize the protocol
@@ -101,7 +98,8 @@ export class StoryProtocol extends BaseProtocol {
     // Type guard to check if raw has the structure we expect
     console.log("handleStoryList RAW", raw);
     const message = raw as SendStoryListMessage;
-    this.globalState.setStories(message.payload);
+    const globalState = useGlobalState.getState();
+    globalState.setStories(message.payload);
   }
 
   /**
@@ -110,47 +108,22 @@ export class StoryProtocol extends BaseProtocol {
   protected async handleSetQuestionPoint(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
     const message = raw as SetQuestionPointMessage;
-    const { currentStory, isPlaying } = this.globalState;
+    const globalState = useGlobalState.getState();
+    const { currentStory, isPlaying } = globalState;
       
-    if (isPlaying && currentStory && currentStory.id === message.payload.storyId) {
+    console.log("handleSetQuestionPoint.globalState", globalState);
+
+    if (isPlaying && currentStory) {
       // Only update the current story if the storyId matches
-      this.globalState.setQuestionPoint({
-        storyId: message.payload.storyId,
+      console.log("handleSetQuestionPoint", message);
+      globalState.setQuestionPoint({
+        storyId: currentStory.id,
         questionPointId: message.payload.questionPointId,
+        connectAt: message.payload.connectAt,
         interruptAt: message.payload.interruptAt
       });
+
+      this.send(MessageType.ACK_SET_QUESTION_POINT, {...message});
     }
-      
-    this.send(MessageType.ACK_SET_QUESTION_POINT, {...message});
   }
 }
-
-// Type guards to verify message types
-function isStoryListMessage(msg: unknown): msg is SendStoryListMessage {
-  return (
-    typeof msg === 'object' && 
-    msg !== null && 
-    'type' in msg && 
-    msg.type === MessageType.SEND_STORY_LIST && 
-    'payload' in msg && 
-    typeof msg.payload === 'object' && 
-    msg.payload !== null && 
-    'stories' in msg.payload && 
-    Array.isArray(msg.payload.stories)
-  );
-}
-
-function isQuestionPointMessage(msg: unknown): msg is SetQuestionPointMessage {
-  return (
-    typeof msg === 'object' && 
-    msg !== null && 
-    'type' in msg && 
-    msg.type === MessageType.SET_QUESTION_POINT && 
-    'payload' in msg && 
-    typeof msg.payload === 'object' && 
-    msg.payload !== null && 
-    'storyId' in msg.payload && 
-    'questionPointId' in msg.payload && 
-    'interruptAt' in msg.payload
-  );
-} 
