@@ -31,7 +31,16 @@ const INIT_STORY_LIST: StoryMetadata[] = [
     duration: 180.5,
     artist: "Storynory",
     thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?",
-  }
+  },
+  {
+    id: "2",
+    title: "The Deep Blue Discovery",
+    description: "Something cool",
+    artist: "Storynory",
+    audioUrl: "/The_Deep_Blue_Discovery_story.mp3",
+    duration: 856.842449,
+    thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?",
+  },
 ];
 
 export interface DeviceState {
@@ -70,6 +79,7 @@ export interface DeviceState {
   togglePlayPause: () => void;
 }
 
+const INIT_STORY_ID = 1;
 const useGlobalState = create<DeviceState>((set) => ({
   isPlaying: false,
   stories: INIT_STORY_LIST,
@@ -78,13 +88,13 @@ const useGlobalState = create<DeviceState>((set) => ({
   isLivekitRoomConnected: false,
   currentStory: {
     currentTime: 0,
-    id: INIT_STORY_LIST[0].id,
-    title: INIT_STORY_LIST[0].title,
-    description: INIT_STORY_LIST[0].description,
-    artist: INIT_STORY_LIST[0].artist,
-    audioUrl: INIT_STORY_LIST[0].audioUrl,
-    duration: INIT_STORY_LIST[0].duration,
-    thumbnailUrl: INIT_STORY_LIST[0].thumbnailUrl,
+    id: INIT_STORY_LIST[INIT_STORY_ID].id,
+    title: INIT_STORY_LIST[INIT_STORY_ID].title,
+    description: INIT_STORY_LIST[INIT_STORY_ID].description,
+    artist: INIT_STORY_LIST[INIT_STORY_ID].artist,
+    audioUrl: INIT_STORY_LIST[INIT_STORY_ID].audioUrl,
+    duration: INIT_STORY_LIST[INIT_STORY_ID].duration,
+    thumbnailUrl: INIT_STORY_LIST[INIT_STORY_ID].thumbnailUrl,
   },
   questionPoint: null,
   libraryStatus: false,

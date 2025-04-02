@@ -57,7 +57,7 @@ async def entrypoint(ctx: JobContext):
         # any combination of STT, LLM, TTS, or realtime API can be used
         stt=deepgram.STT(model="nova-3"),
         llm=openai.LLM(model="gpt-4o-mini"),
-        tts=openai.TTS(voice="ash", instructions="You are a friendly voice assistant built by LiveKit."),
+        tts=openai.TTS(voice="nova", instructions="You are a friendly voice assistant built by LiveKit."),
     )
 
     def reset_timeout():
