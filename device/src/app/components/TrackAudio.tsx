@@ -163,8 +163,6 @@ const TrackAudio: React.FC = () => {
 		const currentTime = getCurrentTime(); 
 		// Get the latest lastSentTime from state (needed for comparison)
 		const currentLastSentTime = lastSentTime; 
-		// Log the time check
-		console.log(`[TrackAudio Update] Interval running. Current Time: ${currentTime.toFixed(2)}, Last Sent: ${currentLastSentTime.toFixed(2)}`);
 		
 		// --- Update Global State & Send WS Message (Throttled) ---
 		// Check if the difference exceeds the 2-second threshold
@@ -199,8 +197,6 @@ const TrackAudio: React.FC = () => {
 		// --- LiveKit Connection Trigger ---
 		// Check if conditions are met to initiate LiveKit connection
 		// Log values used in LiveKit check
-		console.log("isPlaying", isPlaying);
-		console.log(`[TrackAudio LiveKit Check] currentTime: ${currentTime.toFixed(2)}, isPlaying: ${isPlaying}, isConnecting: ${isConnectingToLivekit}, isConnected: ${isLivekitRoomConnected}, questionPoint: ${JSON.stringify(questionPoint)}, details: ${livekitConnectionDetails}`);
 		// Check if at a question point
 		const isAtQuestionPoint = questionPoint && currentTime >= questionPoint.connectAt && currentTime - questionPoint.connectAt <= 1; 
 		// Check if LiveKit is not already connected or connecting
