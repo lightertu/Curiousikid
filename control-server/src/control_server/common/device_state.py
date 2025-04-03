@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field, ValidationError
 from copy import deepcopy
 from jsonpath_ng import parse
 
-from control_server.core.story_loader import load_stories_from_yaml
-from control_server.core.models import StoryMetadata, CurrentStory, QuestionPoint
+from control_server.common.story_loader import load_stories_from_yaml
+from control_server.common.models import StoryMetadata, CurrentStory, QuestionPoint
 
 
 INIT_STORY_LIST = load_stories_from_yaml()

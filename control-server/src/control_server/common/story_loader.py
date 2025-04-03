@@ -3,11 +3,13 @@ from typing import List
 from pydantic import ValidationError
 import yaml
 from pathlib import Path
-from control_server.core.models import StoryMetadata
+from control_server.common.models import StoryMetadata
 from control_server.environment.config import PROJECT_ROOT
 
 # --- Function to load stories from YAML --- 
 DEFAULT_STORIES_FILE = os.path.join(PROJECT_ROOT, "data", "stories", "metadata.yml")
+
+DEFAULT_STORY_DIR = os.path.join(PROJECT_ROOT, "data", "stories")
 
 def load_stories_from_yaml(file_path: Path = DEFAULT_STORIES_FILE) -> List[StoryMetadata]:
     """Loads story metadata from a YAML file."""

@@ -3,7 +3,7 @@ from typing import Dict, Any, List
 
 from pydantic import BaseModel
 
-from control_server.core.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory, DeviceState
+from control_server.common.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory, DeviceState
 from control_server.websocket.message import MessageType, TextMessage
 
 from ..connection import ConnectionManager

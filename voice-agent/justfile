@@ -17,7 +17,7 @@ install:
 
 # Run the agent with dev configuration
 serve-agent:
-    .venv/bin/python src/voice_agent/agent/entrypoint.py dev
+    .venv/bin/python src/voice_agent/agent/conversational_story_agent.py dev
 
 serve-livekit:
     livekit-server --dev --bind 0.0.0.0

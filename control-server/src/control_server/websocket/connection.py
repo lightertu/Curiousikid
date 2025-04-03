@@ -7,7 +7,7 @@ from typing import Dict, Any, Optional, Set
 from fastapi import WebSocket
 from pydantic import BaseModel, Field
 
-from control_server.core.device_state import DeviceState
+from control_server.common.device_state import DeviceState
 
 logger = logging.getLogger(__name__)
 

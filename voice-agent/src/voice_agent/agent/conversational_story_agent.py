@@ -22,6 +22,7 @@ TIMEOUT_SECONDS = 10
 PROMPT_WARNING_TIME = 3
 GOODBYE_DELAY = 0.5
 SILENCE_FOLLOW_UP_RETRY = 2
+
 class AgentMonitoringState(BaseModel):
     last_interaction_time: float
     is_agent_speaking: bool
@@ -47,11 +48,12 @@ async def entrypoint(ctx: JobContext):
     )
 
     await ctx.connect()
-
+    
     agent = Agent(
         instructions="You are a friendly voice assistant built by LiveKit.",
         tools=[lookup_weather],
     )
+
     session = AgentSession(
         vad=silero.VAD.load(),
         # any combination of STT, LLM, TTS, or realtime API can be used
@@ -69,7 +71,6 @@ async def entrypoint(ctx: JobContext):
         monitoring_state.silence_follow_up_retry = SILENCE_FOLLOW_UP_RETRY
         monitoring_state.last_interaction_time = time.time()
 
-    
     async def hangup():
         logger.info("Idle too long, hanging up")
         try:
@@ -141,11 +142,14 @@ async def entrypoint(ctx: JobContext):
         logger.info("User stopped speaking")
         reset_follow_up_retry()
 
-    asyncio.create_task(monitor_interaction())
-    
+    print("Before")
+    print("metadata", ctx.room.remote_participants)
     await session.start(agent=agent, room=ctx.room)
+    print("After")
+
+    asyncio.create_task(monitor_interaction())
+
     await session.say("Are you ready for a question?")
-    await session.generate_reply(instructions="greet the user and ask about their day")
 
 
 if __name__ == "__main__":

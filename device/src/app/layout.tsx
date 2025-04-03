@@ -25,8 +25,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // WebSocket server URL should come from environment variables in production
-  const wsServerUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL || 'ws://localhost:8000/ws';
+  const wsServerUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL || 'ws://localhost:8000/api/v1/ws/';
   
+  console.log('wsServerUrl', wsServerUrl);
   return (
     <html lang="en">
       <body
