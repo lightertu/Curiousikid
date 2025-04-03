@@ -142,7 +142,7 @@ async def entrypoint(ctx: JobContext):
         reset_follow_up_retry()
 
     asyncio.create_task(monitor_interaction())
-
+    
     await session.start(agent=agent, room=ctx.room)
     await session.say("Are you ready for a question?")
     await session.generate_reply(instructions="greet the user and ask about their day")

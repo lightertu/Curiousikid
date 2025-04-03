@@ -1,4 +1,5 @@
 import { AccessToken, AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
+import { QuestionPoint } from "../GlobalState";
 
 export const revalidate = 0;
 
@@ -14,7 +15,7 @@ const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export class LiveKitApi {
-  async getConnectionDetails() {
+  async getConnectionDetails(questionPoint: QuestionPoint) {
     if (process.env.LIVEKIT_URL === undefined) {
       throw new Error("LIVEKIT_URL is not defined");
     }
@@ -31,7 +32,12 @@ export class LiveKitApi {
     const participantToken = await this.createParticipantToken(
       LIVEKIT_API_KEY as string,
       LIVEKIT_API_SECRET as string,
-      { identity: participantIdentity },
+      { 
+        identity: participantIdentity,
+        metadata: JSON.stringify({
+          questionPoint: questionPoint,
+        }),
+      },
       roomName
     );
 

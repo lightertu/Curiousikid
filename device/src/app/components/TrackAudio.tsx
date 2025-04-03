@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import useGlobalState from "../GlobalState";
+import useGlobalState, { QuestionPoint } from "../GlobalState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi } from "../api/livekit";
@@ -208,7 +208,7 @@ const TrackAudio: React.FC = () => {
 			// Set connecting state
 			setIsConnectingToLivekit(true); 
 			// Fetch LiveKit connection details
-			getLiveKitRoomConnectionDetails().then((connectionDetails) => { 
+			getLiveKitRoomConnectionDetails(questionPoint).then((connectionDetails) => { 
 				// Log success and set details
 				console.log(`[TrackAudio LiveKit Trigger] Connected to LiveKit, ${connectionDetails}`); 
 				setLivekitConnectionDetails(connectionDetails); 
@@ -256,9 +256,9 @@ const TrackAudio: React.FC = () => {
 	};
 
 	// --- Get LiveKit Connection Details ---
-	const getLiveKitRoomConnectionDetails = async (): Promise<LiveKitConnectionDetails> => {
+	const getLiveKitRoomConnectionDetails = async (questionPoint: QuestionPoint): Promise<LiveKitConnectionDetails> => {
 		const liveKitApi = new LiveKitApi();
-		return await liveKitApi.getConnectionDetails() as LiveKitConnectionDetails;
+		return await liveKitApi.getConnectionDetails(questionPoint) as LiveKitConnectionDetails;
 	};
 
 	// --- Ref for Interval Callback ---

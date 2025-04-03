@@ -13,6 +13,7 @@ import {
   RoomAudioRenderer,
   VoiceAssistantControlBar,
   useVoiceAssistant,
+  useMaybeRoomContext,
 } from "@livekit/components-react";
 
 const AIVoiceModal: React.FC = () => {
@@ -20,6 +21,11 @@ const AIVoiceModal: React.FC = () => {
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
+  const room = useMaybeRoomContext();
+  
+  useEffect(() => {
+    console.log("Room:", room);
+  }, [room]);
 
   useEffect(() => {
     setAgentState(state);

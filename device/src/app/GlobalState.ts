@@ -22,6 +22,13 @@ export interface CurrentStory extends StoryMetadata {
   currentTime: number;
 }
 
+export interface QuestionPoint {
+  storyId: string;
+  questionPointId: string;
+  interruptAt: number;
+  connectAt: number;
+}
+
 const INIT_STORY_LIST: StoryMetadata[] = [
   {
     id: "1",
@@ -65,12 +72,7 @@ export interface DeviceState {
   setLibraryStatus: (libraryStatus: boolean) => void;
   setCurrentConversationId: (currentConversationId: string) => void;
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => void;
-  setQuestionPoint: (questionPoint: {
-    storyId: string;
-    questionPointId: string;
-    interruptAt: number;
-    connectAt: number;
-  } | null) => void;
+  setQuestionPoint: (questionPoint: QuestionPoint | null) => void;
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
   setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
   setIsLivekitRoomConnected: (isConnected: boolean) => void;
@@ -119,11 +121,8 @@ const useGlobalState = create<DeviceState>((set) => ({
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => 
     set({ isWebSocketConnected }),
 
-  setQuestionPoint: (questionPoint: {
-    storyId: string;
-    questionPointId: string;
-    interruptAt: number;
-  } | null) => set({ questionPoint }),
+  setQuestionPoint: (questionPoint: QuestionPoint | null) => 
+    set({ questionPoint }),
 
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => 
     set({ isConnectingToLivekit }),
