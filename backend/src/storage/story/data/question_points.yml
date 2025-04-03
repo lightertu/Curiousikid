@@ -1,5 +1,159 @@
 - storyId: "1"
   userId: "1"
+  question: 
   questionPointId: "1"
-  connectAt: 0.0
-  interruptAt: 1.0
+  connectAt: 24.3
+  interruptAt: 29.3
+  question: "Why do you think the snow turned to mush so quickly instead of staying fluffy?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "2"
+  connectAt: 96.12
+  interruptAt: 96.12
+  question: "Why do you think Birdie said he would 'see what he can do'? What might he have to think about first?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "3"
+  connectAt: 128.8
+  interruptAt: 128.8
+  question: "Why might Jake think it’s funny to imagine his dad wobbling on skis?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "4"
+  connectAt: 229.88
+  interruptAt: 229.88
+  question: "What do you think Dad meant when he joked about going 'up in the world'?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "5"
+  connectAt: 298.36
+  interruptAt: 298.36
+  question: "Why did Pierre give Mum a nod of approval when she skied down the slope?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "6"
+  connectAt: 379.8
+  interruptAt: 379.8
+  question: "Aunty Sue likes shopping more than skiing—why might people enjoy different things on vacation?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "7"
+  connectAt: 491.12
+  interruptAt: 491.12
+  question: "What do you think Uncle Jim felt when he couldn't find Mum after she disappeared?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "8"
+  connectAt: 528.6
+  interruptAt: 528.6
+  question: "Why did Auntie Sue think Birdie was a bad omen, while Jake believed he was helpful?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "9"
+  connectAt: 714.3
+  interruptAt: 714.3
+  question: "Mum couldn’t remember the chalet's address or call for help—what would you do if you got lost like Mum?"
+
+- storyId: "1"
+  userId: "1"
+  question: 
+  questionPointId: "10"
+  connectAt: 803.48
+  interruptAt: 803.48
+  question: "Why do you think Birdie was described as a 'wise old friend' instead of just a regular bird?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "121"
+  connectAt: 25.72
+  interruptAt: 25.72
+  question: "Why do you think Grandma said the ocean is full of secrets? What kind of secrets could the ocean have?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "122"
+  connectAt: 38.6
+  interruptAt: 38.6
+  question: "What would you do if you saw something sparkly far away in the water? Would you go closer or stay safe near the shore?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "123"
+  connectAt: 59.26
+  interruptAt: 59.26
+  question: "Why do you think the boat got stuck on the rainbow reef? Was it an accident, or could it be something special?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "124"
+  connectAt: 95.44
+  interruptAt: 95.44
+  question: "Why do you think the rainbow reef allowed Maya to understand the turtle, Bubbles?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "125"
+  connectAt: 134.46
+  interruptAt: 134.46
+  question: "How would you feel if you suddenly discovered you could breathe underwater? Would you be scared or excited?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "126"
+  connectAt: 161.6
+  interruptAt: 161.6
+  question: "Why do you think the treasure chest opened only for Maya? What made her special?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "127"
+  connectAt: 196.52
+  interruptAt: 196.52
+  question: "Why is it important to protect magical places in the ocean? What could happen if no one protected them?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "128"
+  connectAt: 212.92
+  interruptAt: 212.92
+  question: "Why do you think Bubbles chose Maya to help protect the ocean?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "129"
+  connectAt: 244.74
+  interruptAt: 244.74
+  question: "Why do you think Grandma smiled knowingly? Did she already know about the ocean's secrets?"
+
+- storyId: "2"
+  userId: "1"
+  question: 
+  questionPointId: "130"
+  connectAt: 269.32
+  interruptAt: 269.32
+  question: "How can you help protect the ocean and the creatures that live there?"

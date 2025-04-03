@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from control_server.common.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory, DeviceState
 from storage.story.models import QuestionPoint
 from control_server.websocket.message import MessageType, TextMessage
+from storage.story.service import StoryService
 
 from ..connection import ConnectionManager
 from .base import Protocol
@@ -43,7 +44,7 @@ class StoryProtocol(Protocol):
     Manages story selection, playback, and interactions.
     """
     
-    def __init__(self, connection_manager: ConnectionManager):
+    def __init__(self, connection_manager: ConnectionManager, story_service: StoryService = None):
         """
         Initialize the story protocol.
         
@@ -51,6 +52,7 @@ class StoryProtocol(Protocol):
             connection_manager: The connection manager
         """
         super().__init__("story", connection_manager)
+        self.story_service = story_service or StoryService()
         # Register message handlers
         self.register_handler(MessageType.GET_STORY_LIST, self.handle_get_story_list)
         self.register_handler(MessageType.SET_STORY_PROGRESS, self.handle_set_story_progress)
@@ -109,22 +111,17 @@ class StoryProtocol(Protocol):
         device_state = self.connection_manager.get_connection_state(connection_id).device_state
         device_state.currentStory = message
         
-        question_point = 100
-        delta = question_point - message.currentTime
-        if not device_state.questionPoint and delta < 10 and delta > 0:
-            logger.info(f"Detected question point for {message.id} at {message.currentTime}")
-            await self.send_message(
-                connection_id,
-                SetQuestionPointMessage(
-                    payload=QuestionPoint(    
-                        storyId=message.id,
-                        userId=device_state.user.id,
-                        questionPointId="question point 1",
-                        connectAt=question_point - 3,
-                        interruptAt=question_point
+        if not device_state.questionPoint:
+            question_point = self.get_question_point(message.id, message.currentTime)
+            
+            if question_point:
+                logger.info(f"Detected question point for {message.id} at {message.currentTime}")
+                await self.send_message(
+                    connection_id,
+                    SetQuestionPointMessage(
+                        payload=question_point
                     )
                 )
-            )
 
     async def handle_ack_set_question_point(self, connection_id: str, message: Dict[str, Any]) -> None:
         """
@@ -138,3 +135,11 @@ class StoryProtocol(Protocol):
     
     
     
+    def get_question_point(self, story_id: str, current_time: float) -> QuestionPoint:
+        question_points = self.story_service.get_question_points(story_id)
+        print(question_points)
+        for question_point in question_points:
+            if question_point.connectAt >= current_time and question_point.connectAt < current_time + 10:
+                return question_point
+
+        return None

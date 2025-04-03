@@ -20,6 +20,7 @@ class CurrentStory(StoryMetadata):
 class QuestionPoint(BaseModel):
     storyId: str
     userId: str
+    question: str
     questionPointId: str
     connectAt: float
     interruptAt: float

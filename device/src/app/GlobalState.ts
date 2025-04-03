@@ -8,6 +8,8 @@ type UpdateCallback<T = any> = (jsonPath: string, newValue: T, previousValue?: T
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 const NoOpsCallback: UpdateCallback = (jsonPath: string, newValue: any) => {};
 
+const TEST_USER_ID = "ray";
+
 export interface StoryMetadata {
   id: string;
   title: string;
@@ -24,6 +26,7 @@ export interface CurrentStory extends StoryMetadata {
 
 export interface QuestionPoint {
   storyId: string;
+  userId: string;
   questionPointId: string;
   interruptAt: number;
   connectAt: number;
@@ -51,21 +54,18 @@ const INIT_STORY_LIST: StoryMetadata[] = [
 ];
 
 export interface DeviceState {
+  userId: string;
   isPlaying: boolean;
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
   libraryStatus: boolean;
   currentConversationId: string;
   isWebSocketConnected: boolean;
-  questionPoint: {
-    storyId: string;
-    questionPointId: string;
-    interruptAt: number;
-    connectAt: number;
-  } | null;
+  questionPoint: QuestionPoint | null;
   isConnectingToLivekit: boolean;
   livekitConnectionDetails: LiveKitConnectionDetails | null;
   isLivekitRoomConnected: boolean;
+  setUserId: (userId: string) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentStory: (currentStory: CurrentStory | null) => void;
   setStories: (stories: StoryMetadata[]) => void;
@@ -83,6 +83,7 @@ export interface DeviceState {
 
 const INIT_STORY_ID = 1;
 const useGlobalState = create<DeviceState>((set) => ({
+  userId: TEST_USER_ID,
   isPlaying: false,
   stories: INIT_STORY_LIST,
   livekitConnectionDetails: null,
@@ -102,6 +103,9 @@ const useGlobalState = create<DeviceState>((set) => ({
   libraryStatus: false,
   currentConversationId: '',
   isWebSocketConnected: false,
+  
+  setUserId: (userId: string) => 
+    set({ userId }),
 
   setIsPlaying: (isPlaying: boolean) => 
     set({ isPlaying }),

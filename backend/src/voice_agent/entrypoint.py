@@ -27,13 +27,14 @@ async def entrypoint(ctx: JobContext):
 
     monitor = InactivityMonitor(session, ctx)
 
+    # We pass question point to the agent via participant metadata,
+    # assuming we have one remote participant per room
     if ctx.room.remote_participants:
         for _, participant in ctx.room.remote_participants.items():
             agent.load_participant_metadata(participant.metadata)
-            print("agent.connection_metadata", agent.connection_metadata)
+            break
         
     await session.start(agent=agent, room=ctx.room)
-    print("After")
 
     # Make sure the monitor is running after the session is started
     asyncio.create_task(monitor.monitor_interaction())

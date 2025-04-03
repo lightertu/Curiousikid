@@ -1,4 +1,4 @@
-import { DeviceState, StoryMetadata, CurrentStory } from '@/app/GlobalState';
+import { DeviceState, StoryMetadata, CurrentStory, QuestionPoint } from '@/app/GlobalState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
@@ -27,22 +27,12 @@ export interface SetStoryProgressMessage extends Message {
 
 export interface SetQuestionPointMessage extends Message {
   type: MessageType.SET_QUESTION_POINT;
-  payload: {
-    storyId: string;
-    questionPointId: string;
-    connectAt: number;
-    interruptAt: number;
-  };
+  payload: QuestionPoint;
 }
 
 export interface ACKSetQuestionPointMessage extends Message {
   type: MessageType.ACK_SET_QUESTION_POINT;
-  payload: {
-    storyId: string;
-    questionPointId: string;
-    connectAt: number;
-    interruptAt: number;
-  };
+  payload: QuestionPoint;
 }
 /**
  * Protocol for handling story-related messages
@@ -116,12 +106,7 @@ export class StoryProtocol extends BaseProtocol {
     if (isPlaying && currentStory) {
       // Only update the current story if the storyId matches
       console.log("handleSetQuestionPoint", message);
-      globalState.setQuestionPoint({
-        storyId: currentStory.id,
-        questionPointId: message.payload.questionPointId,
-        connectAt: message.payload.connectAt,
-        interruptAt: message.payload.interruptAt
-      });
+      globalState.setQuestionPoint(message.payload);
 
       this.send(MessageType.ACK_SET_QUESTION_POINT, {...message});
     }
