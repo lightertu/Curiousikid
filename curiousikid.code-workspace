@@ -6,9 +6,6 @@
         {
             "path": "device"
         },
-        {
-            "path": "esp32-server"
-        }
     ],
 	"settings": {
         "remote.portsAttributes": {
