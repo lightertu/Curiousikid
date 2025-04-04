@@ -9,20 +9,12 @@ Run `just install`
 
 ## Code Structure
 ```
-├── Dockerfile
-├── README.md
-├── justfile
-├── pyproject.toml
-├── setup.sh
+├── ...
+├── justfile               # <- Put your common commands there
 ├── src
-│   ├── backend.egg-info
 │   ├── control_server     # <- Websocket layer to control the device
 │   ├── environment        # <- All global configurations via environment variables
 │   ├── memory             # <- The shared storage layer between control_server and voice_agent
 │   └── voice_agent        # <- Livekit voice agent implementation that uses the storage layer
-├── test
-│   └── backend
-├── test_track_update.py
-├── test_websocket.py
-└── uv.lock
+└── pyproject.toml         # <- You can use `uv add {MY_PACKAGE_NAME}` on CLI to add new dependencies there.
 ```
