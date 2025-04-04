@@ -1,1 +1,0 @@
-from curiousikid.envionrment.config import settings as ENV

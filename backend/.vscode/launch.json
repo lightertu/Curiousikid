@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FastAPI Server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "src.control_server.main",
+            "justMyCode": false,
+            "env": {
+                "PYTHONPATH": ".",
+                "LOG_LEVEL": "DEBUG"
+            },
+            "cwd": "${workspaceFolder}/backend"
+        }
+    ]
+}

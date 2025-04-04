@@ -10,7 +10,8 @@ secrets.*
 # *.ogg
 .syncignore
 
-*.egg-info/**   
+**/*.egg-info
+**/*.egg-info/**   
 *.dist-info/**
 *.whl
 *.tar.gz

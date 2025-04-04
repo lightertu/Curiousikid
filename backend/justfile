@@ -14,22 +14,34 @@ auth:
 clean:
     rm -rf .venv
 
-install:
-  #!/usr/bin/env bash
-  set -eu
-  if command -v uv &> /dev/null; then
-    uv self update
-  else
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-  fi
-  
-  # https://docs.astral.sh/uv/reference/cli/#uv-sync
-  uv sync
-  source .venv/bin/activate
+# Check for required external dependencies
+check-deps:
+    set -eu
+    @command -v pyenv >/dev/null || (echo "Error: pyenv not found. Please install pyenv (https://github.com/pyenv/pyenv#installation)." && exit 1)
+    @command -v ffmpeg >/dev/null || (echo "Error: ffmpeg not found. Please install ffmpeg (e.g., 'brew install ffmpeg' or 'sudo apt install ffmpeg')." && exit 1)
+    @command -v livekit-server >/dev/null || (echo "Error: livekit-server not found. Please install livekit-server (https://docs.livekit.io/oss/deployment/deploy-options/#local)." && exit 1)
 
-# Run the agent with dev configuration
-run_agent:
-    .venv/bin/python src/holdon/agent/entrypoint.py dev
+install: check-deps
+    #!/usr/bin/env bash
+    set -eu
+    # Check if pyenv version 3.12 is installed, if not, install it
+    # (Assuming pyenv is now confirmed to exist by check-deps)
+    echo "Creating virtual environment..."
+    python -m venv .venv
+    echo "Upgrading pip..."
+    .venv/bin/pip install --upgrade pip
+    echo "Installing dependencies using uv..."
+    # Install uv inside the venv first if needed, then sync
+    .venv/bin/python -m pip install uv
+    .venv/bin/uv sync
+    echo "Installation complete. Activate venv with: source .venv/bin/activate"
 
-serve-livekit:
+serve:
+    @echo "Starting FastAPI server on http://0.0.0.0:8000"
+    @.venv/bin/python -m src.control_server
+
+serve-agent:
+    .venv/bin/python src/voice_agent/entrypoint.py dev
+
+serve-livekit: check-deps
     livekit-server --dev --bind 0.0.0.0

@@ -1,32 +1,42 @@
 # Use a minimal base image with Python 3.10 (can use other versions as needed)
 FROM python:3.10-slim-bullseye
 
-# Set environment variables to make Python behave in a more container-friendly way
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
-# Install system dependencies, including ffmpeg
+# Install system dependencies, including ffmpeg which is required for audio processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
-    llvm \
-    libsm6 \
-    libxext6 \
+    gcc \
+    g++ \
+    python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy the requirements file to the container
-COPY ./requirements.txt /app/requirements.txt
+# Copy pyproject.toml and other necessary files
+COPY pyproject.toml .
+COPY uv.lock .
+COPY setup.sh .
+COPY justfile .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# Install pip-tools and dependencies
+RUN pip install --no-cache-dir pip-tools uv
 
-# Copy the application code to the container
-COPY . /app
+# Install dependencies using uv (faster and more lightweight than pip)
+RUN python -m uv pip install -e .
 
-# Expose the port that FastAPI will run on (optional, depending on how you set up the server)
-EXPOSE 8000
+# Copy only necessary files
+COPY src/ /app/src/
+COPY .env /app/.env
 
-# Command to run FastAPI server with Uvicorn (add additional performance settings as needed)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+# Create a non-root user to run the application
+RUN adduser --disabled-password --gecos "" appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+# Command to run the voice agent
+CMD ["python", "-m", "src.voice_agent.agent.entrypoint"]
