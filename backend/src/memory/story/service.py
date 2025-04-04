@@ -2,8 +2,8 @@ import logging
 from pathlib import Path
 from typing import List, Optional, Dict
 from environment.config import PROJECT_ROOT
-from storage.story.models import QuestionPoint, StoryMetadata, StoryTranscription                   
-from storage.data_loader import load_models_from_yaml, load_transcription_from_json
+from memorystory.models import QuestionPoint, StoryMetadata, StoryTranscription                   
+from memorydata_loader import load_models_from_yaml, load_transcription_from_json
 import os
 from pathlib import Path
 from typing import List

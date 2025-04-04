@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from storage.story.service import StoryService
+from memorystory.service import StoryService
 from livekit.agents import (
     AgentSession,
     JobContext,

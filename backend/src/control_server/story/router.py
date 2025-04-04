@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse
 
 from control_server.story.dependencies import get_story_service
-from storage.story.service import StoryService
+from memorystory.service import StoryService
 
 logging.basicConfig(
     level=logging.INFO,

@@ -1,9 +1,0 @@
-streamlit
-pandas
-matplotlib
-numpy
-python-dotenv
-anthropic
-mem0
-langchain-core
-openai 

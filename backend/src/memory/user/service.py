@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import List
 from environment.config import PROJECT_ROOT
-from storage.user.models import User
-from storage.data_loader import load_models_from_yaml
+from memoryuser.models import User
+from memorydata_loader import load_models_from_yaml
 import logging
 import os
 

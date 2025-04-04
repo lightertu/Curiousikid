@@ -1,20 +1,16 @@
 import argparse
-import asyncio
 import json
 from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 import os
 
-import aiohttp
 import ffmpeg
 import torch
 import whisper
-import yaml
 from tqdm import tqdm
 
-from control_server.core.story_loader import load_stories_from_yaml
-from control_server.core.models import StoryMetadata
-from control_server.environment.config import PROJECT_ROOT
+from memory.story.models import StoryMetadata
+from environment import PROJECT_ROOT
 
 class WhisperTranscriber:
     """Transcribes audio files listed in a metadata YAML using OpenAI Whisper."""

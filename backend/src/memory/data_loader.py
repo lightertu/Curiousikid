@@ -5,7 +5,7 @@ import json
 from typing import List, Type, TypeVar, Optional
 from pydantic import BaseModel, ValidationError
 from pathlib import Path
-from storage.story.models import StoryMetadata, StoryTranscription
+from memorystory.models import StoryMetadata, StoryTranscription
 from environment.config import PROJECT_ROOT
 
 # --- Basic Logging Setup --- 

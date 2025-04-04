@@ -4,8 +4,8 @@ from livekit.agents.voice.agent import Agent
 from livekit.plugins import deepgram, openai, silero
 from livekit.agents import llm
 from pydantic import BaseModel
-from storage.story.service import StoryService
-from storage.story.models import QuestionPoint
+from memorystory.service import StoryService
+from memorystory.models import QuestionPoint
 
 logger = logging.getLogger(__name__)
 

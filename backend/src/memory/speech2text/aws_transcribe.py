@@ -6,7 +6,7 @@ import aiohttp
 import boto3
 import s3fs
 
-from control_server.envionrment import ENV
+from environment import ENV
 
 TRANSCRIBE_LANGUAGE_CODE = 'en-US'
 

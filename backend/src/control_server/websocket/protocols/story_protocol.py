@@ -4,9 +4,9 @@ from typing import Dict, Any, List
 from pydantic import BaseModel
 
 from control_server.common.device_state import INIT_STORY_LIST, StoryMetadata, CurrentStory, DeviceState
-from storage.story.models import QuestionPoint
+from memorystory.models import QuestionPoint
 from control_server.websocket.message import MessageType, TextMessage
-from storage.story.service import StoryService
+from memorystory.service import StoryService
 
 from ..connection import ConnectionManager
 from .base import Protocol
