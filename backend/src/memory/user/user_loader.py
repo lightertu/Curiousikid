@@ -3,7 +3,7 @@ from typing import List
 from pydantic import ValidationError
 import yaml
 from pathlib import Path
-from memoryuser.models import User
+from memory.user.models import User
 from environment.config import PROJECT_ROOT
 
 # --- Function to load users from YAML --- 

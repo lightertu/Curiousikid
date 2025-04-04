@@ -4,8 +4,8 @@ from livekit.agents.voice.agent import Agent
 from livekit.plugins import deepgram, openai, silero
 from livekit.agents import llm
 from pydantic import BaseModel
-from memorystory.service import StoryService
-from memorystory.models import QuestionPoint
+from memory.story.service import StoryService
+from memory.story.models import QuestionPoint
 
 logger = logging.getLogger(__name__)
 
@@ -38,13 +38,14 @@ Don't go off the topic of the story.
         logger.info(f"Loading participant metadata: {serialized_metadata}")
         self.connection_metadata = ConnectionMetadata(**json.loads(serialized_metadata))
         story_context = self.story_service.get_question_point_context(self.connection_metadata.questionPoint)
+        story_text = self.story_service.get_story_text(self.connection_metadata.questionPoint.storyId)
         self._instructions = f"""
 You are a very cute and empathetic story listening companion for children range from 5 - 9 years old. 
 You are given a inital question to ask the user based on the story, and all the story context the child have listened so far. 
 You will ask the question point to the user and listen to their response. You goal is to entertain the child and develop their critical thinking skills.
 Your answer should use simple language any 6 year old can understand and short sentences instead of sophastical language.
 You should ask following up questions in the context of the story to keep the conversation engaging, instead of going off topic.
-Here is the story context: {story_context} """
+Here is what the child has listened so far: {story_context} , and here is the story text: {story_text}, remember to absolutely not spoil the story for the child. """
 
     async def on_enter(self):
         """Called when the task is entered"""

@@ -1,18 +1,18 @@
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict
-from environment.config import PROJECT_ROOT
-from memorystory.models import QuestionPoint, StoryMetadata, StoryTranscription                   
-from memorydata_loader import load_models_from_yaml, load_transcription_from_json
+from environment.config import MEMORY_ROOT
+from memory.story.models import QuestionPoint, StoryMetadata, StoryTranscription                   
+from memory.data_loader import load_models_from_yaml, load_transcription_from_json
 import os
 from pathlib import Path
 from typing import List
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_STORIES_FILE = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "stories.yml"))
-DEFAULT_STORY_DIR = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "stories"))
-DEFAULT_QUESTION_POINTS_FILE = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "question_points.yml"))
+DEFAULT_STORIES_FILE = Path(os.path.join(MEMORY_ROOT, "story", "data", "stories.yml"))
+DEFAULT_STORY_DIR = Path(os.path.join(MEMORY_ROOT, "story", "data", "stories"))
+DEFAULT_QUESTION_POINTS_FILE = Path(os.path.join(MEMORY_ROOT, "story", "data", "question_points.yml"))
 
 class StoryService:
     def __init__(self):
@@ -45,6 +45,13 @@ class StoryService:
         concatenated_text = " ".join(segment.text for segment in matching_segments)
         
         return concatenated_text # Return the concatenated string
+        
+    def get_story_text(self, storyId: str) -> str:
+        transcription = self.get_story_transcription(storyId)
+        if not transcription:
+            raise ValueError(f"Transcription not found for story {storyId}")
+
+        return " ".join(segment.text for segment in transcription.segments)
 
     def get_story_transcription(self, storyId: str) -> Optional[StoryTranscription]:
         return self.story_id_to_transcription.get(storyId)

@@ -5,6 +5,7 @@ from dynaconf import Dynaconf
 
 # Go up three levels from the current file's directory (environment -> control_server -> src -> control-server)
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+MEMORY_ROOT = f"{PROJECT_ROOT}/src/memory"
 
 __ROOT_PATH = os.path.dirname(os.path.realpath(__file__))
 __DYNACONF_ENV_KEY__ = "DYNACONF_ENV"

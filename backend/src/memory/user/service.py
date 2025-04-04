@@ -1,14 +1,14 @@
 from pathlib import Path
 from typing import List
-from environment.config import PROJECT_ROOT
-from memoryuser.models import User
-from memorydata_loader import load_models_from_yaml
+from environment.config import MEMORY_ROOT
+from memory.user.models import User
+from memory.data_loader import load_models_from_yaml
 import logging
 import os
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_USERS_FILE = Path(os.path.join(PROJECT_ROOT, "src", "storage", "user", "data", "users.yml"))
+DEFAULT_USERS_FILE = Path(os.path.join(MEMORY_ROOT, "user", "data", "users.yml"))
 
 def load_users_from_yaml(file_path: Path = DEFAULT_USERS_FILE) -> List[User]:
     """Loads story metadata from a YAML file using the generic loader."""

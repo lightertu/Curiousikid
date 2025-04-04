@@ -1,4 +1,4 @@
-from memorystory.service import StoryService
+from memory.story.service import StoryService
 
 
 async def get_story_service() -> StoryService:

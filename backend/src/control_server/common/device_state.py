@@ -3,10 +3,10 @@ from pydantic import BaseModel, Field, ValidationError
 from copy import deepcopy
 from jsonpath_ng import parse
 
-from memoryuser.service import UserService
-from memorystory.service import StoryService
-from memorystory.models import StoryMetadata, CurrentStory, QuestionPoint
-from memoryuser.models import User
+from memory.user.service import UserService
+from memory.story.service import StoryService
+from memory.story.models import StoryMetadata, CurrentStory, QuestionPoint
+from memory.user.models import User
 
 
 story_service = StoryService()
