@@ -11,7 +11,7 @@ from typing import List
 logger = logging.getLogger(__name__)
 
 DEFAULT_STORIES_FILE = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "stories.yml"))
-DEFAULT_STORY_DIR = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data"))
+DEFAULT_STORY_DIR = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "stories"))
 DEFAULT_QUESTION_POINTS_FILE = Path(os.path.join(PROJECT_ROOT, "src", "storage", "story", "data", "question_points.yml"))
 
 class StoryService:
@@ -39,7 +39,7 @@ class StoryService:
             raise ValueError(f"Transcription not found for story {question_point.storyId}")
         
         # Filter segments based on interruptAt time
-        matching_segments = [segment for segment in transcription.segments if segment.start <= question_point.interruptAt and segment.end >= question_point.interruptAt]
+        matching_segments = [segment for segment in transcription.segments if segment.end <= question_point.interruptAt]
         
         # Concatenate the text of matching segments
         concatenated_text = " ".join(segment.text for segment in matching_segments)
@@ -88,4 +88,4 @@ class StoryService:
 
 if __name__ == "__main__":
     story_service = StoryService()
-    print(story_service.get_question_points("1"))
+    print(story_service.get_story_transcription("2"))
