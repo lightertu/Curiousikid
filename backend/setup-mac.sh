@@ -10,14 +10,14 @@ xcode-select --install
 
 brew upgrade
 
-# Install pyenv
+# Install Python dependencies
+brew install openssl readline sqlite3 xz zlib tcl-tk@8 libb2
 brew install pyenv
-
-# Assuming you are using zsh instead of bash
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.zshrc
 echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.zshrc
 echo 'eval "$(pyenv init - zsh)"' >> ~/.zshrc
 
+# Install just, livekit, ffmpeg, uv
 brew install just livekit ffmpeg uv
 
 exec $SHELL
