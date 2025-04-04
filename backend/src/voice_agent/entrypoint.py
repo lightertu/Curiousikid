@@ -11,9 +11,6 @@ from livekit.agents import (
 from voice_agent.inactivity_monitor import InactivityMonitor
 from voice_agent.proactive_question_agent import ProactiveQuestionAgent
 
-# Import QuestionPoint
-
-
 STORY_SERVICE = StoryService()
 
 logger = logging.getLogger("voice-assistant")
