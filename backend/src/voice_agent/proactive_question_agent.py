@@ -64,7 +64,7 @@ Here is what the child has listened so far: {story_context} , and here is the st
         This is a good opportunity to update the chat context or edit the new message before it is
         sent to the LLM.
         """
-    # callback when user input is transcribed
+        # callback when user input is transcribed
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
         await self.update_chat_ctx(chat_ctx)

@@ -36,6 +36,9 @@ class SetQuestionPointMessage(TextMessage):
 class ACKSetQuestionPointMessage(TextMessage):
   type: MessageType = MessageType.ACK_SET_QUESTION_POINT
   payload: QuestionPoint
+  
+class ClearQuestionPointMessage(TextMessage):
+  type: MessageType = MessageType.CLEAR_QUESTION_POINT
 
 
 class StoryProtocol(Protocol):
@@ -57,6 +60,7 @@ class StoryProtocol(Protocol):
         self.register_handler(MessageType.GET_STORY_LIST, self.handle_get_story_list)
         self.register_handler(MessageType.SET_STORY_PROGRESS, self.handle_set_story_progress)
         self.register_handler(MessageType.ACK_SET_QUESTION_POINT, self.handle_ack_set_question_point)
+        self.register_handler(MessageType.CLEAR_QUESTION_POINT, self.handle_clear_question_point)
 
     def initialize(self) -> None:
         """Initialize the story protocol."""
@@ -134,6 +138,14 @@ class StoryProtocol(Protocol):
         logger.info(f"Updated device state: {device_state}")
     
     
+    async def handle_clear_question_point(self, connection_id: str, message: Dict[str, Any]) -> None:
+        """
+        Handle a request to clear the question point.
+        """
+        logger.info(f"Handling clear question point request from {connection_id}")
+        device_state: DeviceState = self.connection_manager.get_connection_state(connection_id).device_state
+        device_state.questionPoint = None
+        logger.info(f"Updated device state: {device_state}")
     
     def get_question_point(self, story_id: str, current_time: float) -> QuestionPoint:
         question_points = self.story_service.get_question_points(story_id)

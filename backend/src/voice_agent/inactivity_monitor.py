@@ -7,8 +7,8 @@ from livekit.agents import AgentSession, JobContext
 
 logger = logging.getLogger("agent-monitor")
 
-TIMEOUT_SECONDS = 10
-PROMPT_WARNING_TIME = 10
+TIMEOUT_SECONDS = 3
+PROMPT_WARNING_TIME = 3
 GOODBYE_DELAY = 0.5
 SILENCE_FOLLOW_UP_RETRY = 2
 

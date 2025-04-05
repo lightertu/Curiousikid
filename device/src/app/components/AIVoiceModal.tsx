@@ -15,27 +15,47 @@ import {
   useVoiceAssistant,
   useMaybeRoomContext,
 } from "@livekit/components-react";
+import { RoomEvent } from 'livekit-client';
+import { useConversationalStory } from '../hooks/ConversationalStory';
 
 const AIVoiceModal: React.FC = () => {
   const { isLivekitRoomConnected, setIsPlaying, setQuestionPoint } = useGlobalState();
   const [agentState, setAgentState] = useState<AgentState>("disconnected");
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
+  const { clearQuestionPoint } = useConversationalStory();
   const room = useMaybeRoomContext();
-  
+
+
   useEffect(() => {
-    console.log("Room:", room);
+    const handleDisconnect = () => {
+      if (room) {
+        room.disconnect();
+        setIsPlaying(true);
+        clearQuestionPoint();
+      }
+    }
+    if (room) {
+      room.on(RoomEvent.ParticipantDisconnected, handleDisconnect);
+    }
+
+    return () => {
+      if (room) {
+        room.off(RoomEvent.ParticipantDisconnected, handleDisconnect);
+      }
+    };
   }, [room]);
 
   useEffect(() => {
     setAgentState(state);
+    console.log("Agent state:", state);
     const isAgentConnected = state === "speaking" || state === "listening" || state === "thinking";
     setAgentConnected(isAgentConnected);
     if (isAgentConnected) {
-      console.log("Agent is connected, set isPlaying to false");
-      setQuestionPoint(null);
+      clearQuestionPoint();
       setIsPlaying(false);
-    } 
+    }
+
   }, [state, setIsPlaying]);
 
   return (
@@ -46,7 +66,7 @@ const AIVoiceModal: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Blurred backdrop */}
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
-          
+
           {/* Modal content */}
           <div className="relative w-[80%] max-w-3xl bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
             <main data-lk-theme="default" className="p-8">
@@ -75,13 +95,22 @@ function ControlBar(props: { agentState: AgentState }) {
   // useEffect(() => {
   //   krisp.setNoiseFilterEnabled(true);
   // }, []);
+  const room = useMaybeRoomContext();
+  const { setIsPlaying } = useGlobalState();
+
+  const disconnect = () => {
+    if (room) {
+      room.disconnect();
+      setIsPlaying(true);
+    }
+  }
 
   return (
     <div className="relative h-[100px]">
       {props.agentState !== "disconnected" && (
         <div className="flex h-8 justify-center">
           <VoiceAssistantControlBar controls={{ leave: false }} />
-          <DisconnectButton>
+          <DisconnectButton onClick={disconnect}>
             <CloseIcon />
           </DisconnectButton>
         </div>
@@ -90,4 +119,4 @@ function ControlBar(props: { agentState: AgentState }) {
   );
 }
 
-export default AIVoiceModal; 
+export default AIVoiceModal;

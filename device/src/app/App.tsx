@@ -19,23 +19,23 @@ import { MediaDeviceFailure } from "livekit-client";
 //
 
 const App: React.FC = () => {
-	const { 
-		libraryStatus, 
-		livekitConnectionDetails, 
-		isLivekitRoomConnected, 
+	const {
+		libraryStatus,
+		livekitConnectionDetails,
+		isLivekitRoomConnected,
 		setIsLivekitRoomConnected,
 		isConnectingToLivekit,
-		setIsConnectingToLivekit
+		setIsConnectingToLivekit,
+		setLivekitConnectionDetails
 	} = useGlobalState();
 	const { websocketService } = useWebSocket();
 
 	// Log that the app has loaded
 	useEffect(() => {
-		console.log("App loaded - WebSocket connection should be established");
 		if (websocketService?.storyProtocol) {
-			websocketService.storyProtocol.getStoryList({ 
-				type: MessageType.GET_STORY_LIST, 
-				payload: { userId: "1" } 
+			websocketService.storyProtocol.getStoryList({
+				type: MessageType.GET_STORY_LIST,
+				payload: { userId: "1" }
 			});
 		}
 	}, []);
@@ -47,8 +47,8 @@ const App: React.FC = () => {
 			"max-md:ml-0"
 		)}>
 			{/* WebSocketHandler manages connection - no UI */}
-			<LiveKitRoom 
-				serverUrl={livekitConnectionDetails?.serverUrl} 
+			<LiveKitRoom
+				serverUrl={livekitConnectionDetails?.serverUrl}
 				token={livekitConnectionDetails?.participantToken}
 				audio={true}
 				video={false}
@@ -56,12 +56,11 @@ const App: React.FC = () => {
 				onConnected={() => {
 					setIsConnectingToLivekit(false)
 					setIsLivekitRoomConnected(true)
-					console.log("Connected to LiveKit");
 				}}
 				onDisconnected={() => {
 					setIsConnectingToLivekit(false)
 					setIsLivekitRoomConnected(false)
-					console.log("Disconnected from LiveKit");
+					setLivekitConnectionDetails(null)
 				}}
 				onMediaDeviceFailure={onDeviceFailure}
 			>
@@ -80,8 +79,8 @@ const App: React.FC = () => {
 function onDeviceFailure(error?: MediaDeviceFailure) {
 	console.error(error);
 	alert(
-	  "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
+		"Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
 	);
-  }
+}
 
 export default App;

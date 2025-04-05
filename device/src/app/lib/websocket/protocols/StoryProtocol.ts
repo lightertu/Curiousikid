@@ -34,6 +34,10 @@ export interface ACKSetQuestionPointMessage extends Message {
   type: MessageType.ACK_SET_QUESTION_POINT;
   payload: QuestionPoint;
 }
+
+export interface ClearQuestionPointMessage extends Message {
+  type: MessageType.CLEAR_QUESTION_POINT;
+}
 /**
  * Protocol for handling story-related messages
  */
@@ -53,24 +57,24 @@ export class StoryProtocol extends BaseProtocol {
    */
   async initialize(): Promise<void> {
     await super.initialize();
-    
+
     // Initial request for story list
     if (this.connection.isConnected()) {
-      this.getStoryList({ 
+      this.getStoryList({
         type: MessageType.GET_STORY_LIST,
-        payload: { userId: "test-user" } 
+        payload: { userId: "test-user" }
       });
     }
   }
-  
+
   /**
    * Request the list of available stories
    */
   getStoryList(payload: GetStoryListMessage): void {
     console.log("getStoryList", payload);
-    this.send(MessageType.GET_STORY_LIST, {...payload });
+    this.send(MessageType.GET_STORY_LIST, { ...payload });
   }
-  
+
   /**
    * Update the playback progress
    * 
@@ -78,9 +82,13 @@ export class StoryProtocol extends BaseProtocol {
    * @param duration Total duration in seconds
    */
   setStoryProgress(payload: SetStoryProgressMessage): void {
-    this.send(MessageType.SET_STORY_PROGRESS, {...payload });
+    this.send(MessageType.SET_STORY_PROGRESS, { ...payload });
   }
-  
+
+  clearQuestionPoint(payload: ClearQuestionPointMessage): void {
+    this.send(MessageType.CLEAR_QUESTION_POINT, { ...payload });
+  }
+
   /**
    * Handle STORY_LIST message
    */
@@ -100,7 +108,7 @@ export class StoryProtocol extends BaseProtocol {
     const message = raw as SetQuestionPointMessage;
     const globalState = useGlobalState.getState();
     const { currentStory, isPlaying } = globalState;
-      
+
     console.log("handleSetQuestionPoint.globalState", globalState);
 
     if (isPlaying && currentStory) {
@@ -108,7 +116,7 @@ export class StoryProtocol extends BaseProtocol {
       console.log("handleSetQuestionPoint", message);
       globalState.setQuestionPoint(message.payload);
 
-      this.send(MessageType.ACK_SET_QUESTION_POINT, {...message});
+      this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
     }
   }
 }

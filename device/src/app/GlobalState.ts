@@ -6,7 +6,7 @@ import { LiveKitConnectionDetails } from './api/livekit';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UpdateCallback<T = any> = (jsonPath: string, newValue: T, previousValue?: T) => void;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-const NoOpsCallback: UpdateCallback = (jsonPath: string, newValue: any) => {};
+const NoOpsCallback: UpdateCallback = (jsonPath: string, newValue: any) => { };
 
 const TEST_USER_ID = "ray";
 
@@ -29,6 +29,7 @@ export interface QuestionPoint {
   userId: string;
   questionPointId: string;
   interruptAt: number;
+  question: string;
   connectAt: number;
 }
 
@@ -103,44 +104,44 @@ const useGlobalState = create<DeviceState>((set) => ({
   libraryStatus: false,
   currentConversationId: '',
   isWebSocketConnected: false,
-  
-  setUserId: (userId: string) => 
+
+  setUserId: (userId: string) =>
     set({ userId }),
 
-  setIsPlaying: (isPlaying: boolean) => 
+  setIsPlaying: (isPlaying: boolean) =>
     set({ isPlaying }),
-          
-  setCurrentStory: (currentStory: CurrentStory | null) => 
+
+  setCurrentStory: (currentStory: CurrentStory | null) =>
     set({ currentStory }),
-    
-  setStories: (stories: StoryMetadata[]) => 
+
+  setStories: (stories: StoryMetadata[]) =>
     set({ stories }),
-    
-  setLibraryStatus: (libraryStatus: boolean) => 
+
+  setLibraryStatus: (libraryStatus: boolean) =>
     set({ libraryStatus }),
-    
-  setCurrentConversationId: (currentConversationId: string) => 
+
+  setCurrentConversationId: (currentConversationId: string) =>
     set({ currentConversationId }),
-    
-  setIsWebSocketConnected: (isWebSocketConnected: boolean) => 
+
+  setIsWebSocketConnected: (isWebSocketConnected: boolean) =>
     set({ isWebSocketConnected }),
 
-  setQuestionPoint: (questionPoint: QuestionPoint | null) => 
+  setQuestionPoint: (questionPoint: QuestionPoint | null) =>
     set({ questionPoint }),
 
-  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => 
+  setIsConnectingToLivekit: (isConnectingToLivekit: boolean) =>
     set({ isConnectingToLivekit }),
 
-  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => 
+  setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) =>
     set({ livekitConnectionDetails }),
 
-  setIsLivekitRoomConnected: (isLivekitRoomConnected: boolean) => 
+  setIsLivekitRoomConnected: (isLivekitRoomConnected: boolean) =>
     set({ isLivekitRoomConnected }),
-  
+
   playAudio: () => set((state) => ({ isPlaying: true })),
-  
+
   pauseAudio: () => set((state) => ({ isPlaying: false })),
-  
+
   togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
 }));
 

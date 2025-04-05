@@ -32,11 +32,11 @@ export class LiveKitApi {
   async getConnectionDetails(metadata: ConnectionMetadata) {
     // Generate participant token
     const participantIdentity = metadata.questionPoint.userId;
-    const roomName = `user-${metadata.userId}-story-${metadata.questionPoint.storyId}`;
+    const roomName = `user-${metadata.userId}-story-${metadata.questionPoint.storyId}-${Date.now()}`;
     const participantToken = await this.createParticipantToken(
       LIVEKIT_API_KEY as string,
       LIVEKIT_API_SECRET as string,
-      { 
+      {
         identity: participantIdentity,
         metadata: JSON.stringify(metadata),
       },
@@ -58,10 +58,10 @@ export class LiveKitApi {
   }
 
   private createParticipantToken(
-      apiKey: string,
-      apiSecret: string,
-      userInfo: AccessTokenOptions, 
-      roomName: string): Promise<string> {
+    apiKey: string,
+    apiSecret: string,
+    userInfo: AccessTokenOptions,
+    roomName: string): Promise<string> {
     const at = new AccessToken(apiKey, apiSecret, {
       ...userInfo,
       ttl: "15m",
