@@ -23,8 +23,15 @@ class StoryService:
     def get_story(self, id: str) -> StoryMetadata:
         return self.id_to_story.get(id) 
         
-    def get_story_mp3(self, story_id: str) -> str:
-        return os.path.join(DEFAULT_STORY_DIR, story_id, "audio.mp3")
+    def get_story_audio(self, story_id: str) -> str:
+        mp3_path = os.path.join(DEFAULT_STORY_DIR, story_id, "audio.mp3")
+        wav_path = os.path.join(DEFAULT_STORY_DIR, story_id, "audio.wav")
+        
+        # Check if MP3 exists
+        if os.path.isfile(mp3_path):
+            return mp3_path
+        # If not, return WAV path (will be checked in the router)
+        return wav_path
 
     def get_stories(self) -> List[StoryMetadata]:
         return list(self.id_to_story.values())

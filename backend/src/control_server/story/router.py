@@ -24,17 +24,21 @@ async def get_story_audio(
     story_service: Annotated[StoryService, Depends(get_story_service)],
 ):
     """
-    Serves an MP3 audio file.
+    Serves an audio file (MP3 or WAV).
     """
     story = story_service.get_story(id)
     if not story:
         raise HTTPException(status_code=404, detail="Story not found")
     
-    file_path = story_service.get_story_mp3(id)
+    file_path = story_service.get_story_audio(id)
     logger.info(f"Attempting to serve audio file: {file_path}")
 
     if not os.path.isfile(file_path):
         logger.error(f"Audio file not found: {file_path}")
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    return FileResponse(path=file_path, media_type="audio/mpeg", filename="audio.mp3") 
+    # Determine the file extension and set the appropriate media type
+    if file_path.endswith('.wav'):
+        return FileResponse(path=file_path, media_type="audio/wav", filename="audio.wav")
+    else:
+        return FileResponse(path=file_path, media_type="audio/mpeg", filename="audio.mp3") 
