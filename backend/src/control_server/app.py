@@ -8,15 +8,14 @@ from control_server.websocket.router import router as websocket_router
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(title="Curiousikid API", version="0.1.0")
 
-# Configure CORS 
+# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # For development; restrict this in production

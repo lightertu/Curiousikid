@@ -2,13 +2,14 @@ import { create } from 'zustand';
 import { JSONPath } from 'jsonpath-plus';
 import { cloneDeep } from 'lodash';
 import { LiveKitConnectionDetails } from './api/livekit';
+import { AgentState } from '@livekit/components-react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type UpdateCallback<T = any> = (jsonPath: string, newValue: T, previousValue?: T) => void;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
 const NoOpsCallback: UpdateCallback = (jsonPath: string, newValue: any) => { };
 
-const TEST_USER_ID = "ray";
+const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
 export interface StoryMetadata {
   id: string;
@@ -31,6 +32,13 @@ export interface QuestionPoint {
   interruptAt: number;
   question: string;
   connectAt: number;
+}
+
+export interface ChatCharacter {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
 }
 
 const INIT_STORY_LIST: StoryMetadata[] = [
@@ -56,6 +64,8 @@ const INIT_STORY_LIST: StoryMetadata[] = [
 
 export interface DeviceState {
   userId: string;
+  voiceAgentState: AgentState;
+
   isPlaying: boolean;
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
@@ -66,7 +76,9 @@ export interface DeviceState {
   isConnectingToLivekit: boolean;
   livekitConnectionDetails: LiveKitConnectionDetails | null;
   isLivekitRoomConnected: boolean;
+  characters: ChatCharacter[];
   setUserId: (userId: string) => void;
+  setVoiceAgentState: (voiceAgentState: AgentState) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setCurrentStory: (currentStory: CurrentStory | null) => void;
   setStories: (stories: StoryMetadata[]) => void;
@@ -77,6 +89,7 @@ export interface DeviceState {
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
   setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
   setIsLivekitRoomConnected: (isConnected: boolean) => void;
+  setCharacters: (characters: ChatCharacter[]) => void;
   playAudio: () => void;
   pauseAudio: () => void;
   togglePlayPause: () => void;
@@ -85,6 +98,7 @@ export interface DeviceState {
 const INIT_STORY_ID = 1;
 const useGlobalState = create<DeviceState>((set) => ({
   userId: TEST_USER_ID,
+  voiceAgentState: "disconnected",
   isPlaying: false,
   stories: INIT_STORY_LIST,
   livekitConnectionDetails: null,
@@ -100,6 +114,7 @@ const useGlobalState = create<DeviceState>((set) => ({
     duration: INIT_STORY_LIST[INIT_STORY_ID].duration,
     thumbnailUrl: INIT_STORY_LIST[INIT_STORY_ID].thumbnailUrl,
   },
+  characters: [],
   questionPoint: null,
   libraryStatus: false,
   currentConversationId: '',
@@ -110,6 +125,9 @@ const useGlobalState = create<DeviceState>((set) => ({
 
   setIsPlaying: (isPlaying: boolean) =>
     set({ isPlaying }),
+
+  setVoiceAgentState: (voiceAgentState: AgentState) =>
+    set({ voiceAgentState }),
 
   setCurrentStory: (currentStory: CurrentStory | null) =>
     set({ currentStory }),
@@ -143,6 +161,9 @@ const useGlobalState = create<DeviceState>((set) => ({
   pauseAudio: () => set((state) => ({ isPlaying: false })),
 
   togglePlayPause: () => set((state) => ({ isPlaying: !state.isPlaying })),
+
+  setCharacters: (characters: ChatCharacter[]) =>
+    set({ characters }),
 }));
 
 export default useGlobalState;
