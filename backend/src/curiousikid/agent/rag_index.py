@@ -24,7 +24,7 @@ import numpy as np
 from openai import OpenAI
 
 # Vector DB
-from annoy import AnnoyIndex
+#from annoy import AnnoyIndex
 import pickle
 
 # Set up logging

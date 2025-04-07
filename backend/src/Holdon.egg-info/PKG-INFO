@@ -1,0 +1,40 @@
+Metadata-Version: 2.4
+Name: Holdon
+Version: 0.1.0
+Summary: Demo
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: boto3>=1.34.70
+Requires-Dist: streamlit>=1.39.0
+Requires-Dist: pygame>=2.6.1
+Requires-Dist: fastapi>=0.115.0
+Requires-Dist: httpx>=0.27.2
+Requires-Dist: dynaconf>=3.2.6
+Requires-Dist: websockets>=13.1
+Requires-Dist: aiohttp>=3.10.10
+Requires-Dist: ffmpeg-python>=0.2.0
+Requires-Dist: aiostream>=0.6.3
+Requires-Dist: s3fs>=2024.9.0
+Requires-Dist: aioboto3>=13.1.1
+Requires-Dist: openai-whisper==20240930
+Requires-Dist: livekit-agents>=0.10.1
+Requires-Dist: livekit-plugins-deepgram>=0.6.8
+Requires-Dist: livekit-plugins-elevenlabs>=0.7.5
+Requires-Dist: livekit-plugins-openai>=0.10.3
+Requires-Dist: livekit-plugins-silero>=0.7.1
+Requires-Dist: livekit-plugins-anthropic
+Requires-Dist: pyyaml>=6.0.2
+Requires-Dist: sentence_transformers
+Requires-Dist: datasets
+Requires-Dist: elevenlabs
+Requires-Dist: pydub
+Requires-Dist: mem0ai
+
+# Curiousikid Backend
+A AI Application allow you to chat with podcast host while listening to podcast
+
+## Setup Instance
+Run `bash ./setup.sh`
+
+## Setup Virtual Environment
+Run `just install`

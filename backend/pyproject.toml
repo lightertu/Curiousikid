@@ -27,10 +27,10 @@ dependencies = [
     "livekit-plugins-anthropic",
     "pyyaml>=6.0.2",
     "sentence_transformers",
-    "annoy",
     "datasets", 
     "elevenlabs", 
-    "pydub"
+    "pydub",
+    "mem0ai",
 ]
 
 [tool.pytest.ini_options]

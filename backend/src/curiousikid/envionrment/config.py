@@ -26,5 +26,6 @@ os.environ["OPENAI_API_KEY"] = settings.OPENAI_API_KEY
 os.environ["DEEPGRAM_API_KEY"] = settings.DEEPGRAM_API_KEY
 os.environ["ELEVEN_API_KEY"] = settings.ELEVENLABS_API_KEY
 os.environ["ANTHROPIC_API_KEY"] = settings.ANTHROPIC_API_KEY
+os.environ["MEM0_API_KEY"] = settings.MEM0_API_KEY
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.

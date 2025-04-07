@@ -17,11 +17,11 @@ clean:
 install:
   #!/usr/bin/env bash
   set -eu
-  if command -v uv &> /dev/null; then
-    uv self update
-  else
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-  fi
+  #if command -v uv &> /dev/null; then
+  #  uv self update
+  #else
+  #  curl -LsSf https://astral.sh/uv/install.sh | sh
+  #fi
   
   # https://docs.astral.sh/uv/reference/cli/#uv-sync
   uv sync
@@ -39,7 +39,7 @@ run_rag_indexer:
 run_audio_story_generator:
     .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
         --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
-        --claude-api-key "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" \
+        --claude-api-key "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" \
         --title "The Magic Forest" \
         --theme "fantasy" \
         --mood "warm" \
@@ -48,7 +48,7 @@ run_audio_story_generator:
 # Run the audio story generator with OpenAI voice
 run_audio_story_openai transcript="":
     .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
-        --claude-api-key "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" \
+        --claude-api-key "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" \
         --openai-api-key "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" \
         --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
         --use-openai-voice \
@@ -64,15 +64,17 @@ run_audio_story_openai_file file:
     #!/usr/bin/env bash
     TRANSCRIPT="$(cat {{file}})"
     .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
-        --claude-api-key "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" \
+        --claude-api-key "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" \
         --openai-api-key "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" \
         --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
         --use-openai-voice \
         --openai-voice "nova" \
-        --title "The Frightened Lion" \
-        --theme "animal" \
-        --mood "gentle" \
-        --elements "Imagination" "Fear" "Surprise" "Friendship" \
+        --title "The Rainbow Scale Rhythms" \
+        --theme "Finding your unique talents" \
+        --mood "Playful" \
+        --elements "A dragon with color-changing scales" "A cave of echoing crystals" "A timid firefly orchestra" "A moonlight dance celebration" \
+        --generate-images \
         --transcript "$TRANSCRIPT"
 
 # Run the audio story generator with custom parameters (replace with your values)
@@ -97,3 +99,89 @@ story_from_transcript title file theme="fantasy" mood="warm":
         --mood "{{mood}}" \
         --elements "friendship" "magic" "adventure" \
         --transcript "$TRANSCRIPT"
+
+# Run the audio story generator with OpenAI voice and Pixellab images
+run_audio_story_with_images transcript="" width="1024" height="1024":
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --claude-api-key "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" \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "The Magic Forest" \
+        --theme "fantasy" \
+        --mood "warm" \
+        --elements "friendship" "magic" "adventure" \
+        --generate-images \
+        --num-images 4 \
+        --image-width {{width}} \
+        --image-height {{height}} \
+        {{ if transcript != "" { "--transcript \"" + transcript + "\"" } else { "" } }}
+
+# Run the audio story generator with OpenAI voice, Pixellab images, and transcript file
+run_audio_story_with_images_file file width="1024" height="1024":
+    #!/usr/bin/env bash
+    TRANSCRIPT="$(cat {{file}})"
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --claude-api-key "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" \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "The Frightened Lion" \
+        --theme "animal" \
+        --mood "gentle" \
+        --elements "Imagination" "Fear" "Surprise" "Friendship" \
+        --generate-images \
+        --num-images 4 \
+        --image-width {{width}} \
+        --image-height {{height}} \
+        --transcript "$TRANSCRIPT"
+
+# Generate a custom story with images
+custom_story_with_images title theme mood width="1024" height="1024" *ARGS:
+    .venv/bin/python src/curiousikid/content_generation/audio_story_generator.py \
+        --claude-api-key "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" \
+        --openai-api-key "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" \
+        --elevenlabs-api-key "sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
+        --use-openai-voice \
+        --openai-voice "nova" \
+        --title "{{title}}" \
+        --theme "{{theme}}" \
+        --mood "{{mood}}" \
+        --generate-images \
+        --num-images 4 \
+        --image-width {{width}} \
+        --image-height {{height}} \
+        {{ARGS}}
+
+# Generate story images only
+generate_story_images title story_text theme="fantasy" mood="warm":
+    .venv/bin/python src/curiousikid/content_generation/generate_story_images.py \
+        --title "{{title}}" \
+        --story "{{story_text}}" \
+        --theme "{{theme}}" \
+        --mood "{{mood}}" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
+        --openai-api-key "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" \
+        --num-images 4 \
+        --width 1024 \
+        --height 1024
+
+# Generate story images from file
+generate_story_images_file file:
+    #!/usr/bin/env bash
+    TRANSCRIPT="$(cat {{file}})"
+    .venv/bin/python src/curiousikid/content_generation/generate_story_images.py \
+        --title "The Frightened Lion" \
+        --theme "animal" \
+        --mood "gentle" \
+        --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
+        --openai-api-key "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" \
+        --num-images 4 \
+        --width 64 \
+        --height 64 \
+        --story "$TRANSCRIPT"

@@ -6,7 +6,10 @@ import re
 import argparse
 import asyncio
 import io
-from openai import AsyncOpenAI
+import base64
+import json
+import time
+from openai import AsyncOpenAI, OpenAI
 
 
 def generate_sound_design(
@@ -17,17 +20,18 @@ def generate_sound_design(
     story_script,
     story_description=None,
     claude_api_key=None,
+    openai_api_key=None,
 ):
-    """Generate complete sound design plan using Claude LLM"""
+    """Generate complete sound design plan using Claude LLM with OpenAI GPT-4o fallback"""
 
     elements_text = ", ".join(key_elements[:3])  # Use up to 3 elements
 
     # Use provided story description or create default
     story_desc = story_description or f"{story_title} is a {theme} children's story"
 
-    # If no API key is provided, use default sound design
-    if not claude_api_key:
-        print("No Claude API key provided. Using default sound design.")
+    # If no API keys are provided, use default sound design
+    if not claude_api_key and not openai_api_key:
+        print("No API keys provided. Using default sound design.")
         return create_default_sound_design(
             story_title, theme, key_elements, mood
         )
@@ -35,7 +39,7 @@ def generate_sound_design(
     prompt = f"""
     Create a complete sound design plan for a children's story titled "{story_title}". 
     
-    Story description: {story_description}
+    Story description: {story_desc}
     
     The story script is:
 
@@ -101,61 +105,226 @@ def generate_sound_design(
     Remember: NO VOICES or VOCAL ELEMENTS in any of the sound design elements.
     """
 
-    try:
-        headers = {
-            "x-api-key": claude_api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        }
+    # First, try using Claude if API key is provided
+    if claude_api_key:
+        try:
+            headers = {
+                "x-api-key": claude_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            }
 
-        data = {
-            "model": "claude-3-7-sonnet-20250219",
-            "max_tokens": 300,
-            "temperature": 0.7,
-            "messages": [{"role": "user", "content": prompt}],
-        }
+            data = {
+                "model": "claude-3-7-sonnet-20250219",
+                "max_tokens": 300,
+                "temperature": 0.7,
+                "messages": [{"role": "user", "content": prompt}],
+            }
 
-        response = requests.post(
-            "https://api.anthropic.com/v1/messages", headers=headers, json=data
+            response = requests.post(
+                "https://api.anthropic.com/v1/messages", headers=headers, json=data
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                sound_design_text = result["content"][0]["text"].strip()
+
+                # Print raw response for debugging
+                print("Raw sound design response from Claude:")
+                print(sound_design_text)
+                print("-" * 50)
+
+                # Parse the response
+                sound_design = parse_sound_design(
+                    sound_design_text, story_title, theme
+                )
+
+                # Print parsed sound design for verification
+                print("Parsed sound design components:")
+                print(f"INTRO: {sound_design['intro']}")
+                print(f"BACKGROUND: {sound_design['background']}")
+                print("SOUND EFFECTS:")
+                for i, effect in enumerate(sound_design["effects"]):
+                    position = int(sound_design["effect_positions"][i] * 100)
+                    print(f"- {effect} ({position}%)")
+                print(f"OUTRO: {sound_design['outro']}")
+                print("-" * 50)
+
+                return sound_design
+            elif response.status_code == 529:
+                # Claude rate limit error - try OpenAI if an API key is provided
+                print(f"Claude API rate limited (status 529). Attempting to use OpenAI fallback.")
+                if openai_api_key:
+                    return generate_sound_design_with_openai(
+                        story_title, theme, key_elements, mood, story_script, 
+                        story_description, openai_api_key, prompt
+                    )
+                else:
+                    print("No OpenAI API key provided for fallback. Using default sound design.")
+                    return create_default_sound_design(
+                        story_title, theme, key_elements, mood
+                    )
+            else:
+                # Other Claude API error - try OpenAI if an API key is provided
+                print(f"Claude API call failed with status {response.status_code}.")
+                if openai_api_key:
+                    print("Attempting to use OpenAI fallback.")
+                    return generate_sound_design_with_openai(
+                        story_title, theme, key_elements, mood, story_script, 
+                        story_description, openai_api_key, prompt
+                    )
+                else:
+                    print("No OpenAI API key provided for fallback. Using default sound design.")
+                    return create_default_sound_design(
+                        story_title, theme, key_elements, mood
+                    )
+
+        except Exception as e:
+            print(f"Error with Claude API: {str(e)}")
+            # Try OpenAI if an API key is provided
+            if openai_api_key:
+                print("Attempting to use OpenAI fallback.")
+                return generate_sound_design_with_openai(
+                    story_title, theme, key_elements, mood, story_script, 
+                    story_description, openai_api_key, prompt
+                )
+            else:
+                print("No OpenAI API key provided for fallback. Using default sound design.")
+                return create_default_sound_design(
+                    story_title, theme, key_elements, mood
+                )
+    
+    # If Claude API key is not provided but OpenAI API key is provided, try OpenAI
+    elif openai_api_key:
+        return generate_sound_design_with_openai(
+            story_title, theme, key_elements, mood, story_script, 
+            story_description, openai_api_key, prompt
+        )
+    
+    # If no API keys are provided, use default sound design
+    else:
+        print("No API keys provided. Using default sound design.")
+        return create_default_sound_design(
+            story_title, theme, key_elements, mood
         )
 
-        if response.status_code == 200:
-            result = response.json()
-            sound_design_text = result["content"][0]["text"].strip()
 
-            # Print raw response for debugging
-            print("Raw sound design response:")
-            print(sound_design_text)
-            print("-" * 50)
+def generate_sound_design_with_openai(
+    story_title, 
+    theme, 
+    key_elements, 
+    mood, 
+    story_script, 
+    story_description, 
+    openai_api_key,
+    prompt=None
+):
+    """Generate sound design using OpenAI's GPT-4o model"""
+    try:
+        # Initialize the OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+        
+        # Use the same prompt as Claude for consistency
+        if not prompt:
+            elements_text = ", ".join(key_elements[:3])
+            story_desc = story_description or f"{story_title} is a {theme} children's story"
+            
+            prompt = f"""
+            Create a complete sound design plan for a children's story titled "{story_title}". 
+            
+            Story description: {story_desc}
+            
+            The story script is:
 
-            # Parse the response
-            sound_design = parse_sound_design(
-                sound_design_text, story_title, theme
-            )
+            "{story_script}"
 
-            # Print parsed sound design for verification
-            print("Parsed sound design components:")
-            print(f"INTRO: {sound_design['intro']}")
-            print(f"BACKGROUND: {sound_design['background']}")
-            print("SOUND EFFECTS:")
-            for i, effect in enumerate(sound_design["effects"]):
-                position = int(sound_design["effect_positions"][i] * 100)
-                print(f"- {effect} ({position}%)")
-            print(f"OUTRO: {sound_design['outro']}")
-            print("-" * 50)
+            The mood is {mood} and the key story elements are: {elements_text}.
 
-            return sound_design
-        else:
-            # Fallback to default sound design if API call fails
-            print(
-                f"Claude API call failed with status {response.status_code}. Using default sound design."
-            )
-            return create_default_sound_design(
-                story_title, theme, key_elements, mood
-            )
+            IMPORTANT INSTRUCTIONS:
+            - All sound elements should be INSTRUMENTAL ONLY - NO VOICES or VOCAL ELEMENTS should be included in any sound effects.
+            - Do not include any spoken words, whispers, vocal samples, or human voice sounds in any of the sound effects.
+            - Focus on pure sound design elements like music, ambient sounds, and non-vocal sound effects.
+            - The voice narration will be handled separately, so your sound design should complement it without competing.
+            - The sound design should be child-friendly and engaging for young listeners - Should be very calming, soothing, and relaxing!!! This is very important!!!
 
+            Please provide:
+
+            1. INTRO: A brief description for an intro sound effect (under 15 words)
+               - Must be INSTRUMENTAL ONLY with NO VOICES
+               - Should establish the mood and story theme
+            
+            2. BACKGROUND: A short description for background music (under 20 words) that includes:
+               - Musical style/genre appropriate for children
+               - Key instruments
+               - Mood/energy level
+               - Any specific elements that match the story theme
+            
+            3. SOUND EFFECTS: Exactly 3 sound effects with their positions in the script:
+               - Each sound effect should have a brief description (under 15 words)
+               - Each should include a position marker (percentage through the script, e.g., 25%, 50%, 75%)
+               - Each should relate to a specific moment or element mentioned in the script
+               - All sound effects must be NON-VOCAL sounds only 
+               - IMPORTANT: DO NOT include any "ahh", "mmm", or similar vocal sounds 
+               - DO NOT include any talking, whispering, or vocal sounds.
+               - Use only mechanical, natural, or instrumental sounds (e.g., animal sounds, weather effects, magical chimes)
+               - Examples of good sound effects: rustling leaves, gentle waterfall, magical twinkling, dragon flapping wings
+               - Examples of BAD sound effects: person saying "wow", crowd cheering, someone humming, vocal expressions
+            
+            4. OUTRO: A brief description for an outro sound effect (under 15 words)
+               - Must be INSTRUMENTAL ONLY with NO VOICES
+               - Should provide a satisfying conclusion
+
+            Format your response exactly as follows:
+            
+            INTRO: [brief description]
+            BACKGROUND: [brief description]
+            SOUND EFFECTS:
+            - [effect 1] (25%)
+            - [effect 2] (50%)
+            - [effect 3] (75%)
+            OUTRO: [brief description]
+            
+            Remember: NO VOICES or VOCAL ELEMENTS in any of the sound design elements.
+            """
+        
+        print("Generating sound design with OpenAI GPT-4o...")
+        
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        # Get the response text
+        sound_design_text = response.choices[0].message.content.strip()
+        
+        # Print raw response for debugging
+        print("Raw sound design response from OpenAI:")
+        print(sound_design_text)
+        print("-" * 50)
+        
+        # Parse the response
+        sound_design = parse_sound_design(
+            sound_design_text, story_title, theme
+        )
+        
+        # Print parsed sound design for verification
+        print("Parsed sound design components from OpenAI:")
+        print(f"INTRO: {sound_design['intro']}")
+        print(f"BACKGROUND: {sound_design['background']}")
+        print("SOUND EFFECTS:")
+        for i, effect in enumerate(sound_design["effects"]):
+            position = int(sound_design["effect_positions"][i] * 100)
+            print(f"- {effect} ({position}%)")
+        print(f"OUTRO: {sound_design['outro']}")
+        print("-" * 50)
+        
+        return sound_design
+        
     except Exception as e:
-        print(f"Error generating sound design: {str(e)}")
+        print(f"Error generating sound design with OpenAI: {str(e)}")
         return create_default_sound_design(
             story_title, theme, key_elements, mood
         )
@@ -491,6 +660,21 @@ async def generate_voice_with_openai(
         
         Emotion: Warm and expressive, conveying the emotional journey of the story, using a range of tones for different characters while maintaining a soothing, child-friendly delivery
         """
+
+    instructions = """
+    Voice Affect: Soft, gentle, soothing; embody tranquility.
+
+    Tone: Calm, reassuring, peaceful; convey genuine warmth and serenity.
+
+    Pacing: Slow, deliberate, and unhurried; pause gently after instructions to allow the listener time to relax and follow along.
+
+    Emotion: Deeply soothing and comforting; express genuine kindness and care.
+
+    Pronunciation: Smooth, soft articulation, slightly elongating vowels to create a sense of ease.
+
+    Pauses: Use thoughtful pauses, especially between breathing instructions and visualization guidance, enhancing relaxation and mindfulness.
+    
+    """
     
     # Set up OpenAI client
     client = AsyncOpenAI(api_key=openai_api_key)
@@ -530,10 +714,13 @@ def generate_audio_story(
     elevenlabs_api_key=None,
     claude_api_key=None,
     openai_api_key=None,
+    pixellab_api_key=None,
     use_openai_voice=False,
     openai_voice="nova",
     story_description=None,
     story_transcript=None,
+    generate_images=False,
+    num_images=4,
 ):
     """Generate a high-quality audio children's story with music and sound effects
     
@@ -545,13 +732,16 @@ def generate_audio_story(
         elevenlabs_api_key (str, optional): API key for ElevenLabs voice synthesis. Required if not using OpenAI.
         claude_api_key (str, optional): API key for Claude story generation. Required.
         openai_api_key (str, optional): API key for OpenAI voice synthesis. Required if using OpenAI voice.
+        pixellab_api_key (str, optional): API key for Pixellab image generation. Required if generate_images is True.
         use_openai_voice (bool, optional): Whether to use OpenAI for voice generation. Defaults to False.
         openai_voice (str, optional): OpenAI voice to use. Defaults to "nova".
         story_description (str, optional): Brief description of the story. Defaults to None.
         story_transcript (str, optional): Story transcript text to use instead of generating a story. Defaults to None.
+        generate_images (bool, optional): Whether to generate images for the story. Defaults to False.
+        num_images (int, optional): Number of images to generate. Defaults to 4.
         
     Returns:
-        str: Path to the generated audio story file
+        tuple: (Path to the generated audio story file, List of paths to generated images)
     """
     print(f"Generating Audio Story for {story_title}...")
 
@@ -565,6 +755,11 @@ def generate_audio_story(
     # Always need ElevenLabs for sound effects, even when using OpenAI for voice
     if not elevenlabs_api_key:
         raise ValueError("ElevenLabs API key must be provided for sound effects")
+    
+    # Check if Pixellab API key is provided when generate_images is True
+    if generate_images and not pixellab_api_key:
+        print("WARNING: Pixellab API key not provided. Images will not be generated.")
+        generate_images = False
 
     # Initialize ElevenLabs client - always needed for sound effects
     client = ElevenLabs(api_key=elevenlabs_api_key)
@@ -576,11 +771,11 @@ def generate_audio_story(
     # Generate story script from transcript or using Claude
     if story_transcript:
         print("Using transcript as inspiration for the story")
-        if not claude_api_key:
-            raise ValueError("Claude API key must be provided even when using a transcript")
+        if not claude_api_key and not openai_api_key:
+            raise ValueError("Either Claude or OpenAI API key must be provided even when using a transcript")
     
-    # Generate story script using Claude
-    print("Generating story script using Claude...")
+    # Generate story script using Claude with OpenAI fallback
+    print("Generating story script...")
     story_script = generate_story_script(
         story_title,
         theme,
@@ -589,8 +784,23 @@ def generate_audio_story(
         story_description,
         claude_api_key,
         story_transcript,
+        openai_api_key,
     )
     print("Story script:", story_script)
+
+    # Generate images if requested
+    image_paths = []
+    if generate_images:
+        print("Generating images for the story...")
+        image_paths = generate_story_images(
+            story_title,
+            story_script,
+            theme,
+            mood,
+            num_images,
+            pixellab_api_key,
+            openai_api_key
+        )
 
     # Generate complete sound design plan
     sound_design = generate_sound_design(
@@ -601,6 +811,7 @@ def generate_audio_story(
         story_script,
         story_description,
         claude_api_key if 'claude_api_key' in locals() else None,
+        openai_api_key if 'openai_api_key' in locals() else None,
     )
 
     # Create a folder for the story's audio components
@@ -963,11 +1174,432 @@ def generate_audio_story(
         print(
             f"✓ All audio components saved in the '{components_folder}' folder"
         )
-        return output_path
+        
+        if image_paths:
+            print(f"✓ Generated {len(image_paths)} story images")
+            
+        return output_path, image_paths
 
     except Exception as e:
         print(f"✗ Error generating story: {str(e)}")
-        return None
+        return None, []
+
+
+def create_audio_story(
+    story_title,
+    theme,
+    key_elements=None,
+    mood="warm",
+    elevenlabs_api_key=None,
+    claude_api_key=None,
+    openai_api_key=None,
+    pixellab_api_key=None,
+    use_openai_voice=False,
+    openai_voice="nova",
+    story_description=None,
+    story_transcript=None,
+    generate_images=True,
+    num_images=4,
+):
+    """Simple function to create an audio children's story with minimal parameters
+    
+    Args:
+        story_title (str): Title of the children's story
+        theme (str): Theme or genre of the story (e.g., "fantasy", "adventure")
+        key_elements (list, optional): List of key elements to include in the story. Defaults to None.
+        mood (str, optional): Emotional mood of the story. Defaults to "warm".
+        elevenlabs_api_key (str, optional): API key for ElevenLabs voice synthesis. Required if not using OpenAI.
+        claude_api_key (str, optional): API key for Claude story generation. Can be omitted if using OpenAI.
+        openai_api_key (str, optional): API key for OpenAI voice synthesis and fallback for Claude. Required if using OpenAI voice.
+        pixellab_api_key (str, optional): API key for Pixellab image generation. Required if generate_images is True.
+        use_openai_voice (bool, optional): Whether to use OpenAI for voice generation. Defaults to False.
+        openai_voice (str, optional): OpenAI voice to use. Defaults to "nova".
+        story_description (str, optional): Brief description of the story. Defaults to None.
+        story_transcript (str, optional): Story transcript text to use instead of generating a story. Defaults to None.
+        generate_images (bool, optional): Whether to generate images for the story. Defaults to False.
+        num_images (int, optional): Number of images to generate. Defaults to 4.
+        
+    Returns:
+        tuple: (Path to the generated audio story file, List of paths to generated images)
+    """
+    print(f"Creating audio story: {story_title}")
+    return generate_audio_story(
+        story_title=story_title,
+        theme=theme,
+        key_elements=key_elements,
+        mood=mood,
+        elevenlabs_api_key=elevenlabs_api_key,
+        claude_api_key=claude_api_key,
+        openai_api_key=openai_api_key,
+        pixellab_api_key=pixellab_api_key,
+        use_openai_voice=use_openai_voice,
+        openai_voice=openai_voice,
+        story_description=story_description,
+        story_transcript=story_transcript,
+        generate_images=generate_images,
+        num_images=num_images,
+    )
+
+
+def get_openai_voice_instructions(mood, theme):
+    """Generate voice instructions for OpenAI TTS based on the story mood and theme
+    
+    Args:
+        mood (str): Emotional mood of the story (e.g., "warm", "adventurous")
+        theme (str): Theme of the story (e.g., "fantasy", "space")
+        
+    Returns:
+        str: Voice instructions for OpenAI TTS
+    """
+    # Base instructions for all children's stories
+    base_instructions = """
+    Affect/personality: A warm, engaging storyteller for children
+    
+    Pronunciation: Clear, articulate, and dynamic, with appropriate emphasis on character dialogue
+    
+    Pause: Natural pauses between sentences and paragraphs
+    """
+    
+    # Customize tone based on mood
+    tone_instructions = {
+        "warm": "Tone: Friendly, gentle, and comforting, creating a cozy atmosphere that makes children feel safe and loved",
+        "playful": "Tone: Upbeat, energetic, and joyful, with lots of expression and playfulness to make children giggle and engage",
+        "adventurous": "Tone: Exciting, dynamic, and bold, with moments of suspense and wonder that spark children's curiosity",
+        "calm": "Tone: Soothing, peaceful, and relaxed, perfect for bedtime or creating a tranquil listening experience",
+        "emotional": "Tone: Heartfelt, tender, and sincere, with gentle moments that convey meaningful emotions",
+        "exciting": "Tone: Enthusiastic, animated, and high-energy, building excitement and anticipation throughout the story",
+        "gentle": "Tone: Soft, delicate, and nurturing, creating a gentle storytelling approach for younger children",
+        "humorous": "Tone: Light-hearted, funny, and whimsical, with playful vocal variety to bring humor to life",
+        "mysterious": "Tone: Intriguing, curious, and slightly dramatic, with a sense of mystery that captivates young listeners",
+        "educational": "Tone: Clear, engaging, and thoughtful, balancing entertainment with helpful learning moments"
+    }
+    
+    # Customize emotion based on theme
+    emotion_instructions = {
+        "fantasy": "Emotion: Magical and wonder-filled, conveying enchantment and awe, using a range of tones for different magical characters",
+        "adventure": "Emotion: Brave and enthusiastic, conveying excitement and courage, with moments of triumph and discovery",
+        "space": "Emotion: Curious and awe-inspired, conveying the vastness and wonder of space exploration",
+        "underwater": "Emotion: Flowing and peaceful, with a slightly echoing quality that suggests being underwater",
+        "animal": "Emotion: Friendly and expressive, with subtle voice variations to distinguish different animal characters",
+        "fairy tale": "Emotion: Classic storytelling warmth with a timeless quality, occasionally majestic for royal characters",
+        "friendship": "Emotion: Warm and inclusive, emphasizing connection and togetherness with a kind, inviting tone",
+        "bedtime": "Emotion: Gentle and soothing, gradually becoming softer and calmer toward the end of the story"
+    }
+    
+    # Get the appropriate tone and emotion instructions or use defaults
+    tone = tone_instructions.get(mood.lower(), tone_instructions["warm"])
+    emotion = emotion_instructions.get(theme.lower(), "Emotion: Warm and expressive, conveying the emotional journey of the story while maintaining a child-friendly delivery")
+    
+    # Combine all instructions
+    instructions = f"{base_instructions}\n\n{tone}\n\n{emotion}"
+    
+    return instructions
+
+
+def process_transcript(transcript_text):
+    """Process a transcript by removing timestamps and formatting it for narration
+    
+    Args:
+        transcript_text (str): Raw transcript text with timestamps
+        
+    Returns:
+        str: Cleaned transcript suitable for narration
+    """
+    # Remove timestamp lines (lines that are just numbers and colons like "0:00" or "1:23")
+    lines = transcript_text.split('\n')
+    cleaned_lines = []
+    
+    for line in lines:
+        # Skip empty lines
+        if not line.strip():
+            continue
+            
+        # Skip lines that are just timestamps (e.g., "0:00", "1:23")
+        if re.match(r'^\d+:\d+$', line.strip()):
+            continue
+            
+        # Remove timestamps at the beginning of lines
+        line = re.sub(r'^\d+:\d+\s+', '', line)
+        
+        # Keep the line
+        cleaned_lines.append(line)
+    
+    # Join the lines back together
+    cleaned_text = '\n'.join(cleaned_lines)
+    
+    # Remove parenthetical directions like "(A version of the tale by TheFableCottage.com)"
+    cleaned_text = re.sub(r'\([^)]*\)', '', cleaned_text)
+    
+    # Replace double quotes with proper typographical quotes for better narration
+    cleaned_text = cleaned_text.replace('"', '"').replace('"', '"')
+    
+    # Remove any remaining multiple consecutive whitespace
+    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
+    
+    return cleaned_text.strip()
+
+
+def generate_story_images(
+    story_title,
+    story_script,
+    theme,
+    mood,
+    num_frames=4,
+    pixellab_api_key=None,
+    openai_api_key=None,
+    image_width=64,
+    image_height=64
+):
+    """Generate images for the children's story using Pixellab API
+    
+    Args:
+        story_title (str): Title of the story
+        story_script (str): Full story script
+        theme (str): Theme of the story (e.g., "fantasy", "adventure")
+        mood (str): Mood of the story (e.g., "warm", "adventurous")
+        num_frames (int, optional): Number of images to generate. Defaults to 4.
+        pixellab_api_key (str, optional): Pixellab API key
+        openai_api_key (str, optional): OpenAI API key for generating descriptions
+        image_width (int, optional): Width of generated images. Defaults to 1024.
+        image_height (int, optional): Height of generated images. Defaults to 1024.
+        
+    Returns:
+        list: List of paths to generated images
+    """
+    if not pixellab_api_key:
+        print("WARNING: Pixellab API key not provided. Cannot generate images.")
+        return []
+    
+    try:
+        # Create a folder for the story's images
+        sanitized_title = "".join(c if c.isalnum() else "_" for c in story_title)
+        images_folder = f"{sanitized_title}_images"
+        if not os.path.exists(images_folder):
+            os.makedirs(images_folder)
+        
+        # Generate scene descriptions based on the story
+        if openai_api_key:
+            print("Generating scene descriptions with OpenAI...")
+            scene_descriptions = generate_scene_descriptions_with_openai(
+                story_title, story_script, theme, mood, num_frames, openai_api_key
+            )
+        else:
+            print("Using simple scene descriptions...")
+            scene_descriptions = generate_simple_scene_descriptions(
+                story_title, story_script, theme, mood, num_frames
+            )
+        
+        print(f"Generated {len(scene_descriptions)} scene descriptions")
+        
+        # Generate images for each scene description
+        image_paths = []
+        
+        for i, description in enumerate(scene_descriptions):
+            print(f"Generating image {i+1}/{len(scene_descriptions)}...")
+            
+            # Define negative prompts to avoid unwanted elements
+            negative_prompt = "ugly, blurry, low quality, distorted, deformed, text, watermark, signature"
+            
+            try:
+                # Call Pixellab API to generate the image
+                response = requests.post(
+                    "https://api.pixellab.ai/v1/generate-image-pixflux",
+                    headers={
+                        "Content-Type": "application/json",
+                        "Authorization": f"Bearer {pixellab_api_key}"
+                    },
+                    json={
+                        "description": description,
+                        "negative_description": negative_prompt,
+                        "image_size": {
+                            "width": image_width,
+                            "height": image_height
+                        },
+                        "seed": i + 1  # Use different seed for each image
+                    }
+                )
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    
+                    if "image" in result and "base64" in result["image"]:
+                        # Decode base64 image data
+                        image_data = base64.b64decode(result["image"]["base64"])
+                        
+                        # Save the image
+                        image_filename = f"{images_folder}/scene_{i+1}.png"
+                        with open(image_filename, "wb") as f:
+                            f.write(image_data)
+                        
+                        print(f"✓ Image saved to {image_filename}")
+                        image_paths.append(image_filename)
+                    else:
+                        print(f"✗ No image data in response: {result.keys()}")
+                else:
+                    print(f"✗ API request failed with status code {response.status_code}: {response.text}")
+            except Exception as e:
+                print(f"✗ Error generating image: {str(e)}")
+            
+            # Add a small delay to avoid rate limiting
+            time.sleep(1)
+        
+        return image_paths
+        
+    except Exception as e:
+        print(f"Error generating images: {str(e)}")
+        return []
+
+
+def generate_scene_descriptions_with_openai(
+    story_title, story_script, theme, mood, num_frames, openai_api_key
+):
+    """Generate concise scene descriptions for the story using OpenAI
+    
+    Returns:
+        list: List of scene descriptions
+    """
+    try:
+        # Initialize the OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+        
+        prompt = f"""
+        I need {num_frames} concise scene descriptions (under 50 words each) for a children's story titled "{story_title}".
+        The story has a {theme} theme with a {mood} mood.
+        
+        The full story is:
+        "{story_script}"
+        
+        Please create {num_frames} different and visually interesting scenes that occur at different points in the story,
+        from the beginning, middle, and end. Each description should be:
+        1. Very concise (under 50 words)
+        2. Child-friendly and age-appropriate
+        3. Visually descriptive and specific
+        4. Focus on characters, settings, and key moments from the story
+        5. Appropriate for the {theme} theme and {mood} mood
+        
+        Format your response as a numbered list, with just the descriptions.
+        """
+        
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=500,
+            temperature=0.7
+        )
+        
+        # Parse the response to extract the descriptions
+        result_text = response.choices[0].message.content.strip()
+        
+        # Extract numbered list items (1. Description, 2. Description, etc.)
+        descriptions = re.findall(r'^\d+\.\s*(.*?)$', result_text, re.MULTILINE)
+        
+        # Ensure we have exactly the requested number of descriptions
+        if len(descriptions) < num_frames:
+            # If we don't have enough, generate some generic ones to fill the gap
+            additional_needed = num_frames - len(descriptions)
+            generic_descriptions = generate_simple_scene_descriptions(
+                story_title, story_script, theme, mood, additional_needed
+            )
+            descriptions.extend(generic_descriptions)
+        
+        # Trim to the exact number needed
+        descriptions = descriptions[:num_frames]
+        
+        # Ensure each description is under 50 words
+        for i in range(len(descriptions)):
+            word_count = len(descriptions[i].split())
+            if word_count > 50:
+                # Truncate to approximately 50 words
+                words = descriptions[i].split()
+                descriptions[i] = ' '.join(words[:48]) + '...'
+        
+        return descriptions
+        
+    except Exception as e:
+        print(f"Error generating scene descriptions with OpenAI: {str(e)}")
+        return generate_simple_scene_descriptions(
+            story_title, story_script, theme, mood, num_frames
+        )
+
+
+def generate_simple_scene_descriptions(
+    story_title, story_script, theme, mood, num_frames
+):
+    """Generate simple scene descriptions based on the story theme and mood
+    
+    Returns:
+        list: List of scene descriptions
+    """
+    # Split the story into beginning, middle, and end
+    sentences = re.split(r'(?<=[.!?])\s+', story_script)
+    
+    if len(sentences) < num_frames:
+        # Not enough sentences, duplicate some
+        while len(sentences) < num_frames:
+            sentences.extend(sentences[:num_frames-len(sentences)])
+    
+    # Extract key sections based on the desired number of frames
+    section_size = len(sentences) // num_frames
+    key_sections = []
+    
+    for i in range(num_frames):
+        section_start = i * section_size
+        section_end = section_start + section_size
+        if i == num_frames - 1:  # For the last section, include all remaining sentences
+            section_end = len(sentences)
+        
+        section = ' '.join(sentences[section_start:section_end])
+        key_sections.append(section)
+    
+    # Generate descriptions for each section
+    descriptions = []
+    
+    # Character name based on theme
+    if theme.lower() in ["adventure", "action", "explorer"]:
+        character = "adventurous child"
+    elif theme.lower() in ["fairy tale", "fantasy", "magic", "princess", "wizard"]:
+        character = "young wizard"
+    elif theme.lower() in ["animal", "nature", "jungle", "forest", "farm"]:
+        character = "friendly animal"
+    elif theme.lower() in ["space", "sci-fi", "future", "robot", "alien"]:
+        character = "curious space explorer"
+    elif theme.lower() in ["friendship", "family", "love", "togetherness"]:
+        character = "group of friends"
+    elif theme.lower() in ["underwater", "ocean", "sea", "mermaid"]:
+        character = "young mermaid"
+    else:
+        character = "child protagonist"
+    
+    # Setting based on theme
+    if theme.lower() in ["adventure", "action", "explorer"]:
+        setting = "magical forest"
+    elif theme.lower() in ["fairy tale", "fantasy", "magic", "princess", "wizard"]:
+        setting = "enchanted castle"
+    elif theme.lower() in ["animal", "nature", "jungle", "forest", "farm"]:
+        setting = "lush green meadow"
+    elif theme.lower() in ["space", "sci-fi", "future", "robot", "alien"]:
+        setting = "colorful alien planet"
+    elif theme.lower() in ["friendship", "family", "love", "togetherness"]:
+        setting = "cozy treehouse"
+    elif theme.lower() in ["underwater", "ocean", "sea", "mermaid"]:
+        setting = "vibrant coral reef"
+    else:
+        setting = "colorful village"
+    
+    # Generate appropriate descriptions
+    template_descriptions = [
+        f"{character} discovering something magical in {setting}, {mood} atmosphere, children's book illustration",
+        f"{character} meeting new friends in {setting}, {mood} mood, child-friendly, colorful",
+        f"{character} overcoming a challenge in {setting}, {mood} feeling, whimsical children's illustration",
+        f"{character} celebrating victory in {setting}, {mood} and joyful, storybook art style"
+    ]
+    
+    # Ensure we have the right number of descriptions
+    while len(template_descriptions) < num_frames:
+        template_descriptions.append(f"{character} in {setting}, {mood} scene, children's book style")
+    
+    # Return only the number of descriptions we need
+    return template_descriptions[:num_frames]
 
 
 def create_simple_story_script(story_title, theme, key_elements):
@@ -993,6 +1625,7 @@ def create_simple_story_script(story_title, theme, key_elements):
 
     return script
 
+
 def generate_story_script(
     story_title,
     theme,
@@ -1001,8 +1634,9 @@ def generate_story_script(
     story_description=None,
     claude_api_key=None,
     story_transcript=None,
+    openai_api_key=None,
 ):
-    """Generate a compelling children's story script using Claude LLM
+    """Generate a compelling children's story script using Claude LLM with OpenAI GPT-4o fallback
     
     Args:
         story_title (str): Title of the children's story
@@ -1010,8 +1644,9 @@ def generate_story_script(
         key_elements (list): Key elements to include
         mood (str): Emotional mood of the story
         story_description (str, optional): Brief description of the story
-        claude_api_key (str): Claude API key
+        claude_api_key (str, optional): Claude API key
         story_transcript (str, optional): A transcript to use as inspiration or context
+        openai_api_key (str, optional): OpenAI API key for fallback
         
     Returns:
         str: Generated story script
@@ -1020,11 +1655,11 @@ def generate_story_script(
     # Use provided story description or create default
     story_desc = story_description or f"{story_title} is a {theme} children's story"
 
-    # API key must be provided
-    if not claude_api_key:
-        raise ValueError("Claude API key must be provided")
+    # API key must be provided (either Claude or OpenAI)
+    if not claude_api_key and not openai_api_key:
+        raise ValueError("Either Claude or OpenAI API key must be provided")
 
-    # Prepare the prompt for Claude
+    # Prepare the prompt for Claude/OpenAI
     transcript_context = ""
     if story_transcript:
         transcript_context = f"""
@@ -1035,6 +1670,7 @@ def generate_story_script(
         
         Please use themes, characters, or elements from this transcript as inspiration, but create a new story in your own words that is appropriate for children.
         Don't copy the transcript directly, but incorporate its key elements and message into an original children's story.
+        DO NOT FORGET THAT THE STORY SHOULD BE BETWEEN 500-600 WORDS.
         """
 
     prompt = f"""
@@ -1051,7 +1687,7 @@ def generate_story_script(
     
     IMPORTANT INSTRUCTIONS:
     - Write an engaging children's story that's appropriate for ages 4-8.
-    - The story should be between 300-500 words.
+    - The story should be between 500-600 WORDS.
     - Include a clear beginning, middle, and end with a simple plot.
     - Feature relatable characters that children can connect with.
     - Include some dialogue but focus on narrative storytelling.
@@ -1061,6 +1697,7 @@ def generate_story_script(
     - DO NOT include any audio direction text like "MUSIC PLAYING", "SOUND EFFECT", or similar instructions.
     - Write ONLY the story narrative that will be read by the narrator.
     - Sound design elements will be added separately, so focus only on the story itself.
+    - If transcript is provided, use it as inspiration or reference, but create a new story in your own words that is appropriate for children.
     
     For reference, here are examples of good children's story openings:
     
@@ -1072,62 +1709,204 @@ def generate_story_script(
     
     Please write a similar quality children's story for "{story_title}".
     Return only the story text with no additional commentary, audio directions, or sound effect descriptions.
+    DO NOT FORGET THAT THE STORY SHOULD BE BETWEEN 500-600 WORDS.
     """
+    
+    # Try using Claude first if API key is provided
+    if claude_api_key:
+        print(f"Generating story script using Claude...")
+        try:
+            # Call Claude API
+            headers = {
+                "x-api-key": claude_api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            }
 
-    try:
-        # Call Claude API
-        headers = {
-            "x-api-key": claude_api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        }
+            data = {
+                "model": "claude-3-7-sonnet-20250219",
+                "max_tokens": 1000,
+                "temperature": 0.7,
+                "messages": [{"role": "user", "content": prompt}],
+            }
 
-        data = {
-            "model": "claude-3-7-sonnet-20250219",
-            "max_tokens": 1000,
-            "temperature": 0.7,
-            "messages": [{"role": "user", "content": prompt}],
-        }
+            response = requests.post(
+                "https://api.anthropic.com/v1/messages", headers=headers, json=data
+            )
 
-        response = requests.post(
-            "https://api.anthropic.com/v1/messages", headers=headers, json=data
+            print("Claude API response status:", response.status_code)
+
+            if response.status_code == 200:
+                result = response.json()
+                story_script = result["content"][0]["text"].strip()
+
+                # Simple cleanup for any audio direction text that might have slipped through
+                story_script = clean_story_script(story_script)
+                return story_script
+                
+            elif response.status_code == 529:
+                # Claude rate limit error - try OpenAI if an API key is provided
+                print(f"Claude API rate limited (status 529). Attempting to use OpenAI fallback.")
+                if openai_api_key:
+                    return generate_story_script_with_openai(
+                        story_title, theme, key_elements, mood, 
+                        story_description, story_transcript, openai_api_key, prompt
+                    )
+                else:
+                    print("No OpenAI API key provided for fallback. Using simple story approach.")
+                    return create_simple_story_script(story_title, theme, key_elements)
+                    
+            else:
+                # Other Claude API error - try OpenAI if an API key is provided
+                print(f"Claude API call failed with status {response.status_code}.")
+                if openai_api_key:
+                    print("Attempting to use OpenAI fallback.")
+                    return generate_story_script_with_openai(
+                        story_title, theme, key_elements, mood, 
+                        story_description, story_transcript, openai_api_key, prompt
+                    )
+                else:
+                    print("No OpenAI API key provided for fallback. Using simple story approach.")
+                    return create_simple_story_script(story_title, theme, key_elements)
+
+        except Exception as e:
+            print(f"Error using Claude API: {str(e)}.")
+            # Try OpenAI if an API key is provided
+            if openai_api_key:
+                print("Attempting to use OpenAI fallback.")
+                return generate_story_script_with_openai(
+                    story_title, theme, key_elements, mood, 
+                    story_description, story_transcript, openai_api_key, prompt
+                )
+            else:
+                print("No OpenAI API key provided for fallback. Using simple approach.")
+                return create_simple_story_script(story_title, theme, key_elements)
+    
+    # If no Claude API key but OpenAI API key is provided
+    elif openai_api_key:
+        print(f"Generating story script using OpenAI (Claude API key not provided)...")
+        return generate_story_script_with_openai(
+            story_title, theme, key_elements, mood, 
+            story_description, story_transcript, openai_api_key, prompt
         )
-
-        if response.status_code == 200:
-            result = response.json()
-            story_script = result["content"][0]["text"].strip()
-
-            # Simple cleanup for any audio direction text that might have slipped through
-            audio_direction_patterns = [
-                r"\[.*?\]",  # [MUSIC PLAYING]
-                r"\(.*?\)",  # (SOUND EFFECT)
-                r"MUSIC\s+PLAYING",
-                r"SOUND\s+EFFECT",
-                r"BACKGROUND\s+MUSIC",
-                r"JINGLE",
-                r"SFX:",
-                r"MUSIC:",
-                r"AUDIO:",
-                r"SOUND:",
-                r"UPBEAT\s+MUSIC",
-                r"SOFT\s+MUSIC",
-                r"DRAMATIC\s+MUSIC",
-            ]
-
-            for pattern in audio_direction_patterns:
-                story_script = re.sub(pattern, "", story_script, flags=re.IGNORECASE)
-
-            # Clean up any double spaces or extra line breaks created by the removal
-            story_script = re.sub(r"\s+", " ", story_script).strip()
-
-            return story_script
-        else:
-            # Fall back to simple approach if API call fails
-            return create_simple_story_script(story_title, theme, key_elements)
-
-    except Exception as e:
-        print(f"Error using Claude API: {str(e)}. Using simple approach.")
+    
+    # If no API keys are provided, use simple approach (shouldn't reach here due to earlier check)
+    else:
+        print("No API keys provided. Using simple approach.")
         return create_simple_story_script(story_title, theme, key_elements)
+
+
+def generate_story_script_with_openai(
+    story_title, 
+    theme, 
+    key_elements, 
+    mood, 
+    story_description, 
+    story_transcript, 
+    openai_api_key,
+    prompt=None
+):
+    """Generate a story script using OpenAI's GPT-4o model"""
+    try:
+        # Initialize the OpenAI client
+        client = OpenAI(api_key=openai_api_key)
+        
+        # Use provided prompt or generate a new one
+        if not prompt:
+            # Use provided story description or create default
+            story_desc = story_description or f"{story_title} is a {theme} children's story"
+            
+            # Prepare transcript context if available
+            transcript_context = ""
+            if story_transcript:
+                transcript_context = f"""
+                I'm providing a transcript that should be used as inspiration or reference:
+                
+                TRANSCRIPT:
+                "{story_transcript}"
+                
+                Please use themes, characters, or elements from this transcript as inspiration, but create a new story in your own words that is appropriate for children.
+                Don't copy the transcript directly, but incorporate its key elements and message into an original children's story.
+                DO NOT FORGET THAT THE STORY SHOULD BE BETWEEN 500-600 WORDS.
+                """
+                
+            prompt = f"""
+            Write a children's story titled "{story_title}".
+            
+            Story description: {story_desc}
+            
+            Key story elements to include:
+            {key_elements}
+            
+            The mood should be {mood}.
+            
+            {transcript_context}
+            
+            IMPORTANT INSTRUCTIONS:
+            - Write an engaging children's story that's appropriate for ages 4-8.
+            - The story should be between 500-600 WORDS.
+            - Include a clear beginning, middle, and end with a simple plot.
+            - Feature relatable characters that children can connect with.
+            - Include some dialogue but focus on narrative storytelling.
+            - Incorporate the key elements listed above naturally into the story.
+            - The story should contain a gentle lesson or positive message.
+            - Use language that's simple enough for young children but still interesting.
+            - DO NOT include any audio direction text like "MUSIC PLAYING", "SOUND EFFECT", or similar instructions.
+            - Write ONLY the story narrative that will be read by the narrator.
+            - Sound design elements will be added separately, so focus only on the story itself.
+            
+            Return only the story text with no additional commentary, audio directions, or sound effect descriptions.
+            """
+        
+        print("Generating story script with OpenAI GPT-4o...")
+        
+        # Call the OpenAI API
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=1000,
+            temperature=0.7
+        )
+        
+        # Get the response text
+        story_script = response.choices[0].message.content.strip()
+        
+        # Clean up the script
+        story_script = clean_story_script(story_script)
+        
+        return story_script
+        
+    except Exception as e:
+        print(f"Error generating story script with OpenAI: {str(e)}")
+        return create_simple_story_script(story_title, theme, key_elements)
+
+
+def clean_story_script(story_script):
+    """Clean up a story script by removing audio direction text and other unwanted elements"""
+    # Simple cleanup for any audio direction text that might have slipped through
+    audio_direction_patterns = [
+        r"\[.*?\]",  # [MUSIC PLAYING]
+        r"\(.*?\)",  # (SOUND EFFECT)
+        r"MUSIC\s+PLAYING",
+        r"SOUND\s+EFFECT",
+        r"BACKGROUND\s+MUSIC",
+        r"JINGLE",
+        r"SFX:",
+        r"MUSIC:",
+        r"AUDIO:",
+        r"SOUND:",
+        r"UPBEAT\s+MUSIC",
+        r"SOFT\s+MUSIC",
+        r"DRAMATIC\s+MUSIC",
+    ]
+
+    for pattern in audio_direction_patterns:
+        story_script = re.sub(pattern, "", story_script, flags=re.IGNORECASE)
+
+    # Clean up any double spaces or extra line breaks created by the removal
+    story_script = re.sub(r"\s+", " ", story_script).strip()
+    
+    return story_script
 
 
 def select_voice_for_mood(mood):
@@ -1262,151 +2041,6 @@ def get_volume_settings(theme, mood):
     return settings
 
 
-def create_audio_story(
-    story_title,
-    theme,
-    key_elements=None,
-    mood="warm",
-    elevenlabs_api_key=None,
-    claude_api_key=None,
-    openai_api_key=None,
-    use_openai_voice=False,
-    openai_voice="nova",
-    story_description=None,
-    story_transcript=None,
-):
-    """Simple function to create an audio children's story with minimal parameters
-    
-    Args:
-        story_title (str): Title of the children's story
-        theme (str): Theme or genre of the story (e.g., "fantasy", "adventure")
-        key_elements (list, optional): List of key elements to include in the story. Defaults to None.
-        mood (str, optional): Emotional mood of the story. Defaults to "warm".
-        elevenlabs_api_key (str, optional): API key for ElevenLabs voice synthesis. Required if not using OpenAI.
-        claude_api_key (str, optional): API key for Claude story generation. Required.
-        openai_api_key (str, optional): API key for OpenAI voice synthesis. Required if using OpenAI.
-        use_openai_voice (bool, optional): Whether to use OpenAI for voice generation. Defaults to False.
-        openai_voice (str, optional): OpenAI voice to use. Defaults to "nova".
-        story_description (str, optional): Brief description of the story. Defaults to None.
-        story_transcript (str, optional): Story transcript text to use instead of generating a story. Defaults to None.
-        
-    Returns:
-        str: Path to the generated audio story file
-    """
-    print(f"Creating audio story: {story_title}")
-    return generate_audio_story(
-        story_title=story_title,
-        theme=theme,
-        key_elements=key_elements,
-        mood=mood,
-        elevenlabs_api_key=elevenlabs_api_key,
-        claude_api_key=claude_api_key,
-        openai_api_key=openai_api_key,
-        use_openai_voice=use_openai_voice,
-        openai_voice=openai_voice,
-        story_description=story_description,
-        story_transcript=story_transcript,
-    )
-
-
-def get_openai_voice_instructions(mood, theme):
-    """Generate voice instructions for OpenAI TTS based on the story mood and theme
-    
-    Args:
-        mood (str): Emotional mood of the story (e.g., "warm", "adventurous")
-        theme (str): Theme of the story (e.g., "fantasy", "space")
-        
-    Returns:
-        str: Voice instructions for OpenAI TTS
-    """
-    # Base instructions for all children's stories
-    base_instructions = """
-    Affect/personality: A warm, engaging storyteller for children
-    
-    Pronunciation: Clear, articulate, and dynamic, with appropriate emphasis on character dialogue
-    
-    Pause: Natural pauses between sentences and paragraphs
-    """
-    
-    # Customize tone based on mood
-    tone_instructions = {
-        "warm": "Tone: Friendly, gentle, and comforting, creating a cozy atmosphere that makes children feel safe and loved",
-        "playful": "Tone: Upbeat, energetic, and joyful, with lots of expression and playfulness to make children giggle and engage",
-        "adventurous": "Tone: Exciting, dynamic, and bold, with moments of suspense and wonder that spark children's curiosity",
-        "calm": "Tone: Soothing, peaceful, and relaxed, perfect for bedtime or creating a tranquil listening experience",
-        "emotional": "Tone: Heartfelt, tender, and sincere, with gentle moments that convey meaningful emotions",
-        "exciting": "Tone: Enthusiastic, animated, and high-energy, building excitement and anticipation throughout the story",
-        "gentle": "Tone: Soft, delicate, and nurturing, creating a gentle storytelling approach for younger children",
-        "humorous": "Tone: Light-hearted, funny, and whimsical, with playful vocal variety to bring humor to life",
-        "mysterious": "Tone: Intriguing, curious, and slightly dramatic, with a sense of mystery that captivates young listeners",
-        "educational": "Tone: Clear, engaging, and thoughtful, balancing entertainment with helpful learning moments"
-    }
-    
-    # Customize emotion based on theme
-    emotion_instructions = {
-        "fantasy": "Emotion: Magical and wonder-filled, conveying enchantment and awe, using a range of tones for different magical characters",
-        "adventure": "Emotion: Brave and enthusiastic, conveying excitement and courage, with moments of triumph and discovery",
-        "space": "Emotion: Curious and awe-inspired, conveying the vastness and wonder of space exploration",
-        "underwater": "Emotion: Flowing and peaceful, with a slightly echoing quality that suggests being underwater",
-        "animal": "Emotion: Friendly and expressive, with subtle voice variations to distinguish different animal characters",
-        "fairy tale": "Emotion: Classic storytelling warmth with a timeless quality, occasionally majestic for royal characters",
-        "friendship": "Emotion: Warm and inclusive, emphasizing connection and togetherness with a kind, inviting tone",
-        "bedtime": "Emotion: Gentle and soothing, gradually becoming softer and calmer toward the end of the story"
-    }
-    
-    # Get the appropriate tone and emotion instructions or use defaults
-    tone = tone_instructions.get(mood.lower(), tone_instructions["warm"])
-    emotion = emotion_instructions.get(theme.lower(), "Emotion: Warm and expressive, conveying the emotional journey of the story while maintaining a child-friendly delivery")
-    
-    # Combine all instructions
-    instructions = f"{base_instructions}\n\n{tone}\n\n{emotion}"
-    
-    return instructions
-
-
-def process_transcript(transcript_text):
-    """Process a transcript by removing timestamps and formatting it for narration
-    
-    Args:
-        transcript_text (str): Raw transcript text with timestamps
-        
-    Returns:
-        str: Cleaned transcript suitable for narration
-    """
-    # Remove timestamp lines (lines that are just numbers and colons like "0:00" or "1:23")
-    lines = transcript_text.split('\n')
-    cleaned_lines = []
-    
-    for line in lines:
-        # Skip empty lines
-        if not line.strip():
-            continue
-            
-        # Skip lines that are just timestamps (e.g., "0:00", "1:23")
-        if re.match(r'^\d+:\d+$', line.strip()):
-            continue
-            
-        # Remove timestamps at the beginning of lines
-        line = re.sub(r'^\d+:\d+\s+', '', line)
-        
-        # Keep the line
-        cleaned_lines.append(line)
-    
-    # Join the lines back together
-    cleaned_text = '\n'.join(cleaned_lines)
-    
-    # Remove parenthetical directions like "(A version of the tale by TheFableCottage.com)"
-    cleaned_text = re.sub(r'\([^)]*\)', '', cleaned_text)
-    
-    # Replace double quotes with proper typographical quotes for better narration
-    cleaned_text = cleaned_text.replace('"', '"').replace('"', '"')
-    
-    # Remove any remaining multiple consecutive whitespace
-    cleaned_text = re.sub(r'\s+', ' ', cleaned_text)
-    
-    return cleaned_text.strip()
-
-
 if __name__ == "__main__":
     # Create command line argument parser
     parser = argparse.ArgumentParser(
@@ -1426,8 +2060,9 @@ if __name__ == "__main__":
         help="Key story elements (space-separated)",
     )
     parser.add_argument("--elevenlabs-api-key", help="ElevenLabs API key (required if not using OpenAI voice)")
-    parser.add_argument("--claude-api-key", help="Claude API key (required if not using a transcript)")
-    parser.add_argument("--openai-api-key", help="OpenAI API key (required if using OpenAI voice)")
+    parser.add_argument("--claude-api-key", help="Claude API key (used for story and sound design generation, will fall back to OpenAI if rate limited)")
+    parser.add_argument("--openai-api-key", help="OpenAI API key (required if using OpenAI voice, also used as fallback for Claude when rate limited)")
+    parser.add_argument("--pixellab-api-key", help="Pixellab API key (required for image generation)")
     parser.add_argument(
         "--use-openai-voice", 
         action="store_true",
@@ -1451,6 +2086,29 @@ if __name__ == "__main__":
         "--description",
         help="Optional description of the story",
     )
+    parser.add_argument(
+        "--generate-images",
+        action="store_true",
+        help="Generate images for the story using Pixellab API"
+    )
+    parser.add_argument(
+        "--num-images",
+        type=int,
+        default=4,
+        help="Number of images to generate (default: 4)"
+    )
+    parser.add_argument(
+        "--image-width",
+        type=int,
+        default=1024,
+        help="Width of generated images (default: 1024)"
+    )
+    parser.add_argument(
+        "--image-height",
+        type=int,
+        default=1024,
+        help="Height of generated images (default: 1024)"
+    )
 
     args = parser.parse_args()
 
@@ -1459,14 +2117,19 @@ if __name__ == "__main__":
     if args.transcript:
         story_transcript = process_transcript(args.transcript)
 
-    # Check if either Claude API key or transcript is provided
-    if not story_transcript and not args.claude_api_key:
-        print("Error: Either --claude-api-key or --transcript must be provided")
+    # Check if either Claude or OpenAI API key is provided
+    if not story_transcript and not args.claude_api_key and not args.openai_api_key:
+        print("Error: Either --claude-api-key or --openai-api-key must be provided for story generation")
+        exit(1)
+        
+    # Check if Pixellab API key is provided when generate_images is True
+    if args.generate_images and not args.pixellab_api_key:
+        print("Error: --pixellab-api-key must be provided when --generate-images is set")
         exit(1)
 
     # Generate the audio story
     try:
-        output_path = create_audio_story(
+        output_path, image_paths = create_audio_story(
             story_title=args.title, 
             theme=args.theme, 
             key_elements=args.elements,
@@ -1474,14 +2137,21 @@ if __name__ == "__main__":
             elevenlabs_api_key=args.elevenlabs_api_key,
             claude_api_key=args.claude_api_key,
             openai_api_key=args.openai_api_key,
+            pixellab_api_key=args.pixellab_api_key,
             use_openai_voice=args.use_openai_voice,
             openai_voice=args.openai_voice,
             story_description=args.description,
             story_transcript=story_transcript,
+            generate_images=args.generate_images,
+            num_images=args.num_images,
         )
         
         if output_path:
             print(f"✓ Story generated successfully: {output_path}")
+            if image_paths:
+                print(f"✓ Generated {len(image_paths)} story images:")
+                for i, path in enumerate(image_paths):
+                    print(f"  - Image {i+1}: {path}")
         else:
             print("✗ Failed to generate story.")
     except Exception as e:
