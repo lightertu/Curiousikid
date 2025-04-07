@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
 import useGlobalState from "./GlobalState";
+import WebSocketHandler from "./components/WebSocketHandler";
+import WebSocketStatus from "./components/WebSocketStatus";
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
@@ -32,6 +34,7 @@ const App: React.FC = () => {
 
 	return (
 		<div className="flex items-center justify-center min-h-screen bg-gray-100">
+			<WebSocketHandler />
 			<div className="flex space-x-8">
 				{/* Card 1 */}
 				<Link href="/player">
@@ -47,9 +50,9 @@ const App: React.FC = () => {
 					</div>
 				</Link>
 			</div>
+			<WebSocketStatus />
 		</div>
 	);
 };
-
 
 export default App;

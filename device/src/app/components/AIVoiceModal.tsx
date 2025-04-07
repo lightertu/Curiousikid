@@ -16,14 +16,17 @@ import {
   useMaybeRoomContext,
 } from "@livekit/components-react";
 import { RoomEvent } from 'livekit-client';
-import { useConversationalStory } from '../hooks/ConversationalStory';
 
-const AIVoiceModal: React.FC = () => {
-  const { isLivekitRoomConnected, setIsPlaying, setQuestionPoint } = useGlobalState();
-  const [agentState, setAgentState] = useState<AgentState>("disconnected");
+export interface GeneralAIVoiceModalProps {
+  show: boolean;
+  onDisconnect: () => void;
+  onConnect: () => void;
+}
+
+const GeneralAIVoiceModal: React.FC<GeneralAIVoiceModalProps> = ({ show, onDisconnect, onConnect: onConnected }) => {
+  const { voiceAgentState, setVoiceAgentState } = useGlobalState();
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
-  const { clearQuestionPoint } = useConversationalStory();
   const room = useMaybeRoomContext();
 
 
@@ -31,8 +34,7 @@ const AIVoiceModal: React.FC = () => {
     const handleDisconnect = () => {
       if (room) {
         room.disconnect();
-        setIsPlaying(true);
-        clearQuestionPoint();
+        onDisconnect();
       }
     }
     if (room) {
@@ -47,22 +49,20 @@ const AIVoiceModal: React.FC = () => {
   }, [room]);
 
   useEffect(() => {
-    setAgentState(state);
-    console.log("Agent state:", state);
+    setVoiceAgentState(state);
     const isAgentConnected = state === "speaking" || state === "listening" || state === "thinking";
     setAgentConnected(isAgentConnected);
     if (isAgentConnected) {
-      clearQuestionPoint();
-      setIsPlaying(false);
+      onConnected();
     }
 
-  }, [state, setIsPlaying]);
+  }, [state]);
 
   return (
     <>
       {/* Always render these components regardless of state */}
       {/* Only show the modal when connected */}
-      {isLivekitRoomConnected && agentConnected && (
+      {show && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* Blurred backdrop */}
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
@@ -79,9 +79,9 @@ const AIVoiceModal: React.FC = () => {
                   options={{ minHeight: 24 }}
                 />
               </div>
-              <ControlBar agentState={agentState} />
+              <ControlBar agentState={voiceAgentState} onDisconnect={onDisconnect} />
               <RoomAudioRenderer />
-              <NoAgentNotification state={agentState} />
+              <NoAgentNotification state={voiceAgentState} />
             </main>
           </div>
         </div>
@@ -90,18 +90,17 @@ const AIVoiceModal: React.FC = () => {
   );
 };
 
-function ControlBar(props: { agentState: AgentState }) {
+function ControlBar(props: { agentState: AgentState, onDisconnect: () => void }) {
   // const krisp = useKrispNoiseFilter();
   // useEffect(() => {
   //   krisp.setNoiseFilterEnabled(true);
   // }, []);
   const room = useMaybeRoomContext();
-  const { setIsPlaying } = useGlobalState();
 
   const disconnect = () => {
     if (room) {
       room.disconnect();
-      setIsPlaying(true);
+      props.onDisconnect();
     }
   }
 
@@ -119,4 +118,4 @@ function ControlBar(props: { agentState: AgentState }) {
   );
 }
 
-export default AIVoiceModal;
+export default GeneralAIVoiceModal;

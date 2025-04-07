@@ -15,9 +15,10 @@ STORY_SERVICE = StoryService()
 
 logger = logging.getLogger("voice-assistant")
 
+
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
-    
+
     agent = ProactiveQuestionAgent()
 
     session = AgentSession()
@@ -30,7 +31,7 @@ async def entrypoint(ctx: JobContext):
         for _, participant in ctx.room.remote_participants.items():
             agent.load_participant_metadata(participant.metadata)
             break
-        
+
     await session.start(agent=agent, room=ctx.room)
 
     # Make sure the monitor is running after the session is started

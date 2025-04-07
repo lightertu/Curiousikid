@@ -8,7 +8,6 @@ import Player from "../components/Player";
 import Library from "../components/Library";
 import Nav from "../components/Nav";
 import useGlobalState from "../GlobalState";
-import AIVoiceModal from "../components/AIVoiceModal";
 import WebSocketHandler from "../components/WebSocketHandler";
 import WebSocketStatus from "../components/WebSocketStatus";
 import { useWebSocket } from "../contexts/WebSocketContext";
@@ -47,41 +46,14 @@ const Page: React.FC = () => {
             libraryStatus ? "md:ml-80" : "ml-0",
             "max-md:ml-0"
         )}>
-            {/* WebSocketHandler manages connection - no UI */}
-            <LiveKitRoom
-                serverUrl={livekitConnectionDetails?.serverUrl}
-                token={livekitConnectionDetails?.participantToken}
-                audio={true}
-                video={false}
-                connect={livekitConnectionDetails !== null}
-                onConnected={() => {
-                    setIsConnectingToLivekit(false)
-                    setIsLivekitRoomConnected(true)
-                }}
-                onDisconnected={() => {
-                    setIsConnectingToLivekit(false)
-                    setIsLivekitRoomConnected(false)
-                    setLivekitConnectionDetails(null)
-                }}
-                onMediaDeviceFailure={onDeviceFailure}
-            >
-                <WebSocketHandler />
-                <Nav />
-                <Player />
-                <Library />
-                <ProactiveQuestionAIVoiceModal />
-                {/* Status indicator for WebSocket connection */}
-                <WebSocketStatus />
-            </LiveKitRoom>
+            <Nav />
+            <Player />
+            <Library />
+            <ProactiveQuestionAIVoiceModal />
+            {/* Status indicator for WebSocket connection */}
         </div>
     );
 };
 
-function onDeviceFailure(error?: MediaDeviceFailure) {
-    console.error(error);
-    alert(
-        "Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
-    );
-}
 
 export default Page;

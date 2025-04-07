@@ -9,9 +9,10 @@ from memory.story.models import QuestionPoint
 
 logger = logging.getLogger(__name__)
 
-class ConnectionMetadata(BaseModel):
-  questionPoint: QuestionPoint
-  userId: str
+
+class ProactiveQuestionConnectionMetadata(BaseModel):
+    metadata: QuestionPoint
+    userId: str
 
 
 class ProactiveQuestionAgent(Agent):
@@ -29,16 +30,28 @@ Don't go off the topic of the story.
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
             llm=openai.LLM(model="gpt-4o-mini"),
-            tts=openai.TTS(voice="nova", instructions="You are a friendly voice assistant built by LiveKit."),
+            tts=openai.TTS(
+                voice="nova",
+                instructions="You are a friendly voice assistant built by LiveKit.",
+            ),
         )
         self.story_service = StoryService()
         self.connection_metadata = None
-        
-    def load_participant_metadata(self, serialized_metadata: str) -> ConnectionMetadata:
+
+    def load_participant_metadata(
+        self, serialized_metadata: str
+    ) -> ProactiveQuestionConnectionMetadata:
         logger.info(f"Loading participant metadata: {serialized_metadata}")
-        self.connection_metadata = ConnectionMetadata(**json.loads(serialized_metadata))
-        story_context = self.story_service.get_question_point_context(self.connection_metadata.questionPoint)
-        story_text = self.story_service.get_story_text(self.connection_metadata.questionPoint.storyId)
+        print(f"Loading participant metadata: {serialized_metadata}")
+        self.connection_metadata = ProactiveQuestionConnectionMetadata(
+            **json.loads(serialized_metadata)
+        )
+        story_context = self.story_service.get_question_point_context(
+            self.connection_metadata.metadata
+        )
+        story_text = self.story_service.get_story_text(
+            self.connection_metadata.metadata.storyId
+        )
         self._instructions = f"""
 You are a very cute and empathetic story listening companion for children range from 5 - 9 years old. 
 You are given a inital question to ask the user based on the story, and all the story context the child have listened so far. 
@@ -50,15 +63,19 @@ Here is what the child has listened so far: {story_context} , and here is the st
 
     async def on_enter(self):
         """Called when the task is entered"""
-        question_point = self.connection_metadata.questionPoint
-        await self.session.say(text=question_point.question, 
-                               allow_interruptions=False)
-    
+        question_point = self.connection_metadata.metadata
+        await self.session.say(text=question_point.question, allow_interruptions=False)
+
     async def on_exit(self):
         """Called when the task is exited"""
         pass
 
-    async def on_end_of_turn(self, chat_ctx: llm.ChatContext, new_message: llm.ChatMessage, generating_reply: bool):
+    async def on_end_of_turn(
+        self,
+        chat_ctx: llm.ChatContext,
+        new_message: llm.ChatMessage,
+        generating_reply: bool,
+    ):
         """Called when the user has finished speaking, and the LLM is about to respond
 
         This is a good opportunity to update the chat context or edit the new message before it is
@@ -68,4 +85,6 @@ Here is what the child has listened so far: {story_context} , and here is the st
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
         await self.update_chat_ctx(chat_ctx)
-        logger.info("add user message to chat context", extra={"content": new_message.content})
+        logger.info(
+            "add user message to chat context", extra={"content": new_message.content}
+        )

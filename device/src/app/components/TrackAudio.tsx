@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import useGlobalState, { QuestionPoint } from "../GlobalState";
+import useGlobalState from "../GlobalState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
-import { LiveKitConnectionDetails, LiveKitApi, ConnectionMetadata } from "../api/livekit";
+import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
 
 const TrackAudio: React.FC = () => {
 	// --- Refs for Web Audio API objects ---
@@ -190,7 +190,7 @@ const TrackAudio: React.FC = () => {
 			setIsConnectingToLivekit(true);
 			// Fetch LiveKit connection details
 			getLiveKitRoomConnectionDetails({
-				questionPoint: questionPoint,
+				metadata: questionPoint,
 				userId: questionPoint.userId
 			}).then((connectionDetails) => {
 				setLivekitConnectionDetails(connectionDetails);
@@ -237,7 +237,7 @@ const TrackAudio: React.FC = () => {
 	};
 
 	// --- Get LiveKit Connection Details ---
-	const getLiveKitRoomConnectionDetails = async (metadata: ConnectionMetadata): Promise<LiveKitConnectionDetails> => {
+	const getLiveKitRoomConnectionDetails = async (metadata: ProactiveQuestionConnectionMetadata): Promise<LiveKitConnectionDetails> => {
 		const liveKitApi = new LiveKitApi();
 		return await liveKitApi.getConnectionDetails(metadata) as LiveKitConnectionDetails;
 	};

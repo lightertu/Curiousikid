@@ -1,6 +1,6 @@
 import useGlobalState from "../GlobalState";
 import { useConversationalStory } from "../hooks/ConversationalStory";
-import GeneralAIVoiceModal from "./GenericAIVoiceModal";
+import AIVoiceModal from "./AIVoiceModal";
 
 const ProactiveQuestionAIVoiceModal: React.FC = () => {
     const { isLivekitRoomConnected, setIsPlaying, voiceAgentState } = useGlobalState();
@@ -8,7 +8,7 @@ const ProactiveQuestionAIVoiceModal: React.FC = () => {
     const { clearQuestionPoint } = useConversationalStory();
 
     return (
-        <GeneralAIVoiceModal
+        <AIVoiceModal
             show={isLivekitRoomConnected && isVoiceAgentActive}
             onDisconnect={() => {
                 clearQuestionPoint();

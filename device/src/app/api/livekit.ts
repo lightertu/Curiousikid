@@ -1,5 +1,5 @@
 import { AccessToken, AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
-import { QuestionPoint } from "../GlobalState";
+import { QuestionPoint, ChatCharacter } from "../GlobalState";
 
 export const revalidate = 0;
 
@@ -10,8 +10,13 @@ export type LiveKitConnectionDetails = {
   participantToken: string;
 };
 
-export interface ConnectionMetadata {
-  questionPoint: QuestionPoint;
+export interface ProactiveQuestionConnectionMetadata {
+  metadata: QuestionPoint | ChatCharacter;
+  userId: string;
+}
+
+export interface ChatCharacterConnectionMetadata {
+  metadata: ChatCharacter;
   userId: string;
 }
 
@@ -29,10 +34,10 @@ if (process.env.LIVEKIT_API_SECRET === undefined) {
 }
 
 export class LiveKitApi {
-  async getConnectionDetails(metadata: ConnectionMetadata) {
+  async getConnectionDetails(metadata: ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata) {
     // Generate participant token
-    const participantIdentity = metadata.questionPoint.userId;
-    const roomName = `user-${metadata.userId}-story-${metadata.questionPoint.storyId}-${Date.now()}`;
+    const participantIdentity = metadata.metadata.userId;
+    const roomName = `user-${metadata.userId}-${Date.now()}`;
     const participantToken = await this.createParticipantToken(
       LIVEKIT_API_KEY as string,
       LIVEKIT_API_SECRET as string,
