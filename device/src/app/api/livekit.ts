@@ -33,6 +33,10 @@ if (process.env.LIVEKIT_API_SECRET === undefined) {
   throw new Error("LIVEKIT_API_SECRET is not defined");
 }
 
+console.log("LIVEKIT_URL", LIVEKIT_URL);
+console.log("LIVEKIT_API_KEY", LIVEKIT_API_KEY);
+console.log("LIVEKIT_API_SECRET", LIVEKIT_API_SECRET);
+
 export class LiveKitApi {
   async getConnectionDetails(metadata: ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata) {
     // Generate participant token

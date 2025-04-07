@@ -1,5 +1,5 @@
 import useGlobalState from "../GlobalState";
-import { useConversationalStory } from "../hooks/ConversationalStory";
+import { useConversationalStory } from "../hooks/useConversationalStory";
 import AIVoiceModal from "./AIVoiceModal";
 
 const ProactiveQuestionAIVoiceModal: React.FC = () => {

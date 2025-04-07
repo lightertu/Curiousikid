@@ -9,7 +9,9 @@ from livekit.agents import (
     cli,
 )
 from voice_agent.inactivity_monitor import InactivityMonitor
-from voice_agent.proactive_question_agent import ProactiveQuestionAgent
+from voice_agent.proactive_question.proactive_question_agent import (
+    ProactiveQuestionAgent,
+)
 
 STORY_SERVICE = StoryService()
 
