@@ -18,8 +18,16 @@ class UserQuestionAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         logger.info(f"Loading participant metadata: {metadata}")
         self.story_service = StoryService()
+        print("=============================")
+        print(metadata)
+        print("=============================")
         self.connection_metadata = UserQuestionConnectionMetadata(**metadata)
-
+        story_context = self.story_service.get_question_point_context(
+            self.connection_metadata.metadata
+        )
+        story_text = self.story_service.get_story_text(
+            self.connection_metadata.metadata.storyId
+        )
         super().__init__(
             instructions=f"""
 You are a very cute and empathetic story listening companion for children range from 5 - 9 years old. 

@@ -37,7 +37,7 @@ export interface ProactiveQuestionPoint {
 export interface UserProactiveQuestionPoint {
   storyId: string;
   userId: string;
-  interrupttedAt: number;
+  interruptAt: number;
 }
 
 export interface ChatCharacter {
@@ -73,6 +73,8 @@ export interface DeviceState {
   voiceAgentState: AgentState;
 
   isPlaying: boolean;
+  isProactiveQuestionActive: boolean;
+  isUserQuestionActive: boolean;
   stories: StoryMetadata[];
   currentStory: CurrentStory | null;
   libraryStatus: boolean;
@@ -86,6 +88,8 @@ export interface DeviceState {
   setUserId: (userId: string) => void;
   setVoiceAgentState: (voiceAgentState: AgentState) => void;
   setIsPlaying: (isPlaying: boolean) => void;
+  setIsProactiveQuestionActive: (isProactiveQuestionActive: boolean) => void;
+  setIsUserQuestionActive: (isUserQuestionActive: boolean) => void;
   setCurrentStory: (currentStory: CurrentStory | null) => void;
   setStories: (stories: StoryMetadata[]) => void;
   setLibraryStatus: (libraryStatus: boolean) => void;
@@ -110,6 +114,8 @@ const useGlobalState = create<DeviceState>((set) => ({
   livekitConnectionDetails: null,
   isConnectingToLivekit: false,
   isLivekitRoomConnected: false,
+  isProactiveQuestionActive: false,
+  isUserQuestionActive: false,
   currentStory: {
     currentTime: 0,
     id: INIT_STORY_LIST[INIT_STORY_ID].id,
@@ -161,6 +167,12 @@ const useGlobalState = create<DeviceState>((set) => ({
 
   setIsLivekitRoomConnected: (isLivekitRoomConnected: boolean) =>
     set({ isLivekitRoomConnected }),
+
+  setIsProactiveQuestionActive: (isProactiveQuestionActive: boolean) =>
+    set({ isProactiveQuestionActive }),
+
+  setIsUserQuestionActive: (isUserQuestionActive: boolean) =>
+    set({ isUserQuestionActive }),
 
   playAudio: () => set((state) => ({ isPlaying: true })),
 

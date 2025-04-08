@@ -29,6 +29,9 @@ const TrackAudio: React.FC = () => {
 		setIsConnectingToLivekit,
 		setLivekitConnectionDetails,
 		isLivekitRoomConnected,
+		isProactiveQuestionActive,
+		isUserQuestionActive,
+		setIsProactiveQuestionActive,
 		proactiveQuestionPoint,
 		livekitConnectionDetails,
 		userId
@@ -179,9 +182,10 @@ const TrackAudio: React.FC = () => {
 		// Check if LiveKit is not already connected or connecting
 		const canConnectToLiveKit = !isConnectingToLivekit && !isLivekitRoomConnected && !livekitConnectionDetails;
 		// If conditions met, initiate connection
-		if (isAtProactiveQuestionPoint && isPlaying && canConnectToLiveKit) {
+		if (isAtProactiveQuestionPoint && isPlaying && canConnectToLiveKit && !isUserQuestionActive) {
 			// Set connecting state
 			setIsConnectingToLivekit(true);
+			setIsProactiveQuestionActive(true);
 			// Fetch LiveKit connection details
 			getLiveKitRoomConnectionDetails({
 				metadata: proactiveQuestionPoint,

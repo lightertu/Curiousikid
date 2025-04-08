@@ -21,14 +21,14 @@ class CurrentStory(StoryMetadata):
 
 
 class QuestionPoint(BaseModel):
-    id: str
     storyId: str
     userId: str
-    question: str
     interruptAt: float
 
 
 class ProactiveQuestionPoint(QuestionPoint):
+    id: str
+    question: str
     connectAt: float
 
 

@@ -17,13 +17,14 @@ import {
 } from "@livekit/components-react";
 import { RoomEvent } from 'livekit-client';
 
-export interface GeneralAIVoiceModalProps {
+export interface AIVoiceModalProps {
   show: boolean;
+  headline: string;
   onDisconnect: () => void;
   onConnect: () => void;
 }
 
-const GeneralAIVoiceModal: React.FC<GeneralAIVoiceModalProps> = ({ show, onDisconnect, onConnect: onConnected }) => {
+const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnect, onConnect: onConnected }) => {
   const { voiceAgentState, setVoiceAgentState } = useGlobalState();
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
@@ -70,6 +71,7 @@ const GeneralAIVoiceModal: React.FC<GeneralAIVoiceModalProps> = ({ show, onDisco
 
           {/* Modal content */}
           <div className="relative w-[80%] max-w-3xl bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden">
+            <h1 className="text-2xl font-bold">{headline}</h1>
             <main data-lk-theme="default" className="p-8">
               <div className="h-[300px] mx-auto mb-6">
                 <BarVisualizer
@@ -119,4 +121,4 @@ function ControlBar(props: { agentState: AgentState, onDisconnect: () => void })
   );
 }
 
-export default GeneralAIVoiceModal;
+export default AIVoiceModal;
