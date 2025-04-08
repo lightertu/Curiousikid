@@ -70,10 +70,10 @@ run_audio_story_openai_file file:
         --pixellab-api-key "23b7a601-f608-4342-b945-6e353f02cf36" \
         --use-openai-voice \
         --openai-voice "nova" \
-        --title "The Rainbow Scale Rhythms" \
-        --theme "Finding your unique talents" \
-        --mood "Playful" \
-        --elements "A dragon with color-changing scales" "A cave of echoing crystals" "A timid firefly orchestra" "A moonlight dance celebration" \
+        --title "It's a Firefly Night" \
+        --theme "nature" \
+        --mood "gentle" \
+        --elements "fireflies" "family" "discovery" \
         --generate-images \
         --transcript "$TRANSCRIPT"
 

@@ -258,6 +258,7 @@ def generate_sound_design_with_openai(
                - Key instruments
                - Mood/energy level
                - Any specific elements that match the story theme
+               - Should be very calming, soothing, and relaxing!!! This is very important!!!
             
             3. SOUND EFFECTS: Exactly 3 sound effects with their positions in the script:
                - Each sound effect should have a brief description (under 15 words)
@@ -647,34 +648,23 @@ async def generate_voice_with_openai(
         raise ValueError("OpenAI API key must be provided")
     
     # Default instructions for children's story narration if none provided
-    instructions = None
     if not instructions:
         instructions = """
-        Affect/personality: A warm, engaging storyteller for children
+        Affect/personality: A warm, engaging storyteller for children's stories with natural, dynamic expression
         
-        Tone: Friendly, clear, and expressive, creating an enchanting atmosphere that captures children's imagination
+        Tone: Rich, expressive, and varied - use a gentle, friendly tone for narration, and distinct character voices for dialogue. 
+        Create contrast between exciting/action moments and quiet/reflective moments.
         
-        Pronunciation: Clear, articulate, and dynamic, with appropriate emphasis on character dialogue and emotional moments
+        Pronunciation: Crisp, clear articulation with appropriate emphasis on key words. Slightly exaggerate important sounds to enhance clarity.
         
-        Pause: Natural pauses between sentences and paragraphs, slightly longer pauses at dramatic moments or scene transitions
+        Pause: Natural, meaningful pauses between sentences and paragraphs. Use longer pauses (but not too long) at dramatic moments, scene transitions, or before revealing something important.
         
-        Emotion: Warm and expressive, conveying the emotional journey of the story, using a range of tones for different characters while maintaining a soothing, child-friendly delivery
+        Emotion: Fully embody the emotional journey of the story. Convey wonder, excitement, concern, or joy authentically without being overly theatrical.
+        Express emotions appropriate to the scene - read exciting parts with energy and tender moments softly.
+        
+        Pacing: Vary the pace naturally - slower for descriptive or emotional scenes, quicker for action or excitement.
+        Slight pitch variation to enhance character distinction and maintain children's engagement.
         """
-
-    instructions = """
-    Voice Affect: Soft, gentle, soothing; embody tranquility.
-
-    Tone: Calm, reassuring, peaceful; convey genuine warmth and serenity.
-
-    Pacing: Slow, deliberate, and unhurried; pause gently after instructions to allow the listener time to relax and follow along.
-
-    Emotion: Deeply soothing and comforting; express genuine kindness and care.
-
-    Pronunciation: Smooth, soft articulation, slightly elongating vowels to create a sense of ease.
-
-    Pauses: Use thoughtful pauses, especially between breathing instructions and visualization guidance, enhancing relaxation and mindfulness.
-    
-    """
     
     # Set up OpenAI client
     client = AsyncOpenAI(api_key=openai_api_key)
@@ -879,7 +869,7 @@ def generate_audio_story(
         print("Generating background music...")
         print(f"Background music description: '{sound_design['background']}'")
         bg_stream = client.text_to_sound_effects.convert(
-            text=sound_design["background"]
+            text=sound_design["background"], duration_seconds=10
         )
 
         bg_bytes = b"".join(chunk for chunk in bg_stream)
@@ -1066,6 +1056,7 @@ def generate_audio_story(
         story.export(
             f"{components_folder}/{sanitized_title}_with_outro.mp3",
             format="mp3",
+            bitrate="256k",
         )
 
         # Trim background to match story length plus fade out
@@ -1073,6 +1064,7 @@ def generate_audio_story(
         background_final.export(
             f"{components_folder}/{sanitized_title}_background_final.mp3",
             format="mp3",
+            bitrate="256k",
         )
 
         # Overlay background on the entire story
@@ -1082,14 +1074,22 @@ def generate_audio_story(
         story.export(
             f"{components_folder}/{sanitized_title}_with_background.mp3",
             format="mp3",
+            bitrate="256k",
         )
 
         # Add fade in and fade out
         story = story.fade_in(crossfade).fade_out(2000)
 
-        # 10. Export final story
+        # Skip normalization for now as it's causing errors
+        print("Skipping audio normalization to avoid errors...")
+        
+        # 10. Export final story with higher bitrate
         output_path = f"{sanitized_title}_story.mp3"
-        story.export(output_path, format="mp3", bitrate="192k")
+        try:
+            story.export(output_path, format="mp3", bitrate="320k")
+        except Exception as e:
+            print(f"Warning: Couldn't export at 320k bitrate ({str(e)}), trying standard bitrate...")
+            story.export(output_path, format="mp3", bitrate="192k")
 
         # Create a README file with descriptions of each component
         with open(f"{components_folder}/README.txt", "w") as readme:
@@ -1123,7 +1123,7 @@ def generate_audio_story(
             readme.write(
                 f"- {sanitized_title}_background_adjusted.mp3: Volume-adjusted background music (-{volume_settings['background']}dB)\n"
             )
-            for i in range(len(effects)):
+            for i in range(len(sound_design["effects"])):
                 readme.write(
                     f"- {sanitized_title}_effect_{i + 1}_adjusted.mp3: Volume-adjusted sound effect {i + 1} (-{volume_settings['effects']}dB)\n"
                 )
@@ -1149,7 +1149,7 @@ def generate_audio_story(
             readme.write(
                 f"- {sanitized_title}_intro_voice.mp3: Intro + voice narration with {volume_settings['crossfade']}ms crossfade\n"
             )
-            for i in range(len(effects)):
+            for i in range(len(sound_design["effects"])):
                 readme.write(
                     f"- {sanitized_title}_with_effect_{i + 1}.mp3: Story with sound effect {i + 1} added\n"
                 )
@@ -1167,6 +1167,11 @@ def generate_audio_story(
             readme.write(
                 f"- ../{output_path}: Final audio story with fade-in and fade-out\n"
             )
+
+            readme.write("\nAUDIO QUALITY SETTINGS:\n")
+            readme.write(f"- Intermediate exports: 256kbps MP3\n")
+            readme.write(f"- Final export: 320kbps MP3 with high-quality encoding\n")
+            readme.write(f"- Crossfade duration: {volume_settings['crossfade']}ms for smooth transitions\n")
 
         print(
             f"✓ {story_title} story generated successfully and saved to {output_path}"
@@ -1956,87 +1961,90 @@ def select_voice_for_mood(mood):
 
 def get_volume_settings(theme, mood):
     """Get appropriate volume settings based on theme and mood for children's stories"""
-    # Default settings
+    # Default settings - improved for better audio mixing
     settings = {
-        "intro": 3,  # -3dB
-        "background": 15,  # -15dB
-        "effects": 7,  # -7dB
-        "outro": 4,  # -4dB
-        "crossfade": 600,  # 600ms
-        "effect_fade_in": 250,  # 250ms fade in for effects
-        "effect_fade_out": 350,  # 350ms fade out for effects
-        "effect_gain_overlay": -6,  # -6dB initial gain for smooth effect overlay
+        "intro": 2,  # -2dB (louder than before)
+        "background": 18,  # -18dB (quieter to make voice clearer)
+        "effects": 6,  # -6dB (slightly louder effects)
+        "outro": 3,  # -3dB (louder outro)
+        "crossfade": 800,  # 800ms (longer for smoother transitions)
+        "effect_fade_in": 350,  # 350ms fade in for effects (smoother)
+        "effect_fade_out": 450,  # 450ms fade out for effects (smoother)
+        "effect_gain_overlay": -7,  # -7dB initial gain for smoother effect overlay
     }
 
     # Adjust for theme
     if theme.lower() in ["adventure", "action", "explorer"]:
-        settings["intro"] = 2  # Louder intro
-        settings["background"] = 14  # Slightly louder background
-        settings["effect_fade_in"] = 200  # Shorter fade for adventure sounds
-        settings["effect_fade_out"] = 300
+        settings["intro"] = 1  # Louder intro
+        settings["background"] = 16  # Slightly louder background
+        settings["effects"] = 4  # Louder effects for adventure
+        settings["effect_fade_in"] = 250  # Shorter fade for adventure sounds
+        settings["effect_fade_out"] = 350
     elif theme.lower() in ["fairy tale", "fantasy", "magic", "princess", "wizard"]:
-        settings["background"] = 13  # Slightly louder fantasy background
-        settings["effects"] = 6  # Slightly louder magical effects
+        settings["background"] = 15  # Slightly louder fantasy background
+        settings["effects"] = 5  # Slightly louder magical effects
         settings["effect_fade_in"] = 300  
         settings["effect_fade_out"] = 400
     elif theme.lower() in ["animal", "nature", "jungle", "forest", "farm"]:
-        settings["effects"] = 6  # Slightly louder nature sounds
+        settings["effects"] = 5  # Slightly louder nature sounds
         settings["effect_fade_in"] = 300  # Medium fades for nature sounds
         settings["effect_fade_out"] = 400
-        settings["effect_gain_overlay"] = -5  # Slightly stronger nature effect presence
+        settings["effect_gain_overlay"] = -6  # Slightly stronger nature effect presence
     elif theme.lower() in ["space", "sci-fi", "future", "robot", "alien"]:
-        settings["effects"] = 6  # Slightly louder futuristic sounds
+        settings["effects"] = 5  # Slightly louder futuristic sounds
         settings["effect_fade_in"] = 300  # Medium fades for futuristic sounds
         settings["effect_fade_out"] = 400
         settings["effect_gain_overlay"] = -5  # Slightly stronger futuristic effect presence
     elif theme.lower() in ["friendship", "family", "love", "togetherness"]:
-        settings["effects"] = 5  # Louder effects
-        settings["crossfade"] = 400  # Shorter crossfades
-        settings["effect_fade_in"] = 180  # Quicker fades for warm mood
-        settings["effect_fade_out"] = 250
-        settings["effect_gain_overlay"] = -4  # Stronger effect presence for warm mood
+        settings["background"] = 19  # Quieter background for emotional themes
+        settings["effects"] = 7  # Softer effects for emotional themes
+        settings["crossfade"] = 900  # Longer crossfades for emotional themes
+        settings["effect_fade_in"] = 400  # Slower fades for warm mood
+        settings["effect_fade_out"] = 500
+        settings["effect_gain_overlay"] = -8  # Gentler effect presence for warm mood
     elif theme.lower() in ["underwater", "ocean", "sea", "mermaid"]:
         settings["effects"] = 5  # Louder aquatic sounds
-        settings["crossfade"] = 400  # Shorter crossfades
-        settings["effect_fade_in"] = 180  # Quicker fades for aquatic mood
-        settings["effect_fade_out"] = 250
-        settings["effect_gain_overlay"] = -4  # Stronger effect presence for aquatic mood
+        settings["crossfade"] = 700  # Medium crossfades
+        settings["effect_fade_in"] = 300  # Medium fades for aquatic mood
+        settings["effect_fade_out"] = 400
+        settings["effect_gain_overlay"] = -6  # Medium effect presence for aquatic mood
     elif theme.lower() in ["bedtime", "sleep", "dream", "lullaby"]:
         settings["intro"] = 4  # Softer intro
-        settings["background"] = 17  # Quieter background
-        settings["crossfade"] = 800  # Longer crossfades
-        settings["effect_fade_in"] = 350  # Longer, gentler fades for relaxing stories
-        settings["effect_fade_out"] = 450
-        settings["effect_gain_overlay"] = -8  # Gentler effect introduction
+        settings["background"] = 20  # Very quiet background
+        settings["effects"] = 9  # Very quiet effects
+        settings["crossfade"] = 1000  # Very long crossfades
+        settings["effect_fade_in"] = 500  # Very long, gentler fades for relaxing stories
+        settings["effect_fade_out"] = 600
+        settings["effect_gain_overlay"] = -10  # Very gentle effect introduction
 
     # Adjust for mood
     if mood.lower() in ["humorous", "funny", "light", "playful"]:
-        settings["effects"] = 5  # Louder effects
-        settings["crossfade"] = 400  # Shorter crossfades
-        settings["effect_fade_in"] = 180  # Quicker fades for humorous mood
-        settings["effect_fade_out"] = 250
-        settings["effect_gain_overlay"] = -4  # Stronger effect presence for humor
+        settings["effects"] = max(3, settings["effects"] - 2)  # Louder effects
+        settings["crossfade"] = min(600, settings["crossfade"])  # Shorter crossfades
+        settings["effect_fade_in"] = min(250, settings["effect_fade_in"])  # Quicker fades for humorous mood
+        settings["effect_fade_out"] = min(350, settings["effect_fade_out"])
+        settings["effect_gain_overlay"] = max(-5, settings["effect_gain_overlay"])  # Stronger effect presence for humor
     elif mood.lower() in ["emotional", "heartfelt", "touching"]:
-        settings["background"] = 16  # Quieter background
-        settings["crossfade"] = 800  # Longer crossfades
-        settings["effect_fade_in"] = 400  # Longer fades for emotional content
-        settings["effect_fade_out"] = 500
-        settings["effect_gain_overlay"] = -9  # Very gentle effect introduction
+        settings["background"] = min(21, settings["background"] + 2)  # Quieter background
+        settings["crossfade"] = max(900, settings["crossfade"])  # Longer crossfades
+        settings["effect_fade_in"] = max(450, settings["effect_fade_in"])  # Longer fades for emotional content
+        settings["effect_fade_out"] = max(550, settings["effect_fade_out"])
+        settings["effect_gain_overlay"] = min(-9, settings["effect_gain_overlay"])  # Very gentle effect introduction
     elif mood.lower() in ["excited", "energetic", "upbeat"]:
-        settings["intro"] = 2  # Louder intro
-        settings["background"] = 13  # Louder background
-        settings["effects"] = 5  # Louder effects
-        settings["crossfade"] = 400  # Shorter crossfades
+        settings["intro"] = max(1, settings["intro"] - 1)  # Louder intro
+        settings["background"] = max(14, settings["background"] - 2)  # Louder background
+        settings["effects"] = max(3, settings["effects"] - 2)  # Louder effects
+        settings["crossfade"] = min(600, settings["crossfade"])  # Shorter crossfades
     elif mood.lower() in ["calm", "peaceful", "serene", "soothing"]:
-        settings["intro"] = 4  # Softer intro
-        settings["background"] = 17  # Quieter background
-        settings["effects"] = 8  # Quieter effects
-        settings["crossfade"] = 700  # Longer crossfades
-        settings["effect_gain_overlay"] = -8  # Gentler effect introduction
+        settings["intro"] = min(5, settings["intro"] + 1)  # Softer intro
+        settings["background"] = min(21, settings["background"] + 2)  # Quieter background
+        settings["effects"] = min(10, settings["effects"] + 2)  # Quieter effects
+        settings["crossfade"] = max(900, settings["crossfade"])  # Longer crossfades
+        settings["effect_gain_overlay"] = min(-8, settings["effect_gain_overlay"])  # Gentler effect introduction
 
     # Make sure all settings are child-friendly (avoid too loud or startling settings)
     settings["effect_gain_overlay"] = max(settings["effect_gain_overlay"], -10)  # Not too loud
-    settings["crossfade"] = max(settings["crossfade"], 300)  # Ensure minimum crossfade
+    settings["crossfade"] = max(settings["crossfade"], 350)  # Ensure minimum crossfade
     
     return settings
 
