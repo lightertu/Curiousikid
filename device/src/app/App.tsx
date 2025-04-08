@@ -9,6 +9,7 @@ import useDeviceState, { DeviceState } from "./DeviceState";
 import PixelGrid from "./components/PixelGrid";
 import DeviceIndicator from "./components/DeviceIndicator";
 import { deviceMachine, DeviceEventType, DeviceContext } from "./DeviceStateMachine";
+import Breadcrumb from "./components/Breadcrumb";
 import { useMachine } from '@xstate/react';
 import { AnyEventObject, MachineSnapshot, MetaObject, NonReducibleUnknown, StateValue } from "xstate";
 import { AnyActorRef } from "xstate";
@@ -79,13 +80,25 @@ const App: React.FC = () => {
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, []); // Dependency array
+	}, [deviceState]); // Dependency array
+
+	// Effect to log state changes
+	useEffect(() => {
+		// This code runs after every state transition
+		console.log("State Machine Changed:");
+		console.log("  - State Value:", deviceState.value);
+		console.log("  - Context:", deviceState.context);
+		// Optionally log the event that caused the change
+		// console.log("  - Event:", deviceState.event);
+	}, [deviceState]); // Re-run this effect whenever the deviceState object changes
 
 	return (
 		// Adjust layout to include indicators
 		<div className="flex min-h-screen items-center justify-center bg-gray-900 space-x-16">
 			{/* Main content area with instructions and PixelGrid */}
 			<div className="flex flex-col items-center">
+				{/* Render the Breadcrumb component */}
+				<Breadcrumb stateValue={deviceState.value} />
 				{/* Render the PixelGrid */}
 				<PixelGrid rows={22} cols={22} pixelData={deviceState.context.screen} />
 			</div>

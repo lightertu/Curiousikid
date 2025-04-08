@@ -45,12 +45,17 @@ export interface ChatCharacter {
     imageUrl: string;
 }
 
+export enum BreadcrumbItem {
+    MainMenu = "Main Menu",
+    Stories = "Stories",
+    Chat = "Chat",
+}
+
 export interface DeviceContext extends MachineContext {
     // user state
     userId: string;
     frame: number;
     topMenuSelectedIndex: number;
-    topMenuSelection: string[];
 
     // websocket state
     isWebSocketConnected: boolean;
@@ -111,7 +116,6 @@ export const deviceMachine = createMachine(
 
             // screen state
             topMenuHighlightedIndex: 0,
-            topMenuSelection: ["Stories", "Chat"],
             frame: 0,
             screen: BLANK_SCREEN,
 
@@ -138,40 +142,40 @@ export const deviceMachine = createMachine(
         states: {
             mainMenu: {
                 // Render the screen when entering this state
-                entry: ['renderTopMenuScreen'],
+                entry: ['renderTopMenuScreen', 'updateBreadcrumb'],
                 on: {
                     LEFT_PRESSED: [
                         // If at leftmost, go to blink state
                         { guard: 'isAtLeftmost', target: 'mainMenuBlinkingLeft' },
                         // Otherwise, update index and re-enter mainMenu to trigger screen render
-                        { actions: ['moveTopMenuSelectionLeft'], target: 'mainMenu' }
+                        { actions: ['moveTopMenuSelectionLeft', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
                     RIGHT_PRESSED: [
                         // If at rightmost, go to blink state
                         { guard: 'isAtRightmost', target: 'mainMenuBlinkingRight' },
                         // Otherwise, update index and re-enter mainMenu to trigger screen render
-                        { actions: ['moveTopMenuSelectionRight'], target: 'mainMenu' }
+                        { actions: ['moveTopMenuSelectionRight', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
                     ENTER_PRESSED: [
-                        { guard: 'isStoriesSelected', target: 'storiesSelection' },
-                        { guard: 'isChatSelected', target: 'chatSelection' },
+                        { guard: 'isStoriesSelected', target: 'storiesSelection', actions: ['updateBreadcrumb'] },
+                        { guard: 'isChatSelected', target: 'chatSelection', actions: ['updateBreadcrumb'] },
                     ],
                 },
             },
             storiesSelection: {
                 on: {
-                    LEFT: { actions: ['prevStory'] },
-                    RIGHT: { actions: ['nextStory'] },
-                    ENTER: { target: 'storyPlayback' },
-                    ESC: { target: 'mainMenu' },
+                    LEFT_PRESSED: { actions: ['prevStory'] },
+                    RIGHT_PRESSED: { actions: ['nextStory'] },
+                    ENTER_PRESSED: { target: 'storyPlayback' },
+                    ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
 
             storyPlayback: {
                 entry: assign({
-                    isStoryPlaying: (ctx) => true,
-                    currentStory: (ctx) => {
-                        const story = ctx.context.stories[ctx.context.selectedStoryIndex];
+                    isStoryPlaying: ({ context, event }) => true,
+                    currentStory: ({ context, event }) => {
+                        const story = context.stories[context.selectedStoryIndex];
                         return {
                             ...story,
                             currentTime: 0,
@@ -179,24 +183,24 @@ export const deviceMachine = createMachine(
                     }
                 }),
                 on: {
-                    SPACE: { actions: ['togglePause'] },
+                    SPACE_PRESSED: { actions: ['togglePause'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
-                    ESC: { target: 'storiesSelection', actions: ['stopStory'] },
+                    ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
 
             chatSelection: {
                 on: {
-                    LEFT: { actions: ['prevAI'] },
-                    RIGHT: { actions: ['nextAI'] },
-                    ENTER: { target: 'chatActive' },
-                    ESC: { target: 'mainMenu' },
+                    LEFT_PRESSED: { actions: ['prevAI'] },
+                    RIGHT_PRESSED: { actions: ['nextAI'] },
+                    ENTER_PRESSED: { target: 'chatActive' },
+                    ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
 
             chatActive: {
                 on: {
-                    ESC: { target: 'chatSelection' },
+                    ESC_PRESSED: { target: 'chatSelection' },
                     // Possibly handle SPACE for toggling mic, etc.
                 },
             },
@@ -219,7 +223,7 @@ export const deviceMachine = createMachine(
             TICK: {
                 // global event for animation
                 actions: assign({
-                    frame: (ctx) => ctx.context.frame + 1,
+                    frame: ({ context, event }) => context.frame + 1,
                 }),
             },
         },
@@ -227,10 +231,17 @@ export const deviceMachine = createMachine(
     {
         actions: {
             // High-level example implementations
+            updateBreadcrumb: assign({
+                breadcrumb: ({ context, event }) => {
+                    console.log("updateBreadcrumb", event);
+                    return []
+                }
+            }),
+
             moveTopMenuSelectionLeft: assign({
-                topMenuHighlightedIndex: (ctx, event) => {
-                    console.log("moveTopMenuSelectionLeft Before", ctx.context.topMenuHighlightedIndex);
-                    const newIndex = ctx.context.topMenuHighlightedIndex - 1;
+                topMenuHighlightedIndex: ({ context, event }) => {
+                    console.log("moveTopMenuSelectionLeft Before", context.topMenuHighlightedIndex);
+                    const newIndex = context.topMenuHighlightedIndex - 1;
                     console.log("moveTopMenuSelectionLeft After", newIndex);
                     if (newIndex < 0) {
                         return 0;
@@ -240,9 +251,9 @@ export const deviceMachine = createMachine(
                 },
             }),
             moveTopMenuSelectionRight: assign({
-                topMenuHighlightedIndex: (ctx, event) => {
-                    console.log("moveTopMenuSelectionRight Before", ctx.context.topMenuHighlightedIndex);
-                    const newIndex = ctx.context.topMenuHighlightedIndex + 1;
+                topMenuHighlightedIndex: ({ context, event }) => {
+                    console.log("moveTopMenuSelectionRight Before", context.topMenuHighlightedIndex);
+                    const newIndex = context.topMenuHighlightedIndex + 1;
                     console.log("moveTopMenuSelectionRight After", newIndex);
                     if (newIndex > 1) {
                         return 1;
@@ -254,49 +265,60 @@ export const deviceMachine = createMachine(
 
             // Renamed action to specifically render the top menu screen
             renderTopMenuScreen: assign({
-                screen: (ctx, event) => {
-                    console.log("renderTopMenu Screen", ctx.context.topMenuHighlightedIndex);
+                screen: ({ context, event }) => {
+                    console.log("renderTopMenu Screen", context.topMenuHighlightedIndex);
                     // Pass the context directly now
-                    return renderTopMenu(ctx.context);
+                    return renderTopMenu(context);
                 }
             }),
 
-            isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
+            isStoriesSelected: ({ context, event }) => {
+                console.log("isStoriesSelected", context.topMenuHighlightedIndex);
+                return context.topMenuHighlightedIndex === 0;
+            },
 
-            isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
+            isChatSelected: ({ context, event }) => {
+                console.log("isChatSelected", context.topMenuHighlightedIndex);
+                return context.topMenuHighlightedIndex === 1;
+            },
 
             prevStory: assign({
-                selectedStoryIndex: (ctx, event) => {
-                    const len = ctx.context.stories.length;
-                    return Math.max(0, (ctx.context.selectedStoryIndex - 1 + len) % len);
+                selectedStoryIndex: ({ context, event }) => {
+                    const len = context.stories.length;
+                    return Math.max(0, (context.selectedStoryIndex - 1 + len) % len);
                 }
             }),
             nextStory: assign({
-                selectedStoryIndex: (ctx, event) => {
-                    const len = ctx.context.stories.length;
-                    return Math.max(0, (ctx.context.selectedStoryIndex + 1) % len);
+                selectedStoryIndex: ({ context, event }) => {
+                    const len = context.stories.length;
+                    return Math.max(0, (context.selectedStoryIndex + 1) % len);
                 }
             }),
 
             stopStory: assign({
-                isStoryPlaying: (_ctx, _event) => false,
+                isStoryPlaying: ({ context, event }) => false,
             }),
 
             togglePause: assign({
-                isStoryPlaying: (ctx) => !ctx.context.isStoryPlaying,
+                isStoryPlaying: ({ context, event }) => !context.isStoryPlaying,
             }),
 
             prevAI: assign({
-                selectedAIIndex: (ctx, event) => {
-                    const len = ctx.context.characters.length;
-                    return Math.max(0, (ctx.context.selectedAIIndex - 1 + len) % len);
+                selectedAIIndex: ({ context, event }) => {
+                    const len = context.characters.length;
+                    return Math.max(0, (context.selectedAIIndex - 1 + len) % len);
                 }
             }),
 
+            // Action to simply log the event when ENTER is pressed in mainMenu
+            debugActionRecieved: ({ context, event }) => {
+                console.log("debugActionRecieved: Event received in mainMenu on ENTER", event);
+            },
+
             nextAI: assign({
-                selectedAIIndex: (ctx, event) => {
-                    const len = ctx.context.characters.length;
-                    return Math.max(0, (ctx.context.selectedAIIndex + 1) % len);
+                selectedAIIndex: ({ context, event }) => {
+                    const len = context.characters.length;
+                    return Math.max(0, (context.selectedAIIndex + 1) % len);
                 }
             }),
         },
@@ -306,7 +328,7 @@ export const deviceMachine = createMachine(
             // Guard to check if at the leftmost menu item
             isAtLeftmost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
             // Guard to check if at the rightmost menu item
-            isAtRightmost: (ctx) => ctx.context.topMenuHighlightedIndex >= ctx.context.topMenuSelection.length - 1,
+            isAtRightmost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
         },
     }
 );
