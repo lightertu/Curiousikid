@@ -99,7 +99,7 @@ const App: React.FC = () => {
 			{/* Main content area with instructions and PixelGrid */}
 			<div className="flex flex-col items-center">
 				{/* Render the Breadcrumb component */}
-				<Breadcrumb stateValue={deviceContext.value} />
+				<Breadcrumb context={deviceContext.context} stateValue={deviceContext.value} />
 				{/* Render the PixelGrid */}
 				<PixelGrid rows={22} cols={22} pixelData={deviceContext.context.screen} />
 			</div>

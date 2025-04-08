@@ -164,21 +164,16 @@ export const deviceMachine = createMachine(
         } as DeviceContext,
         states: {
             mainMenu: {
-                // Render the screen when entering this state
                 entry: ['renderTopMenuScreen', 'updateBreadcrumb'],
                 on: {
                     SET_STORIES: { actions: ['setStories'] },
                     SET_CHAT_CHARACTERS: { actions: ['setChatCharacters'] },
                     LEFT_PRESSED: [
-                        // If at leftmost, go to blink state
                         { guard: 'isAtMainMenuLeftMost', target: 'mainMenuBlinking' },
-                        // Otherwise, update index and re-enter mainMenu to trigger screen render
                         { actions: ['moveTopMenuSelectionLeft', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
                     RIGHT_PRESSED: [
-                        // If at rightmost, go to blink state
                         { guard: 'isAtMainMenuRightMost', target: 'mainMenuBlinking' },
-                        // Otherwise, update index and re-enter mainMenu to trigger screen render
                         { actions: ['moveTopMenuSelectionRight', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
                     ENTER_PRESSED: [

@@ -1,11 +1,12 @@
 import React from 'react';
 import { StateValue } from 'xstate';
-
+import { DeviceContext } from '../DeviceStateMachine';
 interface BreadcrumbProps {
+    context: DeviceContext; // The current state value from useMachine
     stateValue: StateValue; // The current state value from useMachine
 }
 
-const Breadcrumb: React.FC<BreadcrumbProps> = ({ stateValue }) => {
+const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
     let displayValue = '';
     let path = ['Main Menu']; // Start with base path
 
@@ -19,7 +20,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ stateValue }) => {
                 break;
             case 'storyPlayback':
                 path.push('Stories'); // Might need context to know which story
-                path.push('Playback');
+                path.push(context.currentStory?.title || 'Playback');
                 break;
             case 'chatSelection':
                 path.push('Chat');
