@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 from environment.config import MEMORY_ROOT
-from memory.character.models import ChatCharacter, UserCharacterMapping
+from memory.chat_character.models import ChatCharacter, UserCharacterMapping
 from memory.data_loader import load_models_from_yaml
 import logging
 import os
@@ -11,11 +11,11 @@ from memory.user.service import UserService
 logger = logging.getLogger(__name__)
 
 DEFAULT_CHARACTERS_FILE = Path(
-    os.path.join(MEMORY_ROOT, "character", "data", "characters.yml")
+    os.path.join(MEMORY_ROOT, "chat_character", "data", "characters.yml")
 )
 
 DEFAULT_USER_CHARACTER_MAPPINGS_FILE = Path(
-    os.path.join(MEMORY_ROOT, "character", "data", "user_character_mapping.yml")
+    os.path.join(MEMORY_ROOT, "chat_character", "data", "user_character_mapping.yml")
 )
 
 
@@ -26,7 +26,7 @@ def load_characters_from_yaml(
     logger.info(f"Loading characters from: {file_path}")
     characters = load_models_from_yaml(file_path, ChatCharacter)
     if not characters:
-        logger.warning(f"No characters were loaded from {file_path}.")
+        raise ValueError(f"No characters were loaded from {file_path}.")
     return characters
 
 
@@ -55,7 +55,6 @@ class CharacterService:
 
     def get_characters(self, user_id: str) -> List[ChatCharacter]:
         user = self.user_service.get_user(user_id)
-
         if user.id not in self.user_character_mappings:
             raise ValueError(f"No user character mappings found for user {user.id}")
 

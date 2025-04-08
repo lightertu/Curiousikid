@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
 import useGlobalState from "./GlobalState";
+import WebSocketHandler from "./components/WebSocketHandler";
+import WebSocketStatus from "./components/WebSocketStatus";
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
@@ -50,6 +52,5 @@ const App: React.FC = () => {
 		</div>
 	);
 };
-
 
 export default App;

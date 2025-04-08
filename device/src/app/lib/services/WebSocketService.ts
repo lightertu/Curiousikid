@@ -46,6 +46,7 @@ export default class WebSocketService {
 
   private handleConnected(): void {
     console.log('Connected to WebSocket server');
+    const globalState = useGlobalState.getState();
 
     // Send handshake - retained for compatibility
     this.wsManager.send(MessageType.HANDSHAKE, {
@@ -56,8 +57,14 @@ export default class WebSocketService {
 
     // Request initial story list
     this.storyProtocol.getStoryList({
-      payload: { userId: "test-user" },
+      payload: { userId: globalState.userId },
       type: MessageType.GET_STORY_LIST
+    });
+
+    // Request initial story list
+    this.chatCharacterProtocol.getChatCharacterList({
+      payload: { userId: globalState.userId },
+      type: MessageType.GET_CHAT_CHARACTER_LIST
     });
 
   }

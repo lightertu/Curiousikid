@@ -35,12 +35,14 @@ export class ChatCharacterProtocol extends BaseProtocol {
      */
     async initialize(): Promise<void> {
         await super.initialize();
+        const globalState = useGlobalState.getState();
+        const userId = globalState.userId;
 
         // Initial request for story list
         if (this.connection.isConnected()) {
             this.getChatCharacterList({
                 type: MessageType.GET_CHAT_CHARACTER_LIST,
-                payload: { userId: "test-user" }
+                payload: { userId: userId },
             });
         }
     }
@@ -49,7 +51,6 @@ export class ChatCharacterProtocol extends BaseProtocol {
      * Request the list of available stories
      */
     getChatCharacterList(payload: GetCharacterListMessage): void {
-        console.log("getChatCharacterList", payload);
         this.send(MessageType.GET_CHAT_CHARACTER_LIST, { ...payload });
     }
 
@@ -58,7 +59,6 @@ export class ChatCharacterProtocol extends BaseProtocol {
      */
     protected async handleSendChatCharacterList(raw: unknown): Promise<void> {
         // Type guard to check if raw has the structure we expect
-        console.log("handleSendChatCharacterList RAW", raw);
         const message = raw as SendChatCharacterListMessage;
         const globalState = useGlobalState.getState();
         globalState.setCharacters(message.payload);

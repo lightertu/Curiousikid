@@ -1,21 +1,30 @@
+import { useEffect } from "react";
 import useGlobalState from "../GlobalState";
-import { useConversationalStory } from "../hooks/ConversationalStory";
-import GeneralAIVoiceModal from "./GenericAIVoiceModal";
+import { useConversationalStory } from "../hooks/useConversationalStory";
+import AIVoiceModal from "./AIVoiceModal";
 
 const ProactiveQuestionAIVoiceModal: React.FC = () => {
-    const { isLivekitRoomConnected, setIsPlaying, voiceAgentState } = useGlobalState();
+    const { isLivekitRoomConnected, setIsPlaying, voiceAgentState, isProactiveQuestionActive, setIsProactiveQuestionActive } = useGlobalState();
     const isVoiceAgentActive = voiceAgentState === "listening" || voiceAgentState === "thinking" || voiceAgentState === "speaking";
-    const { clearQuestionPoint } = useConversationalStory();
+    const { clearProactiveQuestionPoint } = useConversationalStory();
+
+    useEffect(() => {
+        console.log("isLivekitRoomConnected", isLivekitRoomConnected);
+        console.log("isVoiceAgentActive", isVoiceAgentActive);
+        console.log("isProactiveQuestionActive", isProactiveQuestionActive);
+    }, [isLivekitRoomConnected, isVoiceAgentActive, isProactiveQuestionActive]);
 
     return (
-        <GeneralAIVoiceModal
-            show={isLivekitRoomConnected && isVoiceAgentActive}
+        <AIVoiceModal
+            headline="Proactive Question"
+            show={isLivekitRoomConnected && isVoiceAgentActive && isProactiveQuestionActive}
             onDisconnect={() => {
-                clearQuestionPoint();
+                clearProactiveQuestionPoint();
+                setIsProactiveQuestionActive(false);
                 setIsPlaying(true);
             }}
             onConnect={() => {
-                clearQuestionPoint();
+                clearProactiveQuestionPoint();
                 setIsPlaying(false);
             }}
         />
