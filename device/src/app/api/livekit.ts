@@ -1,5 +1,5 @@
 import { AccessToken, AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
-import { QuestionPoint, ChatCharacter } from "../GlobalState";
+import { ProactiveQuestionPoint, ChatCharacter, UserProactiveQuestionPoint } from "../GlobalState";
 
 export const revalidate = 0;
 
@@ -10,14 +10,23 @@ export type LiveKitConnectionDetails = {
   participantToken: string;
 };
 
-export interface ProactiveQuestionConnectionMetadata {
-  metadata: QuestionPoint | ChatCharacter;
+export type AgentType = "proactive_question" | "chat_character" | "user_question";
+
+export interface ParticipantConnectionMetadata {
+  agentType: AgentType;
   userId: string;
 }
 
-export interface ChatCharacterConnectionMetadata {
+export interface ProactiveQuestionConnectionMetadata extends ParticipantConnectionMetadata {
+  metadata: ProactiveQuestionPoint;
+}
+
+export interface ChatCharacterConnectionMetadata extends ParticipantConnectionMetadata {
   metadata: ChatCharacter;
-  userId: string;
+}
+
+export interface UserQuestionConnectionMetadata extends ParticipantConnectionMetadata {
+  metadata: UserProactiveQuestionPoint;
 }
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
@@ -37,10 +46,13 @@ console.log("LIVEKIT_URL", LIVEKIT_URL);
 console.log("LIVEKIT_API_KEY", LIVEKIT_API_KEY);
 console.log("LIVEKIT_API_SECRET", LIVEKIT_API_SECRET);
 
+// Define the union type alias
+type ConnectionMetadataType = ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata | UserQuestionConnectionMetadata;
+
 export class LiveKitApi {
-  async getConnectionDetails(metadata: ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata) {
+  async getConnectionDetails(metadata: ConnectionMetadataType) {
     // Generate participant token
-    const participantIdentity = metadata.metadata.userId;
+    const participantIdentity = metadata.userId;
     const roomName = `user-${metadata.userId}-${Date.now()}`;
     const participantToken = await this.createParticipantToken(
       LIVEKIT_API_KEY as string,

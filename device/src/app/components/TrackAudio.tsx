@@ -29,8 +29,9 @@ const TrackAudio: React.FC = () => {
 		setIsConnectingToLivekit,
 		setLivekitConnectionDetails,
 		isLivekitRoomConnected,
-		questionPoint,
-		livekitConnectionDetails
+		proactiveQuestionPoint,
+		livekitConnectionDetails,
+		userId
 	} = useGlobalState();
 	const { websocketService } = useWebSocket();
 
@@ -46,11 +47,6 @@ const TrackAudio: React.FC = () => {
 		gainNode.current = audioContext.current.createGain();
 		gainNode.current.connect(audioContext.current.destination);
 
-		const unsubscribe = useGlobalState.subscribe(
-			(state) => {
-			}
-		);
-
 		return () => {
 
 			stopPlayback();
@@ -61,8 +57,6 @@ const TrackAudio: React.FC = () => {
 			if (audioContext.current && audioContext.current.state !== 'closed') {
 				audioContext.current.close();
 			}
-
-			unsubscribe();
 		};
 	}, []);
 
@@ -181,17 +175,18 @@ const TrackAudio: React.FC = () => {
 		// Check if conditions are met to initiate LiveKit connection
 		// Log values used in LiveKit check
 		// Check if at a question point
-		const isAtQuestionPoint = questionPoint && currentTime >= questionPoint.connectAt && currentTime - questionPoint.connectAt <= 1;
+		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
 		// Check if LiveKit is not already connected or connecting
 		const canConnectToLiveKit = !isConnectingToLivekit && !isLivekitRoomConnected && !livekitConnectionDetails;
 		// If conditions met, initiate connection
-		if (isAtQuestionPoint && isPlaying && canConnectToLiveKit) {
+		if (isAtProactiveQuestionPoint && isPlaying && canConnectToLiveKit) {
 			// Set connecting state
 			setIsConnectingToLivekit(true);
 			// Fetch LiveKit connection details
 			getLiveKitRoomConnectionDetails({
-				metadata: questionPoint,
-				userId: questionPoint.userId
+				metadata: proactiveQuestionPoint,
+				agentType: "proactive_question",
+				userId: userId
 			}).then((connectionDetails) => {
 				setLivekitConnectionDetails(connectionDetails);
 			}).catch((error) => { // Handle errors
@@ -202,8 +197,8 @@ const TrackAudio: React.FC = () => {
 			});
 		}
 		// Log if conditions were not met
-		// else if (isAtQuestionPoint || isPlaying || canConnectToLiveKit) { 
-		// 	console.log(`[TrackAudio LiveKit Check] Conditions not met. isAtQP: ${isAtQuestionPoint}, isPlaying: ${isPlaying}, canConnect: ${canConnectToLiveKit}`);
+		// else if (isAtProactiveQuestionPoint || isPlaying || canConnectToLiveKit) { 
+		// 	console.log(`[TrackAudio LiveKit Check] Conditions not met. isAtQP: ${isAtProactiveQuestionPoint}, isPlaying: ${isPlaying}, canConnect: ${canConnectToLiveKit}`);
 		// }
 
 		// --- Check for End of Track ---
@@ -220,8 +215,9 @@ const TrackAudio: React.FC = () => {
 		setIsConnectingToLivekit,
 		setLivekitConnectionDetails,
 		websocketService,
-		questionPoint,
-		livekitConnectionDetails
+		proactiveQuestionPoint,
+		livekitConnectionDetails,
+		userId
 	]);
 
 	// --- Get Current Time ---

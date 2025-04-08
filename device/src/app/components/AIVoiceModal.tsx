@@ -35,16 +35,17 @@ const GeneralAIVoiceModal: React.FC<GeneralAIVoiceModalProps> = ({ show, onDisco
       if (room) {
         room.disconnect();
         onDisconnect();
+        room.off(RoomEvent.ParticipantDisconnected, handleDisconnect);
       }
+
+      console.log("Disconnected from room");
     }
     if (room) {
       room.on(RoomEvent.ParticipantDisconnected, handleDisconnect);
     }
 
     return () => {
-      if (room) {
-        room.off(RoomEvent.ParticipantDisconnected, handleDisconnect);
-      }
+      handleDisconnect();
     };
   }, [room]);
 

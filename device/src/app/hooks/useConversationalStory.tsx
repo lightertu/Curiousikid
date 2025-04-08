@@ -4,18 +4,18 @@ import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 
 export const useConversationalStory = () => {
-    const { questionPoint, setQuestionPoint } = useGlobalState();
+    const { ProactiveQuestionPoint, setProactiveQuestionPoint } = useGlobalState();
     const { websocketService } = useWebSocket();
 
-    const clearQuestionPoint = () => {
-        setQuestionPoint(null);
-        websocketService.storyProtocol.clearQuestionPoint({
+    const clearProactiveQuestionPoint = () => {
+        setProactiveQuestionPoint(null);
+        websocketService.storyProtocol.clearProactiveQuestionPoint({
             type: MessageType.CLEAR_QUESTION_POINT,
-            payload: questionPoint,
+            payload: ProactiveQuestionPoint,
         });
     };
 
     return {
-        clearQuestionPoint,
+        clearProactiveQuestionPoint,
     };
 };

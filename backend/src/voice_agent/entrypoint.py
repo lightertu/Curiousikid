@@ -1,7 +1,6 @@
 import asyncio
 import logging
-
-from memory.story.service import StoryService
+from voice_agent.agents.agent_factory import AgentFactory
 from livekit.agents import (
     AgentSession,
     JobContext,
@@ -9,33 +8,24 @@ from livekit.agents import (
     cli,
 )
 from voice_agent.inactivity_monitor import InactivityMonitor
-from voice_agent.proactive_question.proactive_question_agent import (
-    ProactiveQuestionAgent,
-)
-
-STORY_SERVICE = StoryService()
 
 logger = logging.getLogger("voice-assistant")
 
 
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
+    participant = await ctx.wait_for_participant()
+    print("Participant joined with metadata: ", participant.metadata)
 
-    agent = ProactiveQuestionAgent()
+    agent_factory = AgentFactory()
+
+    agent = agent_factory.get_agent(participant.metadata)
 
     session = AgentSession()
 
     monitor = InactivityMonitor(session, ctx)
 
-    # We pass question point to the agent via participant metadata,
-    # assuming we have one remote participant per room
-    if ctx.room.remote_participants:
-        for _, participant in ctx.room.remote_participants.items():
-            agent.load_participant_metadata(participant.metadata)
-            break
-
     await session.start(agent=agent, room=ctx.room)
-
     # Make sure the monitor is running after the session is started
     asyncio.create_task(monitor.monitor_interaction())
 

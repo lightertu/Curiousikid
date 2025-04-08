@@ -4,15 +4,15 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import useGlobalState, { ChatCharacter } from "../GlobalState";
 import AIVoiceModal from "../components/AIVoiceModal";
-import { ProactiveQuestionConnectionMetadata, LiveKitApi, LiveKitConnectionDetails } from "../api/livekit";
+import { LiveKitApi, LiveKitConnectionDetails, ChatCharacterConnectionMetadata } from "../api/livekit";
 import { findLastKey } from "lodash";
 
 const ChatCharacterPage: React.FC = () => {
-    const { characters, setIsConnectingToLivekit, setLivekitConnectionDetails } = useGlobalState();
+    const { characters, setIsConnectingToLivekit, setLivekitConnectionDetails, userId } = useGlobalState();
     const [show, setShow] = useState(false);
 
     // --- Get LiveKit Connection Details ---
-    const getLiveKitRoomConnectionDetails = async (metadata: ProactiveQuestionConnectionMetadata): Promise<LiveKitConnectionDetails> => {
+    const getLiveKitRoomConnectionDetails = async (metadata: ChatCharacterConnectionMetadata): Promise<LiveKitConnectionDetails> => {
         const liveKitApi = new LiveKitApi();
         return await liveKitApi.getConnectionDetails(metadata) as LiveKitConnectionDetails;
     };
@@ -21,8 +21,9 @@ const ChatCharacterPage: React.FC = () => {
         setIsConnectingToLivekit(true);
         try {
             const connectionDetails = await getLiveKitRoomConnectionDetails({
-                userId: "123",
-                metadata: character
+                userId: userId,
+                metadata: character,
+                agentType: "chat_character"
             });
             setLivekitConnectionDetails(connectionDetails);
             setShow(true);

@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List
 from environment.config import MEMORY_ROOT
-from memory.character.models import ChatCharacter, UserCharacterMapping
+from memory.chat_character.models import ChatCharacter, UserCharacterMapping
 from memory.data_loader import load_models_from_yaml
 import logging
 import os

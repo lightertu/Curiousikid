@@ -25,13 +25,19 @@ export interface CurrentStory extends StoryMetadata {
   currentTime: number;
 }
 
-export interface QuestionPoint {
+export interface ProactiveQuestionPoint {
   storyId: string;
   userId: string;
-  questionPointId: string;
+  id: string;
   interruptAt: number;
   question: string;
   connectAt: number;
+}
+
+export interface UserProactiveQuestionPoint {
+  storyId: string;
+  userId: string;
+  interrupttedAt: number;
 }
 
 export interface ChatCharacter {
@@ -72,7 +78,7 @@ export interface DeviceState {
   libraryStatus: boolean;
   currentConversationId: string;
   isWebSocketConnected: boolean;
-  questionPoint: QuestionPoint | null;
+  proactiveQuestionPoint: ProactiveQuestionPoint | null;
   isConnectingToLivekit: boolean;
   livekitConnectionDetails: LiveKitConnectionDetails | null;
   isLivekitRoomConnected: boolean;
@@ -85,7 +91,7 @@ export interface DeviceState {
   setLibraryStatus: (libraryStatus: boolean) => void;
   setCurrentConversationId: (currentConversationId: string) => void;
   setIsWebSocketConnected: (isWebSocketConnected: boolean) => void;
-  setQuestionPoint: (questionPoint: QuestionPoint | null) => void;
+  setProactiveQuestionPoint: (proactiveQuestionPoint: ProactiveQuestionPoint | null) => void;
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) => void;
   setLivekitConnectionDetails: (livekitConnectionDetails: LiveKitConnectionDetails | null) => void;
   setIsLivekitRoomConnected: (isConnected: boolean) => void;
@@ -115,7 +121,7 @@ const useGlobalState = create<DeviceState>((set) => ({
     thumbnailUrl: INIT_STORY_LIST[INIT_STORY_ID].thumbnailUrl,
   },
   characters: [],
-  questionPoint: null,
+  proactiveQuestionPoint: null,
   libraryStatus: false,
   currentConversationId: '',
   isWebSocketConnected: false,
@@ -144,8 +150,8 @@ const useGlobalState = create<DeviceState>((set) => ({
   setIsWebSocketConnected: (isWebSocketConnected: boolean) =>
     set({ isWebSocketConnected }),
 
-  setQuestionPoint: (questionPoint: QuestionPoint | null) =>
-    set({ questionPoint }),
+  setProactiveQuestionPoint: (proactiveQuestionPoint: ProactiveQuestionPoint | null) =>
+    set({ proactiveQuestionPoint }),
 
   setIsConnectingToLivekit: (isConnectingToLivekit: boolean) =>
     set({ isConnectingToLivekit }),

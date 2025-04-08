@@ -3,20 +3,21 @@ import logging
 from livekit.agents.voice.agent import Agent
 from livekit.plugins import deepgram, openai, silero
 from livekit.agents import llm
-from pydantic import BaseModel
 from memory.story.service import StoryService
-from memory.story.models import QuestionPoint
+from memory.chat_character.models import ChatCharacter
+from typing import Any, Dict
+from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
 
 logger = logging.getLogger(__name__)
 
 
-class ProactiveQuestionConnectionMetadata(BaseModel):
-    metadata: QuestionPoint
+class ChatCharacterConnectionMetadata(ParticipantConnectionMetadata):
+    metadata: ChatCharacter
     userId: str
 
 
-class ProactiveQuestionAgent(Agent):
-    def __init__(self):
+class ChatCharacterAgent(Agent):
+    def __init__(self, metadata: Dict[str, Any]):
         super().__init__(
             instructions="""
 You have been telling a story to a child. You are now given a question to ask the child based on the story, and all the story context you have told so far.
@@ -40,10 +41,10 @@ Don't go off the topic of the story.
 
     def load_participant_metadata(
         self, serialized_metadata: str
-    ) -> ProactiveQuestionConnectionMetadata:
+    ) -> ChatCharacterConnectionMetadata:
         logger.info(f"Loading participant metadata: {serialized_metadata}")
         print(f"Loading participant metadata: {serialized_metadata}")
-        self.connection_metadata = ProactiveQuestionConnectionMetadata(
+        self.connection_metadata = ChatCharacterConnectionMetadata(
             **json.loads(serialized_metadata)
         )
         story_context = self.story_service.get_question_point_context(

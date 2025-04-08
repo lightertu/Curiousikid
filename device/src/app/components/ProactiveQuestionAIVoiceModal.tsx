@@ -5,17 +5,17 @@ import AIVoiceModal from "./AIVoiceModal";
 const ProactiveQuestionAIVoiceModal: React.FC = () => {
     const { isLivekitRoomConnected, setIsPlaying, voiceAgentState } = useGlobalState();
     const isVoiceAgentActive = voiceAgentState === "listening" || voiceAgentState === "thinking" || voiceAgentState === "speaking";
-    const { clearQuestionPoint } = useConversationalStory();
+    const { clearProactiveQuestionPoint } = useConversationalStory();
 
     return (
         <AIVoiceModal
             show={isLivekitRoomConnected && isVoiceAgentActive}
             onDisconnect={() => {
-                clearQuestionPoint();
+                clearProactiveQuestionPoint();
                 setIsPlaying(true);
             }}
             onConnect={() => {
-                clearQuestionPoint();
+                clearProactiveQuestionPoint();
                 setIsPlaying(false);
             }}
         />

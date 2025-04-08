@@ -3,8 +3,8 @@ from typing import Dict, Any, List
 
 from pydantic import BaseModel
 
-from memory.character.models import ChatCharacter
-from memory.character.service import CharacterService
+from memory.chat_character.models import ChatCharacter
+from memory.chat_character.service import CharacterService
 from memory.user.service import UserService
 from control_server.websocket.message import MessageType, TextMessage
 
