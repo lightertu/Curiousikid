@@ -20,19 +20,20 @@ class CurrentStory(StoryMetadata):
     currentTime: float
 
 
-class ProactiveQuestionPoint(BaseModel):
+class QuestionPoint(BaseModel):
+    id: str
     storyId: str
     userId: str
     question: str
-    id: str
-    connectAt: float
     interruptAt: float
 
 
-class UserProactiveQuestionPoint(BaseModel):
-    storyId: str
-    userId: str
-    interrupttedAt: float
+class ProactiveQuestionPoint(QuestionPoint):
+    connectAt: float
+
+
+class UserQuestionPoint(QuestionPoint):
+    pass
 
 
 class Segment(BaseModel):

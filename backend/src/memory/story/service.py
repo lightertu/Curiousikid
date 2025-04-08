@@ -1,8 +1,9 @@
 import logging
 from pathlib import Path
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Type
 from environment.config import MEMORY_ROOT
 from memory.story.models import (
+    QuestionPoint,
     ProactiveQuestionPoint,
     StoryMetadata,
     StoryTranscription,
@@ -39,7 +40,7 @@ class StoryService:
     def get_question_points(self, story_id: str) -> List[ProactiveQuestionPoint]:
         return self.story_id_to_question_points.get(story_id)
 
-    def get_question_point_context(self, question_point: ProactiveQuestionPoint) -> str:
+    def get_question_point_context(self, question_point: Type[QuestionPoint]) -> str:
         """Get the concatenated text of segments that contain the specified time point."""
         transcription = self.get_story_transcription(question_point.storyId)
         if not transcription:

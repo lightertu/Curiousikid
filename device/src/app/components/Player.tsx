@@ -21,7 +21,7 @@ const Player: React.FC = () => {
 			clearInterval(progressInterval.current);
 			progressInterval.current = null;
 		}
-		
+
 		// If playing, start a new interval to update progress
 		if (isPlaying && currentStory.duration) {
 			progressInterval.current = setInterval(() => {
@@ -31,7 +31,7 @@ const Player: React.FC = () => {
 				}
 			}, 16); // ~60fps for smooth animation
 		}
-		
+
 		// Cleanup on unmount or when dependencies change
 		return () => {
 			if (progressInterval.current) {
@@ -40,7 +40,7 @@ const Player: React.FC = () => {
 			}
 		};
 	}, [isPlaying, currentStory]);
-	
+
 	// Update progress immediately when songInfo changes
 	useEffect(() => {
 		if (!currentStory) return;
@@ -49,7 +49,7 @@ const Player: React.FC = () => {
 			setProgressWidth(currentPercent);
 		}
 	}, [currentStory]);
-	
+
 	// Event handlers with disabled state handling
 	const playSongHandler = (): void => {
 		setIsPlaying(!isPlaying);
@@ -63,7 +63,7 @@ const Player: React.FC = () => {
 			await handleActivateMic();
 		}
 	};
-	
+
 	const handleActivateMic = async () => {
 		try {
 			setIsChatActive(true);
@@ -72,7 +72,7 @@ const Player: React.FC = () => {
 			console.error("Failed to connect microphone:", error);
 		}
 	}
-	
+
 	const handleDeactivateMic = async () => {
 		try {
 			playSongHandler();
@@ -121,13 +121,13 @@ const Player: React.FC = () => {
 				)}>
 					<p className="px-4">{getTime(currentStory.currentTime || 0)}</p>
 					<div className="relative w-full h-4 rounded-full overflow-hidden"
-						 style={{background: `linear-gradient(to right, #205950, #2ab3bf)`}}>
+						style={{ background: `linear-gradient(to right, #205950, #2ab3bf)` }}>
 						{/* Progress overlay - positioned behind the input */}
-						<div 
+						<div
 							className="bg-[rgb(204,204,204)] w-full h-full absolute top-0 left-0 z-0 pointer-events-none"
-							style={{transform: `translateX(${progressWidth}%)`}}
+							style={{ transform: `translateX(${progressWidth}%)` }}
 						></div>
-						
+
 						{/* Input on top with z-index to ensure it receives clicks */}
 						<input
 							onChange={isChatActive ? undefined : dragHandler}
@@ -140,16 +140,16 @@ const Player: React.FC = () => {
 									[&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:opacity-0 [&::-moz-range-thumb]:border-none"
 						/>
 					</div>
-						<p className="px-4">{getTime(currentStory.duration || 0)}</p>
+					<p className="px-4">{getTime(currentStory.duration || 0)}</p>
 				</div>
 
 				<div className="flex justify-between items-center p-4 w-[25%] md:w-[25%]">
-					<button 
+					<button
 						onClick={isChatActive ? undefined : () => skipTrackHandler("skip-back")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							isChatActive 
-								? "opacity-50 cursor-not-allowed" 
+							isChatActive
+								? "opacity-50 cursor-not-allowed"
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
 					>
@@ -159,13 +159,13 @@ const Player: React.FC = () => {
 							size="2x"
 						/>
 					</button>
-					
-					<button 
+
+					<button
 						onClick={isChatActive ? undefined : playSongHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							isChatActive 
-								? "opacity-50 cursor-not-allowed" 
+							isChatActive
+								? "opacity-50 cursor-not-allowed"
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
 					>
@@ -175,13 +175,13 @@ const Player: React.FC = () => {
 							size="2x"
 						/>
 					</button>
-					
-					<button 
+
+					<button
 						onClick={toggleMicHandler}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							isChatActive 
-								? "bg-black/15 shadow-inner translate-y-0.5 text-blue-500" 
+							isChatActive
+								? "bg-black/15 shadow-inner translate-y-0.5 text-blue-500"
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5"
 						)}
 					>
@@ -191,13 +191,13 @@ const Player: React.FC = () => {
 							size="2x"
 						/>
 					</button>
-					
-					<button 
+
+					<button
 						onClick={isChatActive ? undefined : () => skipTrackHandler("skip-forward")}
 						className={clsx(
 							"flex items-center justify-center rounded-lg w-12 h-12 transition-all duration-200",
-							isChatActive 
-								? "opacity-50 cursor-not-allowed" 
+							isChatActive
+								? "opacity-50 cursor-not-allowed"
 								: "hover:bg-black/10 hover:shadow-inner hover:translate-y-0.5 active:bg-black/15 active:shadow-inner active:translate-y-0.5"
 						)}
 					>
