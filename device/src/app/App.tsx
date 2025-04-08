@@ -8,11 +8,9 @@ import { MessageType } from "./lib/websocket/MessageTypes";
 import useDeviceState, { DeviceState } from "./DeviceState";
 import PixelGrid from "./components/PixelGrid";
 import DeviceIndicator from "./components/DeviceIndicator";
-import { deviceMachine, DeviceEventType, DeviceContext } from "./DeviceStateMachine";
+import { deviceMachine, DeviceEventType, DeviceContext, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachine";
 import Breadcrumb from "./components/Breadcrumb";
-import { useMachine } from '@xstate/react';
-import { AnyEventObject, MachineSnapshot, MetaObject, NonReducibleUnknown, StateValue } from "xstate";
-import { AnyActorRef } from "xstate";
+import { useActorRef, useMachine, useSelector } from '@xstate/react';
 // Moved KeyCap to its own component file
 // import { KeyCap } from "./components/KeyCap"; // Assuming you create this
 
@@ -20,13 +18,14 @@ import { AnyActorRef } from "xstate";
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
-	const initialState: DeviceState = useDeviceState();
 	const { isWebSocketConnected, userId } = useDeviceState();
-	const [deviceState, send] = useMachine(deviceMachine);
+	const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+		return {
+			value: state.value,
+			context: state.context
+		}
+	});
 
-	const yo: MachineSnapshot<DeviceContext, AnyEventObject, Record<string, AnyActorRef>, StateValue, string, NonReducibleUnknown, MetaObject, any> = deviceState
-
-	// Log that the app has loaded
 	useEffect(() => {
 		if (isWebSocketConnected) {
 			console.log("userId", userId);
@@ -39,6 +38,7 @@ const App: React.FC = () => {
 				type: MessageType.GET_CHAT_CHARACTER_LIST,
 				payload: { userId: userId }
 			});
+
 		}
 
 	}, [isWebSocketConnected, userId, websocketService]);
@@ -50,24 +50,24 @@ const App: React.FC = () => {
 
 			switch (event.key) {
 				case 'Escape':
-					send({ type: DeviceEventType.ESC_PRESSED });
-					console.log('Escape key pressed, state:', deviceState.value);
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ESC_PRESSED });
+					console.log('Escape key pressed, state:', deviceContext.value);
 					break;
 				case 'Enter':
-					send({ type: DeviceEventType.ENTER_PRESSED });
-					console.log('Enter key pressed, state:', deviceState.value);
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ENTER_PRESSED });
+					console.log('Enter key pressed, state:', deviceContext.value);
 					break;
 				case 'ArrowLeft':
-					send({ type: DeviceEventType.LEFT_PRESSED });
-					console.log('ArrowLeft key pressed, state:', deviceState.value);
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.LEFT_PRESSED });
+					console.log('ArrowLeft key pressed, state:', deviceContext.value);
 					break;
 				case 'ArrowRight':
-					send({ type: DeviceEventType.RIGHT_PRESSED });
-					console.log('ArrowRight key pressed, state:', deviceState.value);
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.RIGHT_PRESSED });
+					console.log('ArrowRight key pressed, state:', deviceContext.value);
 					break;
 				case ' ':
-					send({ type: DeviceEventType.SPACE_PRESSED });
-					console.log('Space key pressed - Toggling play/pause, state:', deviceState.value);
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SPACE_PRESSED });
+					console.log('Space key pressed - Toggling play/pause, state:', deviceContext.value);
 					break;
 				default:
 					break;
@@ -80,17 +80,17 @@ const App: React.FC = () => {
 		return () => {
 			window.removeEventListener('keydown', handleKeyDown);
 		};
-	}, [deviceState]); // Dependency array
+	}, [deviceContext]); // Dependency array
 
 	// Effect to log state changes
 	useEffect(() => {
 		// This code runs after every state transition
 		console.log("State Machine Changed:");
-		console.log("  - State Value:", deviceState.value);
-		console.log("  - Context:", deviceState.context);
+		console.log("  - State Value:", deviceContext.value);
+		console.log("  - Context:", deviceContext.context);
 		// Optionally log the event that caused the change
 		// console.log("  - Event:", deviceState.event);
-	}, [deviceState]); // Re-run this effect whenever the deviceState object changes
+	}, [deviceContext]); // Re-run this effect whenever the deviceState object changes
 
 	return (
 		// Adjust layout to include indicators
@@ -98,9 +98,9 @@ const App: React.FC = () => {
 			{/* Main content area with instructions and PixelGrid */}
 			<div className="flex flex-col items-center">
 				{/* Render the Breadcrumb component */}
-				<Breadcrumb stateValue={deviceState.value} />
+				<Breadcrumb stateValue={deviceContext.value} />
 				{/* Render the PixelGrid */}
-				<PixelGrid rows={22} cols={22} pixelData={deviceState.context.screen} />
+				<PixelGrid rows={22} cols={22} pixelData={deviceContext.context.screen} />
 			</div>
 			<DeviceIndicator />
 		</div>

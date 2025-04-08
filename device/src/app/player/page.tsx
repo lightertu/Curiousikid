@@ -20,14 +20,7 @@ import ProactiveQuestionAIVoiceModal from "../components/ProactiveQuestionAIVoic
 
 const Page: React.FC = () => {
     const {
-        libraryStatus,
-        livekitConnectionDetails,
-        isLivekitRoomConnected,
-        setIsLivekitRoomConnected,
-        isConnectingToLivekit,
-        setIsConnectingToLivekit,
-        setLivekitConnectionDetails
-    } = useDeviceState();
+        libraryStatus } = useDeviceState();
     const { websocketService } = useWebSocket();
 
     // Log that the app has loaded

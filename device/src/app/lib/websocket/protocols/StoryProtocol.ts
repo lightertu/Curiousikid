@@ -1,8 +1,8 @@
-import { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/DeviceState';
+import useDeviceState, { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/DeviceState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
-import useDeviceState from '../../../DeviceState';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, deviceMachine } from '@/app/DeviceStateMachine';
 
 
 // Type definitions for story payloads
@@ -96,8 +96,7 @@ export class StoryProtocol extends BaseProtocol {
   protected async handleStoryList(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
     const message = raw as SendStoryListMessage;
-    const DeviceState = useDeviceState.getState();
-    DeviceState.setStories(message.payload);
+    DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_STORIES, payload: { stories: message.payload } });
   }
 
   /**
@@ -105,18 +104,17 @@ export class StoryProtocol extends BaseProtocol {
    */
   protected async handleSetProactiveQuestionPoint(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
-    const message = raw as SetProactiveQuestionPointMessage;
-    const DeviceState = useDeviceState.getState();
-    const { currentStory, isPlaying } = DeviceState;
+    // const message = raw as SetProactiveQuestionPointMessage;
+    // const { currentStory, isPlaying } = DEVICE_STATE_MACHINE_ACTOR
 
-    console.log("handleSetProactiveQuestionPoint.DeviceState", DeviceState);
+    // console.log("handleSetProactiveQuestionPoint.DeviceState", DeviceState);
 
-    if (isPlaying && currentStory) {
-      // Only update the current story if the storyId matches
-      console.log("handleSetProactiveQuestionPoint", message);
-      DeviceState.setProactiveQuestionPoint(message.payload);
+    // if (isPlaying && currentStory) {
+    //   // Only update the current story if the storyId matches
+    //   console.log("handleSetProactiveQuestionPoint", message);
+    //   DeviceState.setProactiveQuestionPoint(message.payload);
 
-      this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
-    }
+    //   this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
+    // }
   }
 }

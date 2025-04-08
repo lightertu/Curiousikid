@@ -1,4 +1,4 @@
-import { createMachine, assign, MachineContext } from 'xstate';
+import { createMachine, assign, MachineContext, interpret, createActor } from 'xstate';
 import { create } from 'zustand';
 import { JSONPath } from 'jsonpath-plus';
 import { cloneDeep, set } from 'lodash';
@@ -86,12 +86,20 @@ export interface DeviceContext extends MachineContext {
 }
 
 export enum DeviceEventType {
+    // Keyboard events
     ESC_PRESSED = 'ESC_PRESSED',
     ESC_LONG_PRESSED = 'ESC_LONG_PRESSED',
     ENTER_PRESSED = 'ENTER_PRESSED',
     LEFT_PRESSED = 'LEFT_PRESSED',
     RIGHT_PRESSED = 'RIGHT_PRESSED',
-    SPACE_PRESSED = 'SPACE_PRESSED'
+    SPACE_PRESSED = 'SPACE_PRESSED',
+
+    // story events
+    SET_STORIES = 'SET_STORIES',
+    STORY_ENDED = 'STORY_ENDED',
+
+    // chat events
+    SET_CHAT_CHARACTERS = 'SET_CHAT_CHARACTERS',
 }
 
 export type DeviceEvent =
@@ -101,8 +109,9 @@ export type DeviceEvent =
     | { type: DeviceEventType.LEFT_PRESSED }
     | { type: DeviceEventType.RIGHT_PRESSED }
     | { type: DeviceEventType.SPACE_PRESSED }
-// Additional actions: e.g. { type: 'STORY_FINISHED' } from audio end event
-// or { type: 'AI_RESPONSE', payload: string }
+    | { type: DeviceEventType.SET_STORIES, payload: { stories: StoryMetadata[] } }
+    | { type: DeviceEventType.STORY_ENDED }
+    | { type: DeviceEventType.SET_CHAT_CHARACTERS, payload: { characters: ChatCharacter[] } }
 
 export const deviceMachine = createMachine(
     {
@@ -144,15 +153,17 @@ export const deviceMachine = createMachine(
                 // Render the screen when entering this state
                 entry: ['renderTopMenuScreen', 'updateBreadcrumb'],
                 on: {
+                    SET_STORIES: { actions: ['setStories'] },
+                    SET_CHAT_CHARACTERS: { actions: ['setChatCharacters'] },
                     LEFT_PRESSED: [
                         // If at leftmost, go to blink state
-                        { guard: 'isAtLeftmost', target: 'mainMenuBlinkingLeft' },
+                        { guard: 'isAtMainMenuLeftMost', target: 'mainMenuBlinking' },
                         // Otherwise, update index and re-enter mainMenu to trigger screen render
                         { actions: ['moveTopMenuSelectionLeft', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
                     RIGHT_PRESSED: [
                         // If at rightmost, go to blink state
-                        { guard: 'isAtRightmost', target: 'mainMenuBlinkingRight' },
+                        { guard: 'isAtMainMenuRightMost', target: 'mainMenuBlinking' },
                         // Otherwise, update index and re-enter mainMenu to trigger screen render
                         { actions: ['moveTopMenuSelectionRight', 'renderTopMenuScreen'], target: 'mainMenu' }
                     ],
@@ -164,24 +175,24 @@ export const deviceMachine = createMachine(
             },
             storiesSelection: {
                 on: {
-                    LEFT_PRESSED: { actions: ['prevStory'] },
-                    RIGHT_PRESSED: { actions: ['nextStory'] },
+                    LEFT_PRESSED: [
+                        { guard: 'isAtStoriesSelectionLeftMost', target: 'storiesSelectionBlinking' },
+                        { actions: ['prevStory', 'renderTopMenuScreen'], target: 'storiesSelection' }
+                    ],
+                    RIGHT_PRESSED: [
+                        { guard: 'isAtStoriesSelectionRightMost', target: 'storiesSelectionBlinking' },
+                        { actions: ['nextStory', 'renderTopMenuScreen'], target: 'storiesSelection' }
+                    ],
                     ENTER_PRESSED: { target: 'storyPlayback' },
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
 
             storyPlayback: {
-                entry: assign({
-                    isStoryPlaying: ({ context, event }) => true,
-                    currentStory: ({ context, event }) => {
-                        const story = context.stories[context.selectedStoryIndex];
-                        return {
-                            ...story,
-                            currentTime: 0,
-                        };
-                    }
-                }),
+                entry: [
+                    'setCurrentStory',
+                    'setIsStoryPlaying'
+                ],
                 on: {
                     SPACE_PRESSED: { actions: ['togglePause'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
@@ -205,19 +216,19 @@ export const deviceMachine = createMachine(
                 },
             },
             // Temporary state to show blank screen during left blink
-            mainMenuBlinkingLeft: {
+            mainMenuBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
                 after: {
                     50: { target: 'mainMenu' } // After 50ms, go back to mainMenu
                 }
             },
-            // Temporary state to show blank screen during right blink
-            mainMenuBlinkingRight: {
+            // Temporary state to show blank screen during left blink
+            storiesSelectionBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
                 after: {
-                    50: { target: 'mainMenu' } // After 50ms, go back to mainMenu
+                    50: { target: 'storiesSelection' } // After 50ms, go back to storiesSelection
                 }
-            }
+            },
         },
         on: {
             TICK: {
@@ -231,13 +242,6 @@ export const deviceMachine = createMachine(
     {
         actions: {
             // High-level example implementations
-            updateBreadcrumb: assign({
-                breadcrumb: ({ context, event }) => {
-                    console.log("updateBreadcrumb", event);
-                    return []
-                }
-            }),
-
             moveTopMenuSelectionLeft: assign({
                 topMenuHighlightedIndex: ({ context, event }) => {
                     console.log("moveTopMenuSelectionLeft Before", context.topMenuHighlightedIndex);
@@ -270,6 +274,24 @@ export const deviceMachine = createMachine(
                     // Pass the context directly now
                     return renderTopMenu(context);
                 }
+            }),
+
+            setCurrentStory: assign({
+                currentStory: ({ context, event }) => {
+                    const story = context.stories[context.selectedStoryIndex];
+                    return {
+                        ...story,
+                        currentTime: 0,
+                    };
+                }
+            }),
+
+            setIsStoryPlaying: assign({
+                isStoryPlaying: ({ context, event }) => true,
+            }),
+
+            setIsStoryPaused: assign({
+                isStoryPlaying: ({ context, event }) => false,
             }),
 
             isStoriesSelected: ({ context, event }) => {
@@ -321,14 +343,31 @@ export const deviceMachine = createMachine(
                     return Math.max(0, (context.selectedAIIndex + 1) % len);
                 }
             }),
+
+            setStories: assign({
+                stories: ({ context, event }) => {
+                    return event.payload.stories;
+                }
+            }),
+
+            setChatCharacters: assign({
+                characters: ({ context, event }) => {
+                    return event.payload.characters;
+                }
+            }),
         },
         guards: {
             isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
             isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
             // Guard to check if at the leftmost menu item
-            isAtLeftmost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
+            isAtMainMenuLeftMost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
             // Guard to check if at the rightmost menu item
-            isAtRightmost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
+            isAtMainMenuRightMost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
+            isAtStoriesSelectionLeftMost: (ctx) => ctx.context.selectedStoryIndex === 0,
+            isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
         },
     }
 );
+
+export const DEVICE_STATE_MACHINE_ACTOR = createActor(deviceMachine)
+DEVICE_STATE_MACHINE_ACTOR.start()

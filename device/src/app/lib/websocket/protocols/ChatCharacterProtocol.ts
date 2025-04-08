@@ -2,6 +2,7 @@ import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
 import useDeviceState, { ChatCharacter } from '../../../DeviceState';
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from '@/app/DeviceStateMachine';
 
 // Type definitions for story payloads
 export interface GetCharacterListMessage extends Message {
@@ -60,7 +61,7 @@ export class ChatCharacterProtocol extends BaseProtocol {
     protected async handleSendChatCharacterList(raw: unknown): Promise<void> {
         // Type guard to check if raw has the structure we expect
         const message = raw as SendChatCharacterListMessage;
-        const DeviceState = useDeviceState.getState();
-        DeviceState.setCharacters(message.payload);
+
+        DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_CHAT_CHARACTERS, payload: { characters: message.payload } });
     }
 }
