@@ -9,7 +9,7 @@ import useGlobalState from '../GlobalState';
  * No UI - purely for side effects
  */
 const WebSocketHandler: React.FC = () => {
-  const { isConnected, sendPlaybackState } = useWebSocket();
+  const { isWebSocketConnected } = useWebSocket();
   const { currentStory: currentTrack, isPlaying } = useGlobalState();
   const [initialHandshakeSent, setInitialHandshakeSent] = useState(false);
   
@@ -23,15 +23,15 @@ const WebSocketHandler: React.FC = () => {
   
   // Log connection status changes and track handshake status
   useEffect(() => {
-    if (isConnected && !initialHandshakeSent) {
+    if (isWebSocketConnected && !initialHandshakeSent) {
       console.log('WebSocket successfully connected!');
       // Initial handshake was already sent in WebSocketService when connection established
       setInitialHandshakeSent(true);
-    } else if (!isConnected) {
+    } else if (!isWebSocketConnected) {
       console.log('WebSocket disconnected or not yet connected');
       setInitialHandshakeSent(false);
     }
-  }, [isConnected, initialHandshakeSent]);
+  }, [isWebSocketConnected, initialHandshakeSent]);
 
   return null; // No UI
 };

@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import useGlobalState, { ChatCharacter } from "../GlobalState";
 import AIVoiceModal from "../components/AIVoiceModal";
 import { LiveKitApi, LiveKitConnectionDetails, ChatCharacterConnectionMetadata } from "../api/livekit";
-import { findLastKey } from "lodash";
 
 const ChatCharacterPage: React.FC = () => {
     const { characters, setIsConnectingToLivekit, setLivekitConnectionDetails, userId } = useGlobalState();

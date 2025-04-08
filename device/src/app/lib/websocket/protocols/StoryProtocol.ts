@@ -60,9 +60,11 @@ export class StoryProtocol extends BaseProtocol {
 
     // Initial request for story list
     if (this.connection.isConnected()) {
+      const globalState = useGlobalState.getState();
+      const userId = globalState.userId;
       this.getStoryList({
         type: MessageType.GET_STORY_LIST,
-        payload: { userId: "test-user" }
+        payload: { userId: userId }
       });
     }
   }
@@ -71,7 +73,6 @@ export class StoryProtocol extends BaseProtocol {
    * Request the list of available stories
    */
   getStoryList(payload: GetStoryListMessage): void {
-    console.log("getStoryList", payload);
     this.send(MessageType.GET_STORY_LIST, { ...payload });
   }
 
@@ -94,7 +95,6 @@ export class StoryProtocol extends BaseProtocol {
    */
   protected async handleStoryList(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
-    console.log("handleStoryList RAW", raw);
     const message = raw as SendStoryListMessage;
     const globalState = useGlobalState.getState();
     globalState.setStories(message.payload);
