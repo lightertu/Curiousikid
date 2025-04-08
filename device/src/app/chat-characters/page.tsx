@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import useGlobalState, { ChatCharacter } from "../GlobalState";
+import useDeviceState, { ChatCharacter } from "../DeviceState";
 import AIVoiceModal from "../components/AIVoiceModal";
 import { LiveKitApi, LiveKitConnectionDetails, ChatCharacterConnectionMetadata } from "../api/livekit";
 
 const ChatCharacterPage: React.FC = () => {
-    const { characters, setIsConnectingToLivekit, setLivekitConnectionDetails, userId } = useGlobalState();
+    const { characters, setIsConnectingToLivekit, setLivekitConnectionDetails, userId } = useDeviceState();
     const [show, setShow] = useState(false);
 
     // --- Get LiveKit Connection Details ---

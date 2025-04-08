@@ -1,11 +1,3 @@
-"use client";
-
-import React from "react";
-import PixelGrid from "../components/PixelGrid"; // Import the component
-
-// Import components
-// Define interfaces
-//
 
 // Define pixel colors (example using hex codes)
 const OFF = '#374151'; // gray-700 (Tailwind)
@@ -14,7 +6,7 @@ const BLUE = '#0ea5e9'; // sky-500 (Tailwind)
 const RED = '#ef4444'; // red-500 (Tailwind)
 
 // Example 22x22 pixel data for a smiley
-const smileyData: string[][] = [
+export const smileyData: string[][] = [
     [OFF, OFF, OFF, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, OFF, OFF, OFF, OFF],
     [OFF, OFF, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, OFF, OFF, OFF],
     [OFF, BLUE, BLUE, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, YELLOW, BLUE, BLUE, OFF, OFF],
@@ -38,16 +30,3 @@ const smileyData: string[][] = [
     [OFF, OFF, OFF, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, OFF, OFF, OFF, OFF],
     [OFF, OFF, OFF, OFF, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, BLUE, OFF, OFF, OFF, OFF, OFF],
 ];
-
-const Page: React.FC = () => {
-    return (
-        // Add centering styles
-        <div className="flex min-h-screen items-center justify-center bg-gray-900">
-            {/* Render the PixelGrid and pass the data */}
-            <PixelGrid rows={22} cols={22} pixelData={smileyData} />
-        </div>
-    );
-};
-
-
-export default Page;

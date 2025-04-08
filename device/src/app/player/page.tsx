@@ -7,7 +7,7 @@ import clsx from "clsx";
 import Player from "../components/Player";
 import Library from "../components/Library";
 import Nav from "../components/Nav";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 import WebSocketHandler from "../components/WebSocketHandler";
 import WebSocketStatus from "../components/WebSocketStatus";
 import { useWebSocket } from "../contexts/WebSocketContext";
@@ -27,7 +27,7 @@ const Page: React.FC = () => {
         isConnectingToLivekit,
         setIsConnectingToLivekit,
         setLivekitConnectionDetails
-    } = useGlobalState();
+    } = useDeviceState();
     const { websocketService } = useWebSocket();
 
     // Log that the app has loaded

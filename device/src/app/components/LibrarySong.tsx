@@ -1,7 +1,7 @@
 import React from "react";
 import clsx from "clsx";
-import useGlobalState from "../GlobalState";
-import { StoryMetadata } from "../GlobalState";
+import useDeviceState from "../DeviceState";
+import { StoryMetadata } from "../DeviceState";
 interface LibraryProps {
 	story: StoryMetadata;
 }
@@ -10,7 +10,7 @@ const LibrarySong: React.FC<LibraryProps> = ({
 	story,
 }) => {
 	// Function
-	const { currentStory, setCurrentStory, setIsPlaying } = useGlobalState();
+	const { currentStory, setCurrentStory, setIsPlaying } = useDeviceState();
 	const selectTrackHandler = async (): Promise<void> => {
 		setCurrentStory({ ...story, currentTime: 0, });
 	};

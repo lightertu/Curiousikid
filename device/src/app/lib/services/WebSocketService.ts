@@ -2,7 +2,7 @@ import WebSocketManager from '../websocket/WebSocketManager';
 import { MessageType } from '../websocket/MessageTypes';
 import { StoryProtocol } from '../websocket/protocols/StoryProtocol';
 import { ChatCharacterProtocol } from '../websocket/protocols/ChatCharacterProtocol';
-import useGlobalState from '@/app/GlobalState';
+import useDeviceState from '@/app/DeviceState';
 
 export default class WebSocketService {
   private static instance: WebSocketService;
@@ -46,7 +46,7 @@ export default class WebSocketService {
 
   private handleConnected(): void {
     console.log('Connected to WebSocket server');
-    const globalState = useGlobalState.getState();
+    const DeviceState = useDeviceState.getState();
 
     // Send handshake - retained for compatibility
     this.wsManager.send(MessageType.HANDSHAKE, {
@@ -57,13 +57,13 @@ export default class WebSocketService {
 
     // Request initial story list
     this.storyProtocol.getStoryList({
-      payload: { userId: globalState.userId },
+      payload: { userId: DeviceState.userId },
       type: MessageType.GET_STORY_LIST
     });
 
     // Request initial story list
     this.chatCharacterProtocol.getChatCharacterList({
-      payload: { userId: globalState.userId },
+      payload: { userId: DeviceState.userId },
       type: MessageType.GET_CHAT_CHARACTER_LIST
     });
 
@@ -71,8 +71,8 @@ export default class WebSocketService {
 
   private handleDisconnected(): void {
     console.log('Disconnected from WebSocket server');
-    const globalState = useGlobalState.getState();
-    globalState.setIsWebSocketConnected(false);
+    const deviceState = useDeviceState.getState();
+    deviceState.setIsWebSocketConnected(false);
   }
 
   public connect(): void {

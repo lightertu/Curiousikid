@@ -1,14 +1,14 @@
 import React from "react";
 import LibrarySong from "./LibrarySong";
 import clsx from "clsx";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 
 
 const Library: React.FC = () => {
-	const { stories, libraryStatus } = useGlobalState();
+	const { stories, libraryStatus } = useDeviceState();
 
 	return (
-		<div 
+		<div
 			className={clsx(
 				"fixed z-10 top-0 left-0 w-100 h-full bg-white shadow-lg select-none overflow-scroll transition-all duration-500 ease-in-out",
 				libraryStatus ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0", "library-scrollbar"

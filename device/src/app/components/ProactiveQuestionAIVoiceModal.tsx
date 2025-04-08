@@ -1,10 +1,10 @@
 import { useEffect } from "react";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 import { useConversationalStory } from "../hooks/useConversationalStory";
 import AIVoiceModal from "./AIVoiceModal";
 
 const ProactiveQuestionAIVoiceModal: React.FC = () => {
-    const { isLivekitRoomConnected, setIsPlaying, voiceAgentState, isProactiveQuestionActive, setIsProactiveQuestionActive } = useGlobalState();
+    const { isLivekitRoomConnected, setIsPlaying, voiceAgentState, isProactiveQuestionActive, setIsProactiveQuestionActive } = useDeviceState();
     const isVoiceAgentActive = voiceAgentState === "listening" || voiceAgentState === "thinking" || voiceAgentState === "speaking";
     const { clearProactiveQuestionPoint } = useConversationalStory();
 

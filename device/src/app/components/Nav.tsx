@@ -2,10 +2,10 @@ import React from "react";
 import styled from "styled-components";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBookOpenReader } from "@fortawesome/free-solid-svg-icons";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 
 const Nav: React.FC = () => {
-	const { libraryStatus, setLibraryStatus } = useGlobalState();
+	const { libraryStatus, setLibraryStatus } = useDeviceState();
 	const toggleLibraryStatus = () => {
 		setLibraryStatus(!libraryStatus);
 	}

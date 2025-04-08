@@ -7,7 +7,7 @@ import "./globals.css";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { LiveKitRoom } from "@livekit/components-react";
 import { MediaDeviceFailure } from "livekit-client";
-import useGlobalState from "./GlobalState";
+import useDeviceState from "./DeviceState";
 import WebSocketStatus from "./components/WebSocketStatus";
 
 const geistSans = Geist({
@@ -44,7 +44,7 @@ export default function RootLayout({
     setIsLivekitRoomConnected,
     setIsConnectingToLivekit,
     setLivekitConnectionDetails
-  } = useGlobalState();
+  } = useDeviceState();
 
   return (
     <html lang="en">
@@ -71,7 +71,6 @@ export default function RootLayout({
           >
             {children}
           </LiveKitRoom>
-          <WebSocketStatus />
         </WebSocketProvider>
       </body>
     </html>

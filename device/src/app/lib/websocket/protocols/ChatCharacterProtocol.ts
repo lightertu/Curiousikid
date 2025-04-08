@@ -1,7 +1,7 @@
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
-import useGlobalState, { ChatCharacter } from '../../../GlobalState';
+import useDeviceState, { ChatCharacter } from '../../../DeviceState';
 
 // Type definitions for story payloads
 export interface GetCharacterListMessage extends Message {
@@ -35,8 +35,8 @@ export class ChatCharacterProtocol extends BaseProtocol {
      */
     async initialize(): Promise<void> {
         await super.initialize();
-        const globalState = useGlobalState.getState();
-        const userId = globalState.userId;
+        const DeviceState = useDeviceState.getState();
+        const userId = DeviceState.userId;
 
         // Initial request for story list
         if (this.connection.isConnected()) {
@@ -60,7 +60,7 @@ export class ChatCharacterProtocol extends BaseProtocol {
     protected async handleSendChatCharacterList(raw: unknown): Promise<void> {
         // Type guard to check if raw has the structure we expect
         const message = raw as SendChatCharacterListMessage;
-        const globalState = useGlobalState.getState();
-        globalState.setCharacters(message.payload);
+        const DeviceState = useDeviceState.getState();
+        DeviceState.setCharacters(message.payload);
     }
 }

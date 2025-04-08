@@ -1,19 +1,25 @@
 "use client";
 
 import React, { useEffect } from "react";
-import Link from "next/link";
 
 // Import components
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
-import useGlobalState from "./GlobalState";
-import WebSocketHandler from "./components/WebSocketHandler";
-import WebSocketStatus from "./components/WebSocketStatus";
+import useDeviceState, { DeviceState } from "./DeviceState";
+import PixelGrid from "./components/PixelGrid";
+import DeviceIndicator from "./components/DeviceIndicator";
+import { deviceMachine, DeviceEventType } from "./DeviceStateMachine";
+import { useMachine } from '@xstate/react';
+// Moved KeyCap to its own component file
+// import { KeyCap } from "./components/KeyCap"; // Assuming you create this
+
+// Simple component to render text like a keyboard key
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
-	const { isWebSocketConnected } = useGlobalState();
-	const { userId } = useGlobalState();
+	const initialState: DeviceState = useDeviceState();
+	const { isWebSocketConnected, userId } = useDeviceState();
+	const [deviceState, send] = useMachine(deviceMachine);
 
 	// Log that the app has loaded
 	useEffect(() => {
@@ -30,25 +36,56 @@ const App: React.FC = () => {
 			});
 		}
 
-	}, [isWebSocketConnected]);
+	}, [isWebSocketConnected, userId, websocketService]);
+
+	// Keyboard event handling
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.repeat) return; // Ignore repeated keydown events
+
+			switch (event.key) {
+				case 'Escape':
+					send({ type: DeviceEventType.ESC_PRESSED });
+					console.log('Escape key pressed');
+					break;
+				case 'Enter':
+					send({ type: DeviceEventType.ENTER_PRESSED });
+					console.log('Enter key pressed');
+					break;
+				case 'ArrowLeft':
+					send({ type: DeviceEventType.LEFT_PRESSED });
+					console.log('ArrowLeft key pressed');
+					break;
+				case 'ArrowRight':
+					send({ type: DeviceEventType.RIGHT_PRESSED });
+					console.log('ArrowRight key pressed');
+					break;
+				case ' ':
+					send({ type: DeviceEventType.SPACE_PRESSED });
+					console.log('Space key pressed - Toggling play/pause');
+					break;
+				default:
+					break;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+
+		// Cleanup function
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, []); // Dependency array
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-100">
-			<div className="flex space-x-8">
-				{/* Card 1 */}
-				<Link href="/player">
-					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
-						Player
-					</div>
-				</Link>
-
-				{/* Card 2 */}
-				<Link href="/chat-characters">
-					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
-						Chat Characters
-					</div>
-				</Link>
+		// Adjust layout to include indicators
+		<div className="flex min-h-screen items-center justify-center bg-gray-900 space-x-16">
+			{/* Main content area with instructions and PixelGrid */}
+			<div className="flex flex-col items-center">
+				{/* Render the PixelGrid */}
+				<PixelGrid rows={22} cols={22} pixelData={deviceState.context.screen} />
 			</div>
+			<DeviceIndicator />
 		</div>
 	);
 };

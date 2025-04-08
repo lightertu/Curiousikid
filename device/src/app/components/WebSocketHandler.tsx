@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useWebSocket } from '../contexts/WebSocketContext';
-import useGlobalState from '../GlobalState';
+import useDeviceState from '../DeviceState';
 
 /**
- * Component that manages WebSocket connections and synchronizes with GlobalState
+ * Component that manages WebSocket connections and synchronizes with DeviceState
  * No UI - purely for side effects
  */
 const WebSocketHandler: React.FC = () => {
   const { isWebSocketConnected } = useWebSocket();
-  const { currentStory: currentTrack, isPlaying } = useGlobalState();
+  const { currentStory: currentTrack, isPlaying } = useDeviceState();
   const [initialHandshakeSent, setInitialHandshakeSent] = useState(false);
-  
+
   // Send current playback state whenever it changes and we're connected
   // useEffect(() => {
   //   if (isConnected && (currentTrack || isPlaying !== undefined)) {
@@ -20,7 +20,7 @@ const WebSocketHandler: React.FC = () => {
   //     sendPlaybackState();
   //   }
   // }, [isConnected, currentTrack, isPlaying, sendPlaybackState]);
-  
+
   // Log connection status changes and track handshake status
   useEffect(() => {
     if (isWebSocketConnected && !initialHandshakeSent) {

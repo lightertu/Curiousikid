@@ -4,7 +4,7 @@ import StoryCover from "./StoryCover";
 import clsx from "clsx";
 import { useEffect, useRef, useState } from "react";
 import TrackAudio from "./TrackAudio";
-import useGlobalState, { CurrentStory } from "../GlobalState";
+import useDeviceState, { CurrentStory } from "../DeviceState";
 import AIVoiceModal from "./AIVoiceModal";
 import { LiveKitApi } from "../api/livekit";
 import { useConversationalStory } from "../hooks/useConversationalStory";
@@ -13,12 +13,12 @@ const Player: React.FC = () => {
 	// Add a new state to track microphone active state
 	const [progressWidth, setProgressWidth] = useState<number>(0);
 	const progressInterval = useRef<NodeJS.Timeout | null>(null);
-	const { setCurrentStory, isPlaying, setIsPlaying, userId, setIsConnectingToLivekit, setLivekitConnectionDetails, isUserQuestionActive, setIsUserQuestionActive, setIsProactiveQuestionActive } = useGlobalState();
+	const { setCurrentStory, isPlaying, setIsPlaying, userId, setIsConnectingToLivekit, setLivekitConnectionDetails, isUserQuestionActive, setIsUserQuestionActive, setIsProactiveQuestionActive } = useDeviceState();
 	const liveKitAPI = new LiveKitApi();
 	const { clearProactiveQuestionPoint } = useConversationalStory();
 
 
-	let { currentStory } = useGlobalState();
+	let { currentStory } = useDeviceState();
 	currentStory = currentStory as CurrentStory;
 	// Use effect to handle smooth progress bar animation using setInterval
 	useEffect(() => {

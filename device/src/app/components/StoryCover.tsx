@@ -1,21 +1,21 @@
 import React from "react";
 import clsx from "clsx";
-import { CurrentStory } from "../GlobalState";
+import { CurrentStory } from "../DeviceState";
 
 interface StoryCoverProps {
 	currentStory: CurrentStory;
 	isPlaying?: boolean;
 }
 
-const StoryCover: React.FC<StoryCoverProps> = ({ 
-	currentStory, 
+const StoryCover: React.FC<StoryCoverProps> = ({
+	currentStory,
 	isPlaying = false,
 }) => {
-	const micActive = false 
+	const micActive = false
 	return (
 		<div className="mt-[10vh] min-h-[50vh] max-h-[60vh] flex flex-col items-center justify-center">
-			<img 
-				src={currentStory.thumbnailUrl} 
+			<img
+				src={currentStory.thumbnailUrl}
 				alt={currentStory.title}
 				className={clsx(
 					"w-[20%] rounded-full transition-all duration-500",

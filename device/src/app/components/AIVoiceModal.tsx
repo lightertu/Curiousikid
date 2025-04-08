@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { useState } from "react";
-import useGlobalState from '../GlobalState';
+import useDeviceState from '../DeviceState';
 
 import { CloseIcon } from "./livekit/CloseIcon";
 import { NoAgentNotification } from "./livekit/NoAgentNotification";
@@ -25,7 +25,7 @@ export interface AIVoiceModalProps {
 }
 
 const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnect, onConnect: onConnected }) => {
-  const { voiceAgentState, setVoiceAgentState } = useGlobalState();
+  const { voiceAgentState, setVoiceAgentState } = useDeviceState();
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
   const room = useMaybeRoomContext();

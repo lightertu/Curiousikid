@@ -1,10 +1,10 @@
 import { Room } from "livekit-client";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 
 export const useConversationalStory = () => {
-    const { proactiveQuestionPoint, setProactiveQuestionPoint } = useGlobalState();
+    const { proactiveQuestionPoint, setProactiveQuestionPoint } = useDeviceState();
     const { websocketService } = useWebSocket();
 
     const clearProactiveQuestionPoint = () => {

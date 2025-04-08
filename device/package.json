@@ -15,6 +15,7 @@
     "@livekit/components-react": "^2.8.1",
     "@livekit/components-styles": "^1.1.4",
     "@livekit/krisp-noise-filter": "^0.2.16",
+    "@xstate/react": "^5.0.3",
     "framer-motion": "^12.4.10",
     "jsonpath-plus": "^10.3.0",
     "livekit-client": "^2.9.9",
@@ -27,6 +28,7 @@
     "tailwind-merge": "^3.0.2",
     "uuid": "^11.1.0",
     "uuidv4": "^6.2.13",
+    "xstate": "^5.19.2",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

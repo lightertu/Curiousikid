@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import useGlobalState from "../GlobalState";
+import useDeviceState from "../DeviceState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
@@ -35,7 +35,7 @@ const TrackAudio: React.FC = () => {
 		proactiveQuestionPoint,
 		livekitConnectionDetails,
 		userId
-	} = useGlobalState();
+	} = useDeviceState();
 	const { websocketService } = useWebSocket();
 
 	// --- Local State ---
