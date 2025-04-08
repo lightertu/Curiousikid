@@ -8,8 +8,10 @@ import { MessageType } from "./lib/websocket/MessageTypes";
 import useDeviceState, { DeviceState } from "./DeviceState";
 import PixelGrid from "./components/PixelGrid";
 import DeviceIndicator from "./components/DeviceIndicator";
-import { deviceMachine, DeviceEventType } from "./DeviceStateMachine";
+import { deviceMachine, DeviceEventType, DeviceContext } from "./DeviceStateMachine";
 import { useMachine } from '@xstate/react';
+import { AnyEventObject, MachineSnapshot, MetaObject, NonReducibleUnknown, StateValue } from "xstate";
+import { AnyActorRef } from "xstate";
 // Moved KeyCap to its own component file
 // import { KeyCap } from "./components/KeyCap"; // Assuming you create this
 
@@ -20,6 +22,8 @@ const App: React.FC = () => {
 	const initialState: DeviceState = useDeviceState();
 	const { isWebSocketConnected, userId } = useDeviceState();
 	const [deviceState, send] = useMachine(deviceMachine);
+
+	const yo: MachineSnapshot<DeviceContext, AnyEventObject, Record<string, AnyActorRef>, StateValue, string, NonReducibleUnknown, MetaObject, any> = deviceState
 
 	// Log that the app has loaded
 	useEffect(() => {
@@ -46,23 +50,23 @@ const App: React.FC = () => {
 			switch (event.key) {
 				case 'Escape':
 					send({ type: DeviceEventType.ESC_PRESSED });
-					console.log('Escape key pressed');
+					console.log('Escape key pressed, state:', deviceState.value);
 					break;
 				case 'Enter':
 					send({ type: DeviceEventType.ENTER_PRESSED });
-					console.log('Enter key pressed');
+					console.log('Enter key pressed, state:', deviceState.value);
 					break;
 				case 'ArrowLeft':
 					send({ type: DeviceEventType.LEFT_PRESSED });
-					console.log('ArrowLeft key pressed');
+					console.log('ArrowLeft key pressed, state:', deviceState.value);
 					break;
 				case 'ArrowRight':
 					send({ type: DeviceEventType.RIGHT_PRESSED });
-					console.log('ArrowRight key pressed');
+					console.log('ArrowRight key pressed, state:', deviceState.value);
 					break;
 				case ' ':
 					send({ type: DeviceEventType.SPACE_PRESSED });
-					console.log('Space key pressed - Toggling play/pause');
+					console.log('Space key pressed - Toggling play/pause, state:', deviceState.value);
 					break;
 				default:
 					break;

@@ -5,6 +5,7 @@ import { cloneDeep, set } from 'lodash';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
+import { renderTopMenu } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
@@ -136,14 +137,22 @@ export const deviceMachine = createMachine(
         } as DeviceContext,
         states: {
             mainMenu: {
+                // Render the screen when entering this state
+                entry: ['renderTopMenuScreen'],
                 on: {
-                    LEFT: {
-                        actions: ['moveTopMenuSelectionLeft'],
-                    },
-                    RIGHT: {
-                        actions: ['moveTopMenuSelectionRight'],
-                    },
-                    ENTER: [
+                    LEFT_PRESSED: [
+                        // If at leftmost, go to blink state
+                        { guard: 'isAtLeftmost', target: 'mainMenuBlinkingLeft' },
+                        // Otherwise, update index and re-enter mainMenu to trigger screen render
+                        { actions: ['moveTopMenuSelectionLeft'], target: 'mainMenu' }
+                    ],
+                    RIGHT_PRESSED: [
+                        // If at rightmost, go to blink state
+                        { guard: 'isAtRightmost', target: 'mainMenuBlinkingRight' },
+                        // Otherwise, update index and re-enter mainMenu to trigger screen render
+                        { actions: ['moveTopMenuSelectionRight'], target: 'mainMenu' }
+                    ],
+                    ENTER_PRESSED: [
                         { guard: 'isStoriesSelected', target: 'storiesSelection' },
                         { guard: 'isChatSelected', target: 'chatSelection' },
                     ],
@@ -191,6 +200,20 @@ export const deviceMachine = createMachine(
                     // Possibly handle SPACE for toggling mic, etc.
                 },
             },
+            // Temporary state to show blank screen during left blink
+            mainMenuBlinkingLeft: {
+                entry: assign({ screen: BLANK_SCREEN }),
+                after: {
+                    50: { target: 'mainMenu' } // After 50ms, go back to mainMenu
+                }
+            },
+            // Temporary state to show blank screen during right blink
+            mainMenuBlinkingRight: {
+                entry: assign({ screen: BLANK_SCREEN }),
+                after: {
+                    50: { target: 'mainMenu' } // After 50ms, go back to mainMenu
+                }
+            }
         },
         on: {
             TICK: {
@@ -205,36 +228,58 @@ export const deviceMachine = createMachine(
         actions: {
             // High-level example implementations
             moveTopMenuSelectionLeft: assign({
-                topMenuHighlightedIndex: (ctx) => {
-                    const len = ctx.context.topMenuSelection.length;
-                    return Math.max(0, (ctx.context.topMenuHighlightedIndex - 1 + len) % len);
-                }
+                topMenuHighlightedIndex: (ctx, event) => {
+                    console.log("moveTopMenuSelectionLeft Before", ctx.context.topMenuHighlightedIndex);
+                    const newIndex = ctx.context.topMenuHighlightedIndex - 1;
+                    console.log("moveTopMenuSelectionLeft After", newIndex);
+                    if (newIndex < 0) {
+                        return 0;
+                    } else {
+                        return newIndex;
+                    }
+                },
             }),
             moveTopMenuSelectionRight: assign({
-                topMenuHighlightedIndex: (ctx) => {
-                    const len = ctx.context.topMenuSelection.length;
-                    return Math.max(0, (ctx.context.topMenuHighlightedIndex + 1) % len);
+                topMenuHighlightedIndex: (ctx, event) => {
+                    console.log("moveTopMenuSelectionRight Before", ctx.context.topMenuHighlightedIndex);
+                    const newIndex = ctx.context.topMenuHighlightedIndex + 1;
+                    console.log("moveTopMenuSelectionRight After", newIndex);
+                    if (newIndex > 1) {
+                        return 1;
+                    } else {
+                        return newIndex;
+                    }
+                },
+            }),
+
+            // Renamed action to specifically render the top menu screen
+            renderTopMenuScreen: assign({
+                screen: (ctx, event) => {
+                    console.log("renderTopMenu Screen", ctx.context.topMenuHighlightedIndex);
+                    // Pass the context directly now
+                    return renderTopMenu(ctx.context);
                 }
             }),
-            isStoriesSelected: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
 
-            isChatSelected: (ctx) => ctx.context.topMenuHighlightedIndex === 1,
+            isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
+
+            isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
 
             prevStory: assign({
-                selectedStoryIndex: (ctx) => {
+                selectedStoryIndex: (ctx, event) => {
                     const len = ctx.context.stories.length;
                     return Math.max(0, (ctx.context.selectedStoryIndex - 1 + len) % len);
                 }
             }),
             nextStory: assign({
-                selectedStoryIndex: (ctx) => {
+                selectedStoryIndex: (ctx, event) => {
                     const len = ctx.context.stories.length;
                     return Math.max(0, (ctx.context.selectedStoryIndex + 1) % len);
                 }
             }),
 
             stopStory: assign({
-                isStoryPlaying: (_ctx) => false,
+                isStoryPlaying: (_ctx, _event) => false,
             }),
 
             togglePause: assign({
@@ -242,22 +287,26 @@ export const deviceMachine = createMachine(
             }),
 
             prevAI: assign({
-                selectedAIIndex: (ctx) => {
+                selectedAIIndex: (ctx, event) => {
                     const len = ctx.context.characters.length;
                     return Math.max(0, (ctx.context.selectedAIIndex - 1 + len) % len);
                 }
             }),
 
             nextAI: assign({
-                selectedAIIndex: (ctx) => {
+                selectedAIIndex: (ctx, event) => {
                     const len = ctx.context.characters.length;
                     return Math.max(0, (ctx.context.selectedAIIndex + 1) % len);
                 }
             }),
         },
         guards: {
-            isStoriesSelected: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
-            isChatSelected: (ctx) => ctx.context.topMenuHighlightedIndex === 1,
+            isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
+            isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
+            // Guard to check if at the leftmost menu item
+            isAtLeftmost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
+            // Guard to check if at the rightmost menu item
+            isAtRightmost: (ctx) => ctx.context.topMenuHighlightedIndex >= ctx.context.topMenuSelection.length - 1,
         },
     }
 );
