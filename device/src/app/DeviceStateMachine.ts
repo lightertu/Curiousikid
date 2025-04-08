@@ -204,19 +204,7 @@ export const deviceMachine = createMachine(
 
             storyPlayback: {
                 entry: [
-                    assign({
-                        currentStory: ({ context, event }) => {
-                            const story = context.stories[context.selectedStoryIndex];
-                            if (story.id === context.currentStory?.id) {
-                                return context.currentStory;
-                            } else {
-                                return {
-                                    ...story,
-                                    currentTime: 0,
-                                };
-                            }
-                        }
-                    }),
+                    'selectStory',
                     'setIsStoryPlaying'
                 ],
                 on: {
@@ -414,6 +402,20 @@ export const deviceMachine = createMachine(
             setAgentState: assign({
                 agentState: ({ context, event }) => {
                     return event.payload.agentState;
+                }
+            }),
+
+            selectStory: assign({
+                currentStory: ({ context, event }) => {
+                    const story = context.stories[context.selectedStoryIndex];
+                    if (story.id === context.currentStory?.id) {
+                        return context.currentStory;
+                    } else {
+                        return {
+                            ...story,
+                            currentTime: 0,
+                        };
+                    }
                 }
             }),
         },
