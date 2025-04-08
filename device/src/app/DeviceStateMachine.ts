@@ -1,7 +1,4 @@
-import { createMachine, assign, MachineContext, interpret, createActor } from 'xstate';
-import { create } from 'zustand';
-import { JSONPath } from 'jsonpath-plus';
-import { cloneDeep, set } from 'lodash';
+import { createMachine, assign, MachineContext, createActor } from 'xstate';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
@@ -73,6 +70,7 @@ export interface DeviceContext extends MachineContext {
     // conversational story state
     currentStory: CurrentStory | null;
     stories: StoryMetadata[];
+    proactiveQuestionPoint: ProactiveQuestionPoint | null;
     isProactiveQuestionActive: boolean;
     isStoryPlaying: boolean;
     isUserQuestionActive: boolean;
@@ -96,7 +94,18 @@ export enum DeviceEventType {
 
     // story events
     SET_STORIES = 'SET_STORIES',
+    SET_PROACTIVE_QUESTION_POINT = 'SET_PROACTIVE_QUESTION_POINT',
+    SET_CURRENT_STORY = 'SET_CURRENT_STORY',
+    SELECT_STORY = 'SELECT_STORY',
     STORY_ENDED = 'STORY_ENDED',
+    STOP_PLAYBACK = 'STOP_PLAYBACK',
+    START_PLAYBACK = 'START_PLAYBACK',
+
+    // livekit events
+    SET_IS_CONNECTING_TO_LIVEKIT = 'SET_IS_CONNECTING_TO_LIVEKIT',
+    SET_LIVEKIT_CONNECTION_DETAILS = 'SET_LIVEKIT_CONNECTION_DETAILS',
+    SET_LIVEKIT_ROOM_CONNECTED = 'SET_LIVEKIT_ROOM_CONNECTED',
+    SET_AGENT_STATE = 'SET_AGENT_STATE',
 
     // chat events
     SET_CHAT_CHARACTERS = 'SET_CHAT_CHARACTERS',
@@ -110,7 +119,11 @@ export type DeviceEvent =
     | { type: DeviceEventType.RIGHT_PRESSED }
     | { type: DeviceEventType.SPACE_PRESSED }
     | { type: DeviceEventType.SET_STORIES, payload: { stories: StoryMetadata[] } }
+    | { type: DeviceEventType.SET_CURRENT_STORY, payload: { currentStory: CurrentStory } }
+    | { type: DeviceEventType.SET_PROACTIVE_QUESTION_POINT, payload: { proactiveQuestionPoint: ProactiveQuestionPoint } }
     | { type: DeviceEventType.STORY_ENDED }
+    | { type: DeviceEventType.STOP_PLAYBACK }
+    | { type: DeviceEventType.START_PLAYBACK }
     | { type: DeviceEventType.SET_CHAT_CHARACTERS, payload: { characters: ChatCharacter[] } }
 
 export const deviceMachine = createMachine(
@@ -136,6 +149,7 @@ export const deviceMachine = createMachine(
 
             // conversational story state
             currentStory: null,
+            proactiveQuestionPoint: null,
             stories: [],
             isProactiveQuestionActive: false,
             isStoryPlaying: false,
@@ -177,11 +191,11 @@ export const deviceMachine = createMachine(
                 on: {
                     LEFT_PRESSED: [
                         { guard: 'isAtStoriesSelectionLeftMost', target: 'storiesSelectionBlinking' },
-                        { actions: ['prevStory', 'renderTopMenuScreen'], target: 'storiesSelection' }
+                        { actions: ['prevStory', 'renderStoryMenu'], target: 'storiesSelection' }
                     ],
                     RIGHT_PRESSED: [
                         { guard: 'isAtStoriesSelectionRightMost', target: 'storiesSelectionBlinking' },
-                        { actions: ['nextStory', 'renderTopMenuScreen'], target: 'storiesSelection' }
+                        { actions: ['nextStory', 'renderStoryMenu'], target: 'storiesSelection' }
                     ],
                     ENTER_PRESSED: { target: 'storyPlayback' },
                     ESC_PRESSED: { target: 'mainMenu' },
@@ -190,12 +204,28 @@ export const deviceMachine = createMachine(
 
             storyPlayback: {
                 entry: [
-                    'setCurrentStory',
+                    assign({
+                        currentStory: ({ context, event }) => {
+                            const story = context.stories[context.selectedStoryIndex];
+                            if (story.id === context.currentStory?.id) {
+                                return context.currentStory;
+                            } else {
+                                return {
+                                    ...story,
+                                    currentTime: 0,
+                                };
+                            }
+                        }
+                    }),
                     'setIsStoryPlaying'
                 ],
                 on: {
-                    SPACE_PRESSED: { actions: ['togglePause'] },
+                    SPACE_PRESSED: { actions: ['togglePlayback'] },
+                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
+                    SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    STOP_PLAYBACK: { actions: ['stopStory'] },
+                    START_PLAYBACK: { actions: ['startStory'] },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
@@ -278,11 +308,8 @@ export const deviceMachine = createMachine(
 
             setCurrentStory: assign({
                 currentStory: ({ context, event }) => {
-                    const story = context.stories[context.selectedStoryIndex];
-                    return {
-                        ...story,
-                        currentTime: 0,
-                    };
+                    console.log("setCurrentStory", event.payload);
+                    return event.payload.currentStory;
                 }
             }),
 
@@ -321,7 +348,11 @@ export const deviceMachine = createMachine(
                 isStoryPlaying: ({ context, event }) => false,
             }),
 
-            togglePause: assign({
+            startStory: assign({
+                isStoryPlaying: ({ context, event }) => true,
+            }),
+
+            togglePlayback: assign({
                 isStoryPlaying: ({ context, event }) => !context.isStoryPlaying,
             }),
 
@@ -355,6 +386,36 @@ export const deviceMachine = createMachine(
                     return event.payload.characters;
                 }
             }),
+
+            setProactiveQuestionPoint: assign({
+                proactiveQuestionPoint: ({ context, event }) => {
+                    return event.payload.proactiveQuestionPoint;
+                }
+            }),
+
+            setIsConnectingToLivekit: assign({
+                isConnectingToLivekit: ({ context, event }) => {
+                    return event.payload.isConnectingToLivekit;
+                }
+            }),
+
+            setLivekitConnectionDetails: assign({
+                livekitConnectionDetails: ({ context, event }) => {
+                    return event.payload.livekitConnectionDetails;
+                }
+            }),
+
+            setLivekitRoomConnected: assign({
+                isLivekitRoomConnected: ({ context, event }) => {
+                    return event.payload.isLivekitRoomConnected;
+                }
+            }),
+
+            setAgentState: assign({
+                agentState: ({ context, event }) => {
+                    return event.payload.agentState;
+                }
+            }),
         },
         guards: {
             isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
@@ -370,4 +431,5 @@ export const deviceMachine = createMachine(
 );
 
 export const DEVICE_STATE_MACHINE_ACTOR = createActor(deviceMachine)
+
 DEVICE_STATE_MACHINE_ACTOR.start()

@@ -104,17 +104,9 @@ export class StoryProtocol extends BaseProtocol {
    */
   protected async handleSetProactiveQuestionPoint(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
-    // const message = raw as SetProactiveQuestionPointMessage;
-    // const { currentStory, isPlaying } = DEVICE_STATE_MACHINE_ACTOR
-
-    // console.log("handleSetProactiveQuestionPoint.DeviceState", DeviceState);
-
-    // if (isPlaying && currentStory) {
-    //   // Only update the current story if the storyId matches
-    //   console.log("handleSetProactiveQuestionPoint", message);
-    //   DeviceState.setProactiveQuestionPoint(message.payload);
-
-    //   this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
-    // }
+    console.log("handleSetProactiveQuestionPoint", raw);
+    const message = raw as SetProactiveQuestionPointMessage;
+    DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_PROACTIVE_QUESTION_POINT, payload: { proactiveQuestionPoint: message.payload } });
+    this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
   }
 }

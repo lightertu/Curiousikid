@@ -23,3 +23,11 @@ export const renderTopMenu = (context: DeviceContext): string[][] => {
         return BLANK_SCREEN;
     }
 }
+
+export const renderStoryMenu = (context: DeviceContext): string[][] => {
+    const stories = context.stories;
+    const currentStory = context.currentStory;
+    const topMenuHighlightedIndex = context.topMenuHighlightedIndex;
+
+    return []
+}

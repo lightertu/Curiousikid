@@ -5,12 +5,13 @@ import React, { useEffect } from "react";
 // Import components
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
-import useDeviceState, { DeviceState } from "./DeviceState";
+import useDeviceState from "./DeviceState";
 import PixelGrid from "./components/PixelGrid";
 import DeviceIndicator from "./components/DeviceIndicator";
-import { deviceMachine, DeviceEventType, DeviceContext, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachine";
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachine";
 import Breadcrumb from "./components/Breadcrumb";
-import { useActorRef, useMachine, useSelector } from '@xstate/react';
+import { useSelector } from '@xstate/react';
+import TrackAudio from "./components/TrackAudio";
 // Moved KeyCap to its own component file
 // import { KeyCap } from "./components/KeyCap"; // Assuming you create this
 
@@ -103,6 +104,7 @@ const App: React.FC = () => {
 				<PixelGrid rows={22} cols={22} pixelData={deviceContext.context.screen} />
 			</div>
 			<DeviceIndicator />
+			<TrackAudio />
 		</div>
 	);
 };
