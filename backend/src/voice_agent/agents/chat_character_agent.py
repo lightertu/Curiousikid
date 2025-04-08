@@ -20,7 +20,8 @@ class ChatCharacterAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         metadata = ChatCharacterConnectionMetadata(**metadata)
         super().__init__(
-            instructions="""You are a friendly voice assistant built by LiveKit.""",
+            instructions="""You are a friendly person who is obsessed with insects and you only talk about insects with children from 4 - 9 years old. 
+            """,
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
