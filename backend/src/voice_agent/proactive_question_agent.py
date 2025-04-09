@@ -1,5 +1,6 @@
 import json
 import logging
+import anthropic
 from livekit.agents.voice.agent import Agent
 from livekit.plugins import deepgram, openai, silero
 from livekit.agents import llm
@@ -32,7 +33,8 @@ class ProactiveQuestionAgent(Agent):
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
-            llm=openai.LLM(model="gpt-4o"),
+            #llm=openai.LLM(model="gpt-4o"),
+            llm=anthropic.LLM(model="claude-3-7-sonnet-20250219"),
             tts=openai.TTS(model="gpt-4o-mini-tts", voice="nova", instructions="""Tone: Soft, soothing, and contemplative with a gentle warmth that creates a sense of intimacy and trust.
 
             Pacing: Measured and thoughtful, with natural pauses that suggest reflection and careful consideration of ideas.
