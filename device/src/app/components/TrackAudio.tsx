@@ -3,9 +3,9 @@ import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
 import { useSelector } from "@xstate/react";
-import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from "../DeviceStateMachine";
+import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from "../DeviceStateMachine";
 import ProactiveQuestionAIVoiceModal from "./ProactiveQuestionAIVoiceModal";
-
+import { useVoiceAssistant } from "@livekit/components-react";
 const SET_PROGRESS_INTERVAL_IN_MS = 2000;
 
 type LiveKitRoomConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "DISCONNECTING";
@@ -18,6 +18,7 @@ const TrackAudio: React.FC = () => {
 	// Track loading state specifically for the audio element
 	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
 	const [liveKitRoomConnectionState, setLiveKitRoomConnectionState] = useState<LiveKitRoomConnectionState>("DISCONNECTED");
+	const { state: agentState } = useVoiceAssistant();
 
 	// Ref to track the last time progress was updated
 	const lastUpdateTime = useRef<number>(0);
@@ -55,6 +56,12 @@ const TrackAudio: React.FC = () => {
 	const sendSetLivekitConnectionDetailsEvent = (livekitConnectionDetails: LiveKitConnectionDetails) => {
 		DEVICE_STATE_MACHINE_ACTOR.send({
 			type: DeviceEventType.SET_LIVEKIT_CONNECTION_DETAILS, payload: { livekitConnectionDetails }
+		});
+	}
+
+	const sendSetAgentModelEvent = (agentModel: VoiceAgentModel) => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel }
 		});
 	}
 
@@ -175,6 +182,7 @@ const TrackAudio: React.FC = () => {
 		const canConnectToLiveKit = liveKitRoomConnectionState === "DISCONNECTED" && !livekitConnectionDetails;
 		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
 			setLiveKitRoomConnectionState("CONNECTING");
+			sendSetAgentModelEvent(VoiceAgentModel.PROACTIVE_QUESTION);
 			getLiveKitRoomConnectionDetails({
 				metadata: proactiveQuestionPoint,
 				agentType: "proactive_question",
@@ -184,6 +192,7 @@ const TrackAudio: React.FC = () => {
 				setLiveKitRoomConnectionState("CONNECTED");
 			}).catch((error) => {
 				setLiveKitRoomConnectionState("DISCONNECTED");
+				sendSetAgentModelEvent(VoiceAgentModel.INACTIVE);
 				console.error("[TrackAudio LiveKit Trigger] Error connecting to LiveKit", error);
 			});
 		}
@@ -250,7 +259,6 @@ const TrackAudio: React.FC = () => {
 				// `preload="metadata"` helps get duration faster
 				preload="metadata"
 			/>
-			<ProactiveQuestionAIVoiceModal />
 		</>
 	);
 };

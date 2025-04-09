@@ -1,23 +1,24 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { use, useEffect } from "react";
 
 // Import components
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
 import useDeviceState from "./DeviceState";
-import PixelGrid from "./components/PixelGrid";
+import PixelScreen from "./components/PixelScreen";
 import DeviceIndicator from "./components/DeviceIndicator";
-import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachine";
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR, VoiceAgentModel } from "./DeviceStateMachine";
 import Breadcrumb from "./components/Breadcrumb";
 import { useSelector } from '@xstate/react';
 import TrackAudio from "./components/TrackAudio";
-
+import { useVoiceAssistant } from "@livekit/components-react";
 // Simple component to render text like a keyboard key
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
 	const { isWebSocketConnected, userId } = useDeviceState();
+	const { state: agentState } = useVoiceAssistant();
 	const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
 		return {
 			value: state.value,
@@ -41,6 +42,10 @@ const App: React.FC = () => {
 		}
 
 	}, [isWebSocketConnected, userId, websocketService]);
+
+	useEffect(() => {
+		DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_STATE, payload: { agentState: agentState } });
+	}, [agentState]);
 
 	// Keyboard event handling
 	useEffect(() => {
@@ -92,7 +97,7 @@ const App: React.FC = () => {
 				{/* Render the Breadcrumb component */}
 				<Breadcrumb context={deviceContext.context} stateValue={deviceContext.value} />
 				{/* Render the PixelGrid */}
-				<PixelGrid rows={32} cols={32} pixelData={deviceContext.context.screen} validatePixelData={false} />
+				<PixelScreen rows={32} cols={32} pixelData={deviceContext.context.screen} validatePixelData={false} />
 			</div>
 			<DeviceIndicator />
 			<TrackAudio />

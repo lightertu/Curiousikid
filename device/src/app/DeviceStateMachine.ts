@@ -50,6 +50,13 @@ export enum BreadcrumbItem {
     Chat = "Chat",
 }
 
+export enum VoiceAgentModel {
+    INACTIVE = 'inactive',
+    PROACTIVE_QUESTION = 'proactive_question',
+    USER_QUESTION = 'user_question',
+    CHAT_CHARACTER = 'chat_character',
+}
+
 export interface DeviceContext extends MachineContext {
     // user state
     userId: string;
@@ -63,10 +70,12 @@ export interface DeviceContext extends MachineContext {
     screen: string[][];
     topMenuSelections: string[];
     topMenuHighlightedIndex: number;
+    isShowAIVoiceConsole: boolean;
 
     // livekit state  
     isConnectingToLivekit: boolean;
     agentState: AgentState;
+    agentModel: VoiceAgentModel;
     isLivekitRoomConnected: boolean;
     livekitConnectionDetails: LiveKitConnectionDetails | null;
 
@@ -111,6 +120,7 @@ export enum DeviceEventType {
     SET_LIVEKIT_CONNECTION_DETAILS = 'SET_LIVEKIT_CONNECTION_DETAILS',
     SET_LIVEKIT_ROOM_CONNECTED = 'SET_LIVEKIT_ROOM_CONNECTED',
     SET_AGENT_STATE = 'SET_AGENT_STATE',
+    SET_AGENT_MODEL = 'SET_AGENT_MODEL',
 
     // chat events
     SET_CHAT_CHARACTERS = 'SET_CHAT_CHARACTERS',
@@ -146,9 +156,12 @@ export const deviceMachine = createMachine(
             frame: 0,
             screen: BLANK_SCREEN,
             topMenuSelections: ["Conversational Stories", "Chat with a Character"],
+            isShowAIVoiceConsole: false,
+
             // livekit state
             isConnectingToLivekit: false,
             agentState: 'disconnected',
+            agentModel: VoiceAgentModel.INACTIVE,
             isLivekitRoomConnected: false,
             livekitConnectionDetails: null,
 
@@ -217,9 +230,10 @@ export const deviceMachine = createMachine(
                     START_PLAYBACK: { actions: ['startStory'] },
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                     SET_LIVEKIT_CONNECTION_DETAILS: { actions: ['setLivekitConnectionDetails'] },
-                    PROACTIVE_QUESTION_SESSION_STARTED: { target: 'proactiveQuestionSession' },
-                    PROACTIVE_QUESTION_SESSION_ENDED: { target: 'storyIsPlaying' },
+                    PROACTIVE_QUESTION_SESSION_STARTED: { target: 'proactiveQuestionSession', actions: ['showAIVoiceConsole'] },
+                    PROACTIVE_QUESTION_SESSION_ENDED: { target: 'storyIsPlaying', actions: ['hideAIVoiceConsole'] },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
+                    SET_AGENT_MODEL: { actions: ['setAgentModel'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
@@ -304,11 +318,8 @@ export const deviceMachine = createMachine(
             },
         },
         on: {
-            TICK: {
-                // global event for animation
-                actions: assign({
-                    frame: ({ context, event }) => context.frame + 1,
-                }),
+            SET_AGENT_STATE: {
+                actions: ['setAgentState'],
             },
         },
     },
@@ -455,8 +466,21 @@ export const deviceMachine = createMachine(
                 }
             }),
 
+            showAIVoiceConsole: assign({
+                isShowAIVoiceConsole: ({ context, event }) => {
+                    return true;
+                }
+            }),
+
+            hideAIVoiceConsole: assign({
+                isShowAIVoiceConsole: ({ context, event }) => {
+                    return false;
+                }
+            }),
+
             setAgentState: assign({
                 agentState: ({ context, event }) => {
+                    console.log("setAgentState", event.payload);
                     return event.payload.agentState;
                 }
             }),
@@ -534,6 +558,12 @@ export const deviceMachine = createMachine(
                     } else {
                         return null;
                     }
+                }
+            }),
+
+            setAgentModel: assign({
+                agentModel: ({ context, event }) => {
+                    return event.payload.agentModel;
                 }
             }),
         },
