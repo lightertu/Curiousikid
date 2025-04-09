@@ -1,7 +1,7 @@
 import React from 'react';
 import AIVoiceConsole from './livekit/AIVoiceConsole';
 import { useSelector } from '@xstate/react';
-import { DEVICE_STATE_MACHINE_ACTOR } from '../DeviceStateMachine';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from '../DeviceStateMachine';
 
 interface PixelScreenProps {
     pixelData: string[][] | null | undefined; // Allow null/undefined
@@ -38,6 +38,10 @@ const PixelScreen: React.FC<PixelScreenProps> = ({ pixelData, rows = 32, cols = 
     const { isShowAIVoiceConsole } = deviceContext.context;
 
     const renderAiVoiceConsole = () => {
+        const handleDisconnect = () => {
+            DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel: VoiceAgentModel.INACTIVE } });
+            DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.STORY_QUESTION_SESSION_ENDED });
+        }
         return (
             <div
                 className="block border my-8 rounded-lg overflow-hidden" // Removed p-1, removed grid props, display: block
@@ -48,7 +52,7 @@ const PixelScreen: React.FC<PixelScreenProps> = ({ pixelData, rows = 32, cols = 
                     height: `${totalHeight}px`,
                 }}
             >
-                <AIVoiceConsole show={true} headline="Proactive Question" onDisconnect={() => { }} onConnect={() => { }} />
+                <AIVoiceConsole show={true} headline="Proactive Question" onDisconnect={handleDisconnect} onConnect={() => { }} />
             </div>
         );
     }

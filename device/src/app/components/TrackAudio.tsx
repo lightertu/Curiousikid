@@ -8,7 +8,6 @@ import ProactiveQuestionAIVoiceModal from "./ProactiveQuestionAIVoiceModal";
 import { useVoiceAssistant } from "@livekit/components-react";
 const SET_PROGRESS_INTERVAL_IN_MS = 2000;
 
-type LiveKitRoomConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "DISCONNECTING";
 
 const TrackAudio: React.FC = () => {
 	// Ref for the <audio> element
@@ -17,7 +16,7 @@ const TrackAudio: React.FC = () => {
 	const [internalDuration, setInternalDuration] = useState<number>(0);
 	// Track loading state specifically for the audio element
 	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
-	const [liveKitRoomConnectionState, setLiveKitRoomConnectionState] = useState<LiveKitRoomConnectionState>("DISCONNECTED");
+	const [isLivekitConnecting, setIsLivekitConnecting] = useState<boolean>(false);
 	const { state: agentState } = useVoiceAssistant();
 
 	// Ref to track the last time progress was updated
@@ -179,9 +178,9 @@ const TrackAudio: React.FC = () => {
 		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
 		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
 
-		const canConnectToLiveKit = liveKitRoomConnectionState === "DISCONNECTED" && !livekitConnectionDetails;
+		const canConnectToLiveKit = !isLivekitConnecting && !livekitConnectionDetails;
 		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
-			setLiveKitRoomConnectionState("CONNECTING");
+			setIsLivekitConnecting(true);
 			sendSetAgentModelEvent(VoiceAgentModel.PROACTIVE_QUESTION);
 			getLiveKitRoomConnectionDetails({
 				metadata: proactiveQuestionPoint,
@@ -189,11 +188,21 @@ const TrackAudio: React.FC = () => {
 				userId: userId
 			}).then((connectionDetails) => {
 				sendSetLivekitConnectionDetailsEvent(connectionDetails);
-				setLiveKitRoomConnectionState("CONNECTED");
+				// --- Send WebSocket Progress (Throttled) ---
+				// TODO: This is a hack to clear the proactive question point
+				// TODO: We should probably move this to the state machine
+				websocketService.storyProtocol.clearProactiveQuestionPoint({
+					type: MessageType.CLEAR_QUESTION_POINT,
+					payload: {
+						storyId: proactiveQuestionPoint.storyId,
+						userId: userId
+					}
+				});
 			}).catch((error) => {
-				setLiveKitRoomConnectionState("DISCONNECTED");
 				sendSetAgentModelEvent(VoiceAgentModel.INACTIVE);
 				console.error("[TrackAudio LiveKit Trigger] Error connecting to LiveKit", error);
+			}).finally(() => {
+				setIsLivekitConnecting(false);
 			});
 		}
 

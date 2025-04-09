@@ -45,6 +45,7 @@ const App: React.FC = () => {
 	}, [isWebSocketConnected, userId, websocketService]);
 
 	useEffect(() => {
+		console.log("agentState", agentState);
 		DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_STATE, payload: { agentState: agentState } });
 	}, [agentState]);
 

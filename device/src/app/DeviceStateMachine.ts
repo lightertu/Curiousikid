@@ -3,7 +3,6 @@ import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
 import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover, renderForwardPlayback, renderBackwardPlayback } from './PixelGuiRenderer';
-import { createLocalRequestContext } from 'next/dist/server/after/builtin-request-context';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
@@ -110,6 +109,7 @@ export enum DeviceEventType {
     STORY_ENDED = 'STORY_ENDED',
     STOP_PLAYBACK = 'STOP_PLAYBACK',
     START_PLAYBACK = 'START_PLAYBACK',
+    STORY_QUESTION_SESSION_ENDED = 'STORY_QUESTION_SESSION_ENDED',
 
     // livekit events
     SET_IS_CONNECTING_TO_LIVEKIT = 'SET_IS_CONNECTING_TO_LIVEKIT',
@@ -246,24 +246,23 @@ export const deviceMachine = createMachine(
                 on: {
                     SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
-                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                 },
             },
             proactiveQuestionSession: {
                 entry: ['stopStory', 'showAIVoiceConsole', 'clearProactiveQuestionPoint'],
                 on: {
-                    PROACTIVE_QUESTION_SESSION_ENDED: {
+                    STORY_QUESTION_SESSION_ENDED: {
                         target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory']
+                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
                     },
                 },
             },
             userQuestionSession: {
                 entry: ['stopStory', 'showAIVoiceConsole'],
                 on: {
-                    USER_QUESTION_SESSION_ENDED: {
+                    STORY_QUESTION_SESSION_ENDED: {
                         target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory']
+                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
                     },
                 },
             },
@@ -570,8 +569,20 @@ export const deviceMachine = createMachine(
                 }
             }),
 
+            setAgentModelInactive: assign({
+                agentModel: ({ context, event }) => {
+                    return VoiceAgentModel.INACTIVE;
+                }
+            }),
+
             clearProactiveQuestionPoint: assign({
                 proactiveQuestionPoint: ({ context, event }) => {
+                    return null;
+                }
+            }),
+
+            clearLivekitConnectionDetails: assign({
+                livekitConnectionDetails: ({ context, event }) => {
                     return null;
                 }
             }),
@@ -593,7 +604,7 @@ export const deviceMachine = createMachine(
             isProactiveQuestionActive: (ctx) => {
                 const { agentModel, isStoryPlaying, agentState } = ctx.context;
 
-                return agentModel === VoiceAgentModel.PROACTIVE_QUESTION && isStoryPlaying && (agentState === 'listening' || agentState === 'thinking' || agentState === 'speaking');
+                return agentModel === VoiceAgentModel.PROACTIVE_QUESTION && isStoryPlaying;
             },
             isUserQuestionActive: (ctx) => {
                 const { agentModel, isStoryPlaying } = ctx.context;
