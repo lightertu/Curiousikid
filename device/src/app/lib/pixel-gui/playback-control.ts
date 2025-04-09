@@ -1,8 +1,8 @@
 // device/src/app/lib/pixel-gui/forward-playback.ts
 
+import { GREEN, OFF } from "./colors";
+
 // Define pixel colors
-const LIGHT_KHAKI = '#F5F5DC'; // Background
-const GREEN = '#22c55e';       // Icon color
 const PROGRESS_BG = '#D3D3D3';   // Progress bar background
 const PROGRESS_FILL = '#A9A9A9'; // Progress bar fill color
 
@@ -20,7 +20,7 @@ export const generateForwardPlaybackScreen = (progress: number): string[][] => {
     const clampedProgress = Math.max(0, Math.min(100, progress));
 
     // Initialize grid with background color
-    const grid: string[][] = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(LIGHT_KHAKI));
+    const grid: string[][] = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(OFF));
 
     // --- Draw the Forward Icon (two green triangles) ---
     // Triangle 1 (smaller, left) - Centered
@@ -87,7 +87,7 @@ export const generateBackwardPlaybackScreen = (progress: number): string[][] => 
     const clampedProgress = Math.max(0, Math.min(100, progress));
 
     // Initialize grid with background color
-    const grid: string[][] = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(LIGHT_KHAKI));
+    const grid: string[][] = Array(GRID_SIZE).fill(0).map(() => Array(GRID_SIZE).fill(OFF));
 
     // --- Draw the Backward Icon (two green triangles pointing left) ---
     // Triangle 2 (larger, now on the left) - Centered

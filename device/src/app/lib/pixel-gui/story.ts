@@ -1093,4 +1093,4 @@ export const STORY_MENU: string[][] =
             "#f8f7f2",
             "#f8f7f2"
         ]
-    ];
+];
