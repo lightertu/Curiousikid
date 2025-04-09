@@ -21,18 +21,12 @@ export const renderTopMenu = (context: DeviceContext): string[][] => {
 }
 
 export const renderStoryMenu = (context: DeviceContext): string[][] => {
-    const stories = context.stories;
-    const currentStory = context.currentStory;
-    const topMenuHighlightedIndex = context.topMenuHighlightedIndex;
 
     return []
 }
 
 export const renderPlayback = (context: DeviceContext): string[][] => {
-    const currentStory = context.currentStory;
     const isStoryPlaying = context.isStoryPlaying;
-    const isProactiveQuestionActive = context.isProactiveQuestionActive;
-    const isUserQuestionActive = context.isUserQuestionActive;
 
     if (isStoryPlaying) {
         return PAUSE_ICON;

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import AIVoiceModal from "./AIVoiceModal";
-import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from "../DeviceStateMachine";
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from "../DeviceStateMachine";
 import { useSelector } from "@xstate/react";
 import { useVoiceAssistant } from "@livekit/components-react";
 
@@ -19,11 +19,11 @@ const ProactiveQuestionAIVoiceModal: React.FC = () => {
         agentState === "speaking";
 
     const handleDisconnect = () => {
-        DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.PROACTIVE_QUESTION_SESSION_ENDED });
+        DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel: VoiceAgentModel.INACTIVE } });
     }
 
     const handleConnect = () => {
-        DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.PROACTIVE_QUESTION_SESSION_STARTED });
+        DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel: VoiceAgentModel.PROACTIVE_QUESTION } });
     }
 
     return (

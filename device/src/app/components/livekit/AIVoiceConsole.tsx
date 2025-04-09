@@ -28,7 +28,11 @@ const AIVoiceConsole: React.FC<AIVoiceConsoleProps> = ({ show = true, headline =
             room.on(RoomEvent.ParticipantDisconnected, handleDisconnect);
         }
 
-        return () => handleDisconnect();
+        return () => {
+            if (room) {
+                room.off(RoomEvent.ParticipantDisconnected, handleDisconnect);
+            }
+        }
     }, [room, onDisconnect]);
 
     useEffect(() => {
