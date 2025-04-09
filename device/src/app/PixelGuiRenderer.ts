@@ -45,3 +45,15 @@ export const renderPlayback = (context: DeviceContext): string[][] => {
         return PLAY_ICON;
     }
 }
+
+export const renderStoryCover = (context: DeviceContext): string[][] => {
+    const pixelArtCover = context.stories[context.selectedStoryIndex].pixelArtCover;
+    console.log(pixelArtCover);
+    return pixelArtCover || [];
+}
+
+export const renderCharacterCover = (context: DeviceContext): string[][] => {
+    const pixelArtCover = context.characters[context.selectedCharacterIndex].pixelArtCover;
+    console.log(pixelArtCover);
+    return pixelArtCover || [];
+}

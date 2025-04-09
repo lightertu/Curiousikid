@@ -14,21 +14,24 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
         switch (stateValue) {
             case 'mainMenu':
                 // Path is already ['Main Menu']
+                path.push(`(${context.topMenuSelections[context.topMenuHighlightedIndex]})`);
                 break;
             case 'storiesSelection':
-                path.push('Stories');
+                path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
+                path.push(`(${context.stories[context.selectedStoryIndex].title})`);
+                break;
+            case 'chatSelection':
+                path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
+                path.push(`(${context.characters[context.selectedCharacterIndex].name})`);
                 break;
             case 'storyIsPlaying':
             case 'storyIsPaused':
                 path.push('Stories'); // Might need context to know which story
                 path.push(context.currentStory?.title || 'Playback');
                 break;
-            case 'chatSelection':
-                path.push('Chat');
-                break;
             case 'chatActive':
-                path.push('Chat'); // Might need context for character name
-                path.push('Active');
+                path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
+                path.push(`${context.characters[context.selectedCharacterIndex].name}`);
                 break;
             // Add other cases as needed
             default:
@@ -41,7 +44,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
     }
 
     return (
-        <div className="mb-4 border border-gray-600 bg-gray-800 px-4 py-2 rounded text-gray-200 text-center text-lg">
+        <div className="mb-4 border border-gray-600 bg-gray-800 px-4 py-2 rounded text-black text-center text-3xl" style={{ backgroundColor: '#ded8ce' }}>
             {/* We might need more complex logic later for actual breadcrumbs like "Main Menu > Stories" */}
             {displayValue}
         </div>

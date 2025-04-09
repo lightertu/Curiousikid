@@ -25,6 +25,7 @@ export interface StoryMetadata {
   audioUrl: string;
   duration: number;
   thumbnailUrl: string;
+  pixelArtCover: string[][];
 }
 
 export interface CurrentStory extends StoryMetadata {

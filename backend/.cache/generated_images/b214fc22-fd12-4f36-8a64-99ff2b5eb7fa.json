@@ -1,11 +1,4 @@
-// Define pixel colors (example using hex codes)
-const OFF = '#374151'; // gray-700 (Tailwind)
-const YELLOW = '#facc15'; // yellow-400 (Tailwind)
-const BLUE = '#0ea5e9'; // sky-500 (Tailwind)
-const RED = '#ef4444'; // red-500 (Tailwind)
-
-// Example 32x32 pixel data for a smiley
-export const smileyData: string[][] = [
+[
     [
         "#fefdf2",
         "#fefdf2",
@@ -1094,4 +1087,4 @@ export const smileyData: string[][] = [
         "#fefdf2",
         "#fefdf2"
     ]
-];
+]

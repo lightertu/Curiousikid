@@ -14,6 +14,7 @@ class StoryMetadata(BaseModel):
     duration: float
     thumbnailUrl: str
     transcriptUrl: Optional[str] = None
+    pixelArtCover: Optional[List[List[str]]] = None
 
 
 class CurrentStory(StoryMetadata):

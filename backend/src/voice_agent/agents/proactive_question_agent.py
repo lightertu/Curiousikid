@@ -27,6 +27,7 @@ class ProactiveQuestionAgent(Agent):
         )
         self.story_service = StoryService()
 
+        self.initial_question = llm(self.connection_metadata.metadata.question)
         super().__init__(
             instructions=f"""
 You are a very cute and empathetic story listening companion for children range from 5 - 9 years old. 
@@ -49,11 +50,7 @@ absolutely not spoil the story for the child.""",
 
     async def on_enter(self):
         """Called when the task is entered"""
-        print("=================Entering proactive question agent================")
-        question_point = self.connection_metadata.metadata
-        print("Asking question: ", question_point.question)
-        await self.session.say(text=question_point.question, allow_interruptions=False)
-        print("=================End proactive question agent================")
+        await self.session.say(text=self.initial_question, allow_interruptions=False)
 
     async def on_exit(self):
         """Called when the task is exited"""

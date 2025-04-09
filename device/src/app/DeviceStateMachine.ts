@@ -2,7 +2,7 @@ import { createMachine, assign, MachineContext, createActor } from 'xstate';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
-import { renderPlayback, renderTopMenu } from './PixelGuiRenderer';
+import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
@@ -14,6 +14,7 @@ export interface StoryMetadata {
     audioUrl: string;
     duration: number;
     thumbnailUrl: string;
+    pixelArtCover: string[][];
 }
 
 export interface CurrentStory extends StoryMetadata {
@@ -40,6 +41,7 @@ export interface ChatCharacter {
     name: string;
     description: string;
     imageUrl: string;
+    pixelArtCover: string[][];
 }
 
 export enum BreadcrumbItem {
@@ -59,6 +61,7 @@ export interface DeviceContext extends MachineContext {
 
     // screen state
     screen: string[][];
+    topMenuSelections: string[];
     topMenuHighlightedIndex: number;
 
     // livekit state  
@@ -140,7 +143,7 @@ export const deviceMachine = createMachine(
             topMenuHighlightedIndex: 0,
             frame: 0,
             screen: BLANK_SCREEN,
-
+            topMenuSelections: ["Conversational Stories", "Chat with a Character"],
             // livekit state
             isConnectingToLivekit: false,
             agentState: 'disconnected',
@@ -183,14 +186,15 @@ export const deviceMachine = createMachine(
                 },
             },
             storiesSelection: {
+                entry: ['renderStoryCover'],
                 on: {
                     LEFT_PRESSED: [
                         { guard: 'isAtStoriesSelectionLeftMost', target: 'storiesSelectionBlinking' },
-                        { actions: ['prevStory', 'renderStoryMenu'], target: 'storiesSelection' }
+                        { actions: ['prevStory', 'renderStoryCover'], target: 'storiesSelection' }
                     ],
                     RIGHT_PRESSED: [
                         { guard: 'isAtStoriesSelectionRightMost', target: 'storiesSelectionBlinking' },
-                        { actions: ['nextStory', 'renderStoryMenu'], target: 'storiesSelection' }
+                        { actions: ['nextStory', 'renderStoryCover'], target: 'storiesSelection' }
                     ],
                     ENTER_PRESSED: { target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'mainMenu' },
@@ -221,9 +225,16 @@ export const deviceMachine = createMachine(
             },
 
             chatSelection: {
+                entry: ['renderCharacterCover'],
                 on: {
-                    LEFT_PRESSED: { actions: ['prevAI'] },
-                    RIGHT_PRESSED: { actions: ['nextAI'] },
+                    LEFT_PRESSED: [
+                        { guard: 'isAtChatSelectionLeftMost', target: 'chatSelectionBlinking' },
+                        { actions: ['prevAI', 'renderCharacterCover'], target: 'chatSelection' }
+                    ],
+                    RIGHT_PRESSED: [
+                        { guard: 'isAtChatSelectionRightMost', target: 'chatSelectionBlinking' },
+                        { actions: ['nextAI', 'renderCharacterCover'], target: 'chatSelection' }
+                    ],
                     ENTER_PRESSED: { target: 'chatActive' },
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
@@ -247,6 +258,12 @@ export const deviceMachine = createMachine(
                 entry: assign({ screen: BLANK_SCREEN }),
                 after: {
                     50: { target: 'storiesSelection' } // After 50ms, go back to storiesSelection
+                }
+            },
+            chatSelectionBlinking: {
+                entry: assign({ screen: BLANK_SCREEN }),
+                after: {
+                    50: { target: 'chatSelection' } // After 50ms, go back to chatSelection
                 }
             },
         },
@@ -426,18 +443,33 @@ export const deviceMachine = createMachine(
                     return renderPlayback(context);
                 }
             }),
+
+            renderStoryCover: assign({
+                screen: ({ context, event }) => {
+                    return renderStoryCover(context);
+                }
+            }),
+
+            renderCharacterCover: assign({
+                screen: ({ context, event }) => {
+                    return renderCharacterCover(context);
+                }
+            }),
         },
         guards: {
-            isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
-            isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
-            // Guard to check if at the leftmost menu item
+
             isAtMainMenuLeftMost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
-            // Guard to check if at the rightmost menu item
             isAtMainMenuRightMost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
-            isAtStoriesSelectionLeftMost: (ctx) => ctx.context.selectedStoryIndex === 0,
-            isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
+
+            isChatSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 1,
+            isAtChatSelectionLeftMost: (ctx) => ctx.context.selectedCharacterIndex === 0,
+            isAtChatSelectionRightMost: (ctx) => ctx.context.selectedCharacterIndex >= ctx.context.characters.length - 1,
+
+            isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
             isStoryPlaying: (ctx) => ctx.context.isStoryPlaying,
             isStoryPaused: (ctx) => !ctx.context.isStoryPlaying,
+            isAtStoriesSelectionLeftMost: (ctx) => ctx.context.selectedStoryIndex === 0,
+            isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
         },
     }
 );
