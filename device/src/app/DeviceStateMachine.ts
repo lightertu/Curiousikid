@@ -1,10 +1,12 @@
-import { createMachine, assign, MachineContext, createActor } from 'xstate';
-import { LiveKitConnectionDetails } from './api/livekit';
+import { createMachine, assign, MachineContext, createActor, setup, fromPromise } from 'xstate';
+import { LiveKitApi, LiveKitConnectionDetails, ConnectionMetadataType } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
 import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover, renderForwardPlayback, renderBackwardPlayback } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
+
+const LIVEKIT_API = new LiveKitApi()
 
 export interface StoryMetadata {
     id: string;
@@ -110,10 +112,11 @@ export enum DeviceEventType {
     STOP_PLAYBACK = 'STOP_PLAYBACK',
     START_PLAYBACK = 'START_PLAYBACK',
     STORY_QUESTION_SESSION_ENDED = 'STORY_QUESTION_SESSION_ENDED',
+    START_PROACTIVE_QUESTION_SESSION = 'START_PROACTIVE_QUESTION_SESSION',
+    START_USER_QUESTION_SESSION = 'START_USER_QUESTION_SESSION',
 
     // livekit events
     SET_IS_CONNECTING_TO_LIVEKIT = 'SET_IS_CONNECTING_TO_LIVEKIT',
-    SET_LIVEKIT_CONNECTION_DETAILS = 'SET_LIVEKIT_CONNECTION_DETAILS',
     SET_LIVEKIT_ROOM_CONNECTED = 'SET_LIVEKIT_ROOM_CONNECTED',
     SET_AGENT_STATE = 'SET_AGENT_STATE',
     SET_AGENT_MODEL = 'SET_AGENT_MODEL',
@@ -216,26 +219,14 @@ export const deviceMachine = createMachine(
                 ],
                 on: {
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    ENTER_PRESSED: { target: 'startingUserQuestionSession' },
                     LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
                     RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
                     SPACE_PRESSED: { target: 'storyIsPaused' },
                     STOP_PLAYBACK: { target: 'storyIsPaused' },
                     START_PLAYBACK: { target: 'storyIsPlaying' },
-                    SET_AGENT_STATE: [
-                        {
-                            guard: 'isProactiveQuestionActive',
-                            target: 'proactiveQuestionSession',
-                        },
-                        {
-                            guard: 'isUserQuestionActive',
-                            target: 'userQuestionSession',
-                        },
-                        {
-                            actions: ['setAgentState']
-                        }
-                    ],
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
-                    SET_LIVEKIT_CONNECTION_DETAILS: { actions: ['setLivekitConnectionDetails'] },
+                    START_PROACTIVE_QUESTION_SESSION: { target: 'startingProactiveQuestionSession' },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
                     SET_AGENT_MODEL: { actions: ['setAgentModel'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
@@ -248,12 +239,58 @@ export const deviceMachine = createMachine(
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
+            startingProactiveQuestionSession: {
+                entry: ['setConnectingToLivekit'],
+                invoke: {
+                    src: 'connectToLivekit',
+                    input: ({ context, event }) => {
+                        return {
+                            agentType: 'proactive_question',
+                            userId: context.userId,
+                            metadata: context.proactiveQuestionPoint
+                        }
+                    },
+                    onDone: {
+                        target: 'proactiveQuestionSession',
+                        actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    },
+                    onError: {
+                        target: 'storyIsPlaying',
+                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    },
+                },
+            },
             proactiveQuestionSession: {
                 entry: ['stopStory', 'showAIVoiceConsole', 'clearProactiveQuestionPoint'],
                 on: {
                     STORY_QUESTION_SESSION_ENDED: {
                         target: 'storyIsPlaying',
                         actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
+                    },
+                },
+            },
+            startingUserQuestionSession: {
+                entry: ['setConnectingToLivekit'],
+                invoke: {
+                    src: 'connectToLivekit',
+                    input: ({ context, event }) => {
+                        return {
+                            agentType: 'user_question',
+                            userId: context.userId,
+                            metadata: {
+                                storyId: context.currentStory?.id,
+                                userId: context.userId,
+                                interruptAt: context.currentStory?.currentTime,
+                            }
+                        }
+                    },
+                    onDone: {
+                        target: 'userQuestionSession',
+                        actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    },
+                    onError: {
+                        target: 'storyIsPlaying',
+                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit']
                     },
                 },
             },
@@ -329,13 +366,21 @@ export const deviceMachine = createMachine(
                 }
             },
         },
-        // on: {
-        //     SET_AGENT_STATE: {
-        //         actions: ['setAgentState'],
-        //     },
-        // },
+        on: {
+            SET_AGENT_STATE: {
+                actions: ['setAgentState'],
+            },
+        },
     },
     {
+        actors: {
+            connectToLivekit: fromPromise(async ({ input }: { input: ConnectionMetadataType }) => {
+                console.log("Connecting to LiveKit with metadata:", input);
+                const livekitConnectionDetails = await LIVEKIT_API.getConnectionDetails(input);
+                console.log("Connected to LiveKit with connection details:", livekitConnectionDetails);
+                return livekitConnectionDetails as LiveKitConnectionDetails;
+            })
+        },
         actions: {
             // High-level example implementations
             moveTopMenuSelectionLeft: assign({
@@ -462,9 +507,9 @@ export const deviceMachine = createMachine(
             }),
 
             setLivekitConnectionDetails: assign({
-                livekitConnectionDetails: ({ context, event }) => {
-                    console.log("setLivekitConnectionDetails", event.payload);
-                    return event.payload.livekitConnectionDetails;
+                livekitConnectionDetails: ({ event }) => {
+                    console.log("Assigning LiveKit details from actor output:", event.output);
+                    return event.output as LiveKitConnectionDetails | null;
                 }
             }),
 
@@ -584,6 +629,18 @@ export const deviceMachine = createMachine(
             clearLivekitConnectionDetails: assign({
                 livekitConnectionDetails: ({ context, event }) => {
                     return null;
+                }
+            }),
+
+            setConnectingToLivekit: assign({
+                isConnectingToLivekit: ({ context, event }) => {
+                    return true;
+                }
+            }),
+
+            unsetConnectingToLivekit: assign({
+                isConnectingToLivekit: ({ context, event }) => {
+                    return false;
                 }
             }),
         },

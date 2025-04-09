@@ -4,8 +4,7 @@ import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
 import { useSelector } from "@xstate/react";
 import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from "../DeviceStateMachine";
-import ProactiveQuestionAIVoiceModal from "./ProactiveQuestionAIVoiceModal";
-import { useVoiceAssistant } from "@livekit/components-react";
+
 const SET_PROGRESS_INTERVAL_IN_MS = 2000;
 
 
@@ -16,8 +15,6 @@ const TrackAudio: React.FC = () => {
 	const [internalDuration, setInternalDuration] = useState<number>(0);
 	// Track loading state specifically for the audio element
 	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
-	const [isLivekitConnecting, setIsLivekitConnecting] = useState<boolean>(false);
-	const { state: agentState } = useVoiceAssistant();
 
 	// Ref to track the last time progress was updated
 	const lastUpdateTime = useRef<number>(0);
@@ -38,7 +35,9 @@ const TrackAudio: React.FC = () => {
 		isUserQuestionActive,
 		proactiveQuestionPoint,
 		livekitConnectionDetails,
-		userId } = deviceStateMachine.context;
+		isConnectingToLivekit,
+		userId
+	} = deviceStateMachine.context;
 
 	const sendSetCurrentStoryEvent = (currentStory: CurrentStory) => {
 		DEVICE_STATE_MACHINE_ACTOR.send({
@@ -52,15 +51,16 @@ const TrackAudio: React.FC = () => {
 		});
 	}
 
-	const sendSetLivekitConnectionDetailsEvent = (livekitConnectionDetails: LiveKitConnectionDetails) => {
-		DEVICE_STATE_MACHINE_ACTOR.send({
-			type: DeviceEventType.SET_LIVEKIT_CONNECTION_DETAILS, payload: { livekitConnectionDetails }
-		});
-	}
 
 	const sendSetAgentModelEvent = (agentModel: VoiceAgentModel) => {
 		DEVICE_STATE_MACHINE_ACTOR.send({
 			type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel }
+		});
+	}
+
+	const sendStartProactiveQuestionSessionEvent = () => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.START_PROACTIVE_QUESTION_SESSION
 		});
 	}
 
@@ -178,32 +178,10 @@ const TrackAudio: React.FC = () => {
 		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
 		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
 
-		const canConnectToLiveKit = !isLivekitConnecting && !livekitConnectionDetails;
+		const canConnectToLiveKit = !isConnectingToLivekit && !livekitConnectionDetails;
 		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
-			setIsLivekitConnecting(true);
+			sendStartProactiveQuestionSessionEvent();
 			sendSetAgentModelEvent(VoiceAgentModel.PROACTIVE_QUESTION);
-			getLiveKitRoomConnectionDetails({
-				metadata: proactiveQuestionPoint,
-				agentType: "proactive_question",
-				userId: userId
-			}).then((connectionDetails) => {
-				sendSetLivekitConnectionDetailsEvent(connectionDetails);
-				// --- Send WebSocket Progress (Throttled) ---
-				// TODO: This is a hack to clear the proactive question point
-				// TODO: We should probably move this to the state machine
-				websocketService.storyProtocol.clearProactiveQuestionPoint({
-					type: MessageType.CLEAR_QUESTION_POINT,
-					payload: {
-						storyId: proactiveQuestionPoint.storyId,
-						userId: userId
-					}
-				});
-			}).catch((error) => {
-				sendSetAgentModelEvent(VoiceAgentModel.INACTIVE);
-				console.error("[TrackAudio LiveKit Trigger] Error connecting to LiveKit", error);
-			}).finally(() => {
-				setIsLivekitConnecting(false);
-			});
 		}
 
 	}, [ // Extensive dependencies due to needing lots of context for updates/checks
@@ -217,7 +195,6 @@ const TrackAudio: React.FC = () => {
 		isUserQuestionActive,
 		userId,
 		sendSetCurrentStoryEvent,
-		sendSetLivekitConnectionDetailsEvent
 	]);
 
 	// Called when the audio track naturally finishes playing

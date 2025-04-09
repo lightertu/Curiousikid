@@ -16,14 +16,13 @@ import { AudioTrack, RoomEvent } from 'livekit-client';
 
 export interface AIVoiceModalProps {
   show: boolean;
-  headline: string;
   agentState: AgentState;
   audioTrack: AudioTrack;
   onDisconnect: () => void;
   onConnect: () => void;
 }
 
-const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, agentState, audioTrack, onDisconnect, onConnect: onConnected }) => {
+const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, agentState, audioTrack, onDisconnect, onConnect: onConnected }) => {
   const room = useMaybeRoomContext();
 
 
