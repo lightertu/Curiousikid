@@ -26,7 +26,7 @@ class ProactiveQuestionAgent(Agent):
         logger.info(f"Loading participant metadata: {metadata}")
 
         child_name = "Emma" # TODO: remove the hardcoded child name
-        user_id = 1 # TODO: remove the hardcoded user id
+        user_id = "emma_davis_family" # TODO: remove the hardcoded user id
 
         self.story_service = StoryService()
         self.connection_metadata = ProactiveQuestionConnectionMetadata(**metadata)

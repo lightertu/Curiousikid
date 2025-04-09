@@ -47,4 +47,4 @@ serve-livekit: check-deps
     livekit-server --dev --bind 0.0.0.0
 
 warm-memory:
-    .venv/bin/python src/memory/warm_start_memories.py --file /Users/paruchua/Documents/Curiousikid/backend/src/memory/example_answers.json
+    .venv/bin/python src/memory/warm_start_memories.py --file /Users/paruchua/Documents/Curiousikid/backend/src/memory/emma_persona.json
