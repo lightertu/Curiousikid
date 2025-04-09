@@ -23,13 +23,13 @@ const DeviceIndicator: React.FC = () => {
 
     return (
         <div className="flex flex-col">
-            {/* <StatusIndicator
-                labelOn="Microphone On"
-                labelOff="Microphone Off"
+            <StatusIndicator
+                labelOn="AI On"
+                labelOff="AI Off"
                 colorOn="#4ade80" // Light Green for On
                 colorOff="#ada9a5" // Grey for Off
                 isOn={isMicrophoneOn}
-            /> */}
+            />
             <StatusIndicator
                 labelOn="Online"
                 labelOff="Offline"
@@ -55,7 +55,7 @@ const DeviceIndicator: React.FC = () => {
                 </div>
                 <div className="flex items-center">
                     <KeyCap>Space</KeyCap>
-                    <span className="ml-2">Play / Pause</span>
+                    <span className="ml-2">Pause / Resume</span>
                 </div>
             </div>
         </div>

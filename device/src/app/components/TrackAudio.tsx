@@ -88,6 +88,7 @@ const TrackAudio: React.FC = () => {
 		if (!audioEl || isAudioLoading) return; // Don't try to play/pause if loading
 
 		if (isStoryPlaying) {
+			console.log("[TrackAudio] Playing audio");
 			// The play() method returns a promise which might be rejected
 			// if the user hasn't interacted with the page yet.
 			audioEl.play().catch(error => {
@@ -96,10 +97,11 @@ const TrackAudio: React.FC = () => {
 				sendStopPlaybackEvent();
 			});
 		} else {
+			console.log("[TrackAudio] Pausing audio");
 			audioEl.pause();
 		}
 		// Run when isStoryPlaying changes, or when loading finishes
-	}, [isStoryPlaying, isAudioLoading, sendStopPlaybackEvent]);
+	}, [isStoryPlaying, isAudioLoading]);
 
 	// --- Effect for Seeking ---
 	useEffect(() => {
@@ -224,12 +226,6 @@ const TrackAudio: React.FC = () => {
 		sendStopPlaybackEvent();
 		// Consider adding a specific error event to the state machine
 	}, [sendStopPlaybackEvent]);
-
-	// --- Get LiveKit Connection Details ---
-	const getLiveKitRoomConnectionDetails = async (metadata: ProactiveQuestionConnectionMetadata): Promise<LiveKitConnectionDetails> => {
-		const liveKitApi = new LiveKitApi();
-		return await liveKitApi.getConnectionDetails(metadata) as LiveKitConnectionDetails;
-	};
 
 	// --- Render the hidden <audio> element ---
 	return (

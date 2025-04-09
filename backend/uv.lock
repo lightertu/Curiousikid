@@ -298,6 +298,7 @@ dependencies = [
     { name = "langchain-anthropic" },
     { name = "langchain-community" },
     { name = "livekit-agents" },
+    { name = "livekit-plugins-anthropic" },
     { name = "livekit-plugins-deepgram" },
     { name = "livekit-plugins-elevenlabs" },
     { name = "livekit-plugins-openai" },
@@ -331,11 +332,12 @@ requires-dist = [
     { name = "langchain", specifier = ">=0.3.23" },
     { name = "langchain-anthropic", specifier = ">=0.3.10" },
     { name = "langchain-community", specifier = ">=0.3.21" },
-    { name = "livekit-agents", specifier = "~=1.0rc0" },
-    { name = "livekit-plugins-deepgram", specifier = "~=1.0rc0" },
-    { name = "livekit-plugins-elevenlabs", specifier = "~=1.0rc0" },
-    { name = "livekit-plugins-openai", specifier = "~=1.0rc0" },
-    { name = "livekit-plugins-silero", specifier = "~=1.0rc0" },
+    { name = "livekit-agents", specifier = ">=0.10.1" },
+    { name = "livekit-plugins-anthropic" },
+    { name = "livekit-plugins-deepgram", specifier = ">=0.6.8" },
+    { name = "livekit-plugins-elevenlabs", specifier = ">=0.7.5" },
+    { name = "livekit-plugins-openai", specifier = ">=0.10.3" },
+    { name = "livekit-plugins-silero", specifier = ">=0.7.1" },
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "mem0ai", specifier = ">=0.1.81" },
     { name = "openai-whisper", specifier = "==20240930" },
@@ -1341,6 +1343,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/ee/58/19b21a9bf9011a870be0aa7cccf9188f2ae644247d7da8f20935bbb2aa5b/livekit_api-1.0.2.tar.gz", hash = "sha256:5a6726a24761af046bdb4ae32b572d28df728a0e6824805d86783fa94c59574f", size = 14803 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7b/a3/d7eda9924316fcc0b9287ae671094f241c25fa13bc24f18e9c708e58d6b2/livekit_api-1.0.2-py3-none-any.whl", hash = "sha256:81ea2b330a7182c77f3cf307dfcff7df7d0d70524055bfb02be23ac8a45b8c6a", size = 17251 },
+]
+
+[[package]]
+name = "livekit-plugins-anthropic"
+version = "0.2.12"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anthropic" },
+    { name = "livekit-agents" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/fa/c0/531e840906011c97a79bd8111ee826bd97f0bde2e5b970d100ea18dd286e/livekit_plugins_anthropic-0.2.12.tar.gz", hash = "sha256:2768f003e025058a94d5b747d2c0dabd8d7176511a13da3f4dee2e28d7e99de9", size = 8701 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/bc/7c6f9587460b627abbb15c2ac2a2c6a570d0cb869c87d7dde642beb47300/livekit_plugins_anthropic-0.2.12-py3-none-any.whl", hash = "sha256:361c37359608804080fb88303fa05b8a98d604a39f0f52589dccd3e2d24dbc67", size = 9630 },
 ]
 
 [[package]]
