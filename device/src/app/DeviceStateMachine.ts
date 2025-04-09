@@ -207,8 +207,10 @@ export const deviceMachine = createMachine(
                     'renderPlaybackScreen'
                 ],
                 on: {
-                    SPACE_PRESSED: { actions: ['stopStory'], target: 'storyIsPaused' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    LEFT_PRESSED: { actions: ['backwardPlayback'] },
+                    RIGHT_PRESSED: { actions: ['forwardPlayback'] },
+                    SPACE_PRESSED: { actions: ['stopStory'], target: 'storyIsPaused' },
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
@@ -453,6 +455,38 @@ export const deviceMachine = createMachine(
             renderCharacterCover: assign({
                 screen: ({ context, event }) => {
                     return renderCharacterCover(context);
+                }
+            }),
+
+            forwardPlayback: assign({
+                currentStory: ({ context, event }) => {
+                    if (context.currentStory) {
+                        if (context.currentStory.currentTime + 10 < context.currentStory.duration) {
+                            return {
+                                ...context.currentStory,
+                                currentTime: context.currentStory.currentTime + 10,
+                            }
+                        } else {
+                            return {
+                                ...context.currentStory,
+                            }
+                        }
+                    } else {
+                        return null;
+                    }
+                }
+            }),
+
+            backwardPlayback: assign({
+                currentStory: ({ context, event }) => {
+                    if (context.currentStory) {
+                        return {
+                            ...context.currentStory,
+                            currentTime: Math.max(0, context.currentStory.currentTime - 10),
+                        }
+                    } else {
+                        return null;
+                    }
                 }
             }),
         },
