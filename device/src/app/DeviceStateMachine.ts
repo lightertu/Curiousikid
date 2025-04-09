@@ -2,7 +2,7 @@ import { createMachine, assign, MachineContext, createActor } from 'xstate';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
-import { renderTopMenu } from './PixelGuiRenderer';
+import { renderPlayback, renderTopMenu } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
@@ -192,23 +192,30 @@ export const deviceMachine = createMachine(
                         { guard: 'isAtStoriesSelectionRightMost', target: 'storiesSelectionBlinking' },
                         { actions: ['nextStory', 'renderStoryMenu'], target: 'storiesSelection' }
                     ],
-                    ENTER_PRESSED: { target: 'storyPlayback' },
+                    ENTER_PRESSED: { target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
-
-            storyPlayback: {
+            storyIsPlaying: {
                 entry: [
                     'selectStory',
-                    'setIsStoryPlaying'
+                    'setIsStoryPlaying',
+                    'renderPlaybackScreen'
                 ],
                 on: {
-                    SPACE_PRESSED: { actions: ['togglePlayback'] },
+                    SPACE_PRESSED: { actions: ['stopStory'], target: 'storyIsPaused' },
+                    ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
                     STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
                     STOP_PLAYBACK: { actions: ['stopStory'] },
                     START_PLAYBACK: { actions: ['startStory'] },
+                },
+            },
+            storyIsPaused: {
+                entry: ['renderPlaybackScreen'],
+                on: {
+                    SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
@@ -413,6 +420,12 @@ export const deviceMachine = createMachine(
                     }
                 }
             }),
+
+            renderPlaybackScreen: assign({
+                screen: ({ context, event }) => {
+                    return renderPlayback(context);
+                }
+            }),
         },
         guards: {
             isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
@@ -423,6 +436,8 @@ export const deviceMachine = createMachine(
             isAtMainMenuRightMost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
             isAtStoriesSelectionLeftMost: (ctx) => ctx.context.selectedStoryIndex === 0,
             isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
+            isStoryPlaying: (ctx) => ctx.context.isStoryPlaying,
+            isStoryPaused: (ctx) => !ctx.context.isStoryPlaying,
         },
     }
 );

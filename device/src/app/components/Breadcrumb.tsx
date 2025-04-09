@@ -18,7 +18,8 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
             case 'storiesSelection':
                 path.push('Stories');
                 break;
-            case 'storyPlayback':
+            case 'storyIsPlaying':
+            case 'storyIsPaused':
                 path.push('Stories'); // Might need context to know which story
                 path.push(context.currentStory?.title || 'Playback');
                 break;
