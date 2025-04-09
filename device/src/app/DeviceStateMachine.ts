@@ -299,7 +299,7 @@ export const deviceMachine = createMachine(
                 on: {
                     STORY_QUESTION_SESSION_ENDED: {
                         target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
+                        actions: ['startStory', 'hideAIVoiceConsole', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
                     },
                 },
             },
