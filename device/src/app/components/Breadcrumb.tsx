@@ -37,6 +37,10 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
                 path.push(context.currentStory?.title || 'Playback');
                 break;
             case 'chatActive':
+            case 'chatActiveBlinking':
+            case 'startingChatCharacterSession':
+            case 'chatCharacterSession':
+            case 'chatCharacterSessionEnded':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(`${context.characters[context.selectedCharacterIndex].name}`);
                 break;
