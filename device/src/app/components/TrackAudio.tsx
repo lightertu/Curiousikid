@@ -4,8 +4,11 @@ import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
 import { useSelector } from "@xstate/react";
 import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from "../DeviceStateMachine";
+import ProactiveQuestionAIVoiceModal from "./ProactiveQuestionAIVoiceModal";
 
 const SET_PROGRESS_INTERVAL_IN_MS = 2000;
+
+type LiveKitRoomConnectionState = "DISCONNECTED" | "CONNECTING" | "CONNECTED" | "DISCONNECTING";
 
 const TrackAudio: React.FC = () => {
 	// Ref for the <audio> element
@@ -14,6 +17,7 @@ const TrackAudio: React.FC = () => {
 	const [internalDuration, setInternalDuration] = useState<number>(0);
 	// Track loading state specifically for the audio element
 	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
+	const [liveKitRoomConnectionState, setLiveKitRoomConnectionState] = useState<LiveKitRoomConnectionState>("DISCONNECTED");
 
 	// Ref to track the last time progress was updated
 	const lastUpdateTime = useRef<number>(0);
@@ -30,7 +34,6 @@ const TrackAudio: React.FC = () => {
 		currentStory,
 		stories,
 		isStoryPlaying,
-		isConnectingToLivekit,
 		isLivekitRoomConnected,
 		isUserQuestionActive,
 		proactiveQuestionPoint,
@@ -46,12 +49,6 @@ const TrackAudio: React.FC = () => {
 	const sendStopPlaybackEvent = () => {
 		DEVICE_STATE_MACHINE_ACTOR.send({
 			type: DeviceEventType.STOP_PLAYBACK
-		});
-	}
-
-	const sendSetIsConnectingToLivekitEvent = (isConnectingToLivekit: boolean) => {
-		DEVICE_STATE_MACHINE_ACTOR.send({
-			type: DeviceEventType.SET_IS_CONNECTING_TO_LIVEKIT, payload: { isConnectingToLivekit }
 		});
 	}
 
@@ -151,42 +148,42 @@ const TrackAudio: React.FC = () => {
 		const now = Date.now();
 
 		// --- Throttling Logic (Update every 2 seconds) ---
-		if (now - lastUpdateTime.current < SET_PROGRESS_INTERVAL_IN_MS) {
-			return; // Not enough time has passed
-		}
+		if (now - lastUpdateTime.current >= SET_PROGRESS_INTERVAL_IN_MS) {
+			lastUpdateTime.current = now; // Update the last update time
 
-		lastUpdateTime.current = now; // Update the last update time
-
-		// --- Update State Machine Context (Throttled) ---
-		console.log("update current story", currentTime);
-		sendSetCurrentStoryEvent({
-			...currentStory,
-			currentTime: currentTime,
-			duration: internalDuration // Use state variable for duration
-		});
-
-		// --- Send WebSocket Progress (Throttled) ---
-		websocketService.storyProtocol.setStoryProgress({
-			type: MessageType.SET_STORY_PROGRESS,
-			payload: {
-				...currentStory, // Send necessary story info
+			// --- Update State Machine Context (Throttled) ---
+			console.log("update current story", currentTime);
+			sendSetCurrentStoryEvent({
+				...currentStory,
 				currentTime: currentTime,
-			},
-		});
+				duration: internalDuration // Use state variable for duration
+			});
+
+			// --- Send WebSocket Progress (Throttled) ---
+			websocketService.storyProtocol.setStoryProgress({
+				type: MessageType.SET_STORY_PROGRESS,
+				payload: {
+					...currentStory, // Send necessary story info
+					currentTime: currentTime,
+				},
+			});
+		}
 
 		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
 		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
-		const canConnectToLiveKit = !isConnectingToLivekit && !isLivekitRoomConnected && !livekitConnectionDetails;
+
+		const canConnectToLiveKit = liveKitRoomConnectionState === "DISCONNECTED" && !livekitConnectionDetails;
 		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
-			sendSetIsConnectingToLivekitEvent(true);
+			setLiveKitRoomConnectionState("CONNECTING");
 			getLiveKitRoomConnectionDetails({
 				metadata: proactiveQuestionPoint,
 				agentType: "proactive_question",
 				userId: userId
 			}).then((connectionDetails) => {
 				sendSetLivekitConnectionDetailsEvent(connectionDetails);
+				setLiveKitRoomConnectionState("CONNECTED");
 			}).catch((error) => {
-				sendSetIsConnectingToLivekitEvent(false);
+				setLiveKitRoomConnectionState("DISCONNECTED");
 				console.error("[TrackAudio LiveKit Trigger] Error connecting to LiveKit", error);
 			});
 		}
@@ -197,14 +194,11 @@ const TrackAudio: React.FC = () => {
 		internalDuration,
 		websocketService,
 		proactiveQuestionPoint,
-		isConnectingToLivekit,
-		isLivekitRoomConnected,
 		livekitConnectionDetails,
 		isStoryPlaying,
 		isUserQuestionActive,
 		userId,
 		sendSetCurrentStoryEvent,
-		sendSetIsConnectingToLivekitEvent,
 		sendSetLivekitConnectionDetailsEvent
 	]);
 
@@ -245,18 +239,19 @@ const TrackAudio: React.FC = () => {
 
 	// --- Render the hidden <audio> element ---
 	return (
-		<audio
-			ref={audioElementRef}
-			onLoadedMetadata={handleLoadedMetadata}
-			onTimeUpdate={handleTimeUpdate}
-			onEnded={handleAudioEnded}
-			onError={handleError}
-			onLoadStart={() => setIsAudioLoading(true)} // Explicitly set loading on load start
-			// `preload="metadata"` helps get duration faster
-			preload="metadata"
-		// Add 'controls' attribute here for debugging purposes if needed
-		// controls
-		/>
+		<>
+			<audio
+				ref={audioElementRef}
+				onLoadedMetadata={handleLoadedMetadata}
+				onTimeUpdate={handleTimeUpdate}
+				onEnded={handleAudioEnded}
+				onError={handleError}
+				onLoadStart={() => setIsAudioLoading(true)} // Explicitly set loading on load start
+				// `preload="metadata"` helps get duration faster
+				preload="metadata"
+			/>
+			<ProactiveQuestionAIVoiceModal />
+		</>
 	);
 };
 

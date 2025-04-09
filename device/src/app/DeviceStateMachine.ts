@@ -216,6 +216,7 @@ export const deviceMachine = createMachine(
                     STOP_PLAYBACK: { actions: ['stopStory'] },
                     START_PLAYBACK: { actions: ['startStory'] },
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
+                    SET_LIVEKIT_CONNECTION_DETAILS: { actions: ['setLivekitConnectionDetails'] },
                     PROACTIVE_QUESTION_SESSION_STARTED: { target: 'proactiveQuestionSession' },
                     PROACTIVE_QUESTION_SESSION_ENDED: { target: 'storyIsPlaying' },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
@@ -443,6 +444,7 @@ export const deviceMachine = createMachine(
 
             setLivekitConnectionDetails: assign({
                 livekitConnectionDetails: ({ context, event }) => {
+                    console.log("setLivekitConnectionDetails", event.payload);
                     return event.payload.livekitConnectionDetails;
                 }
             }),

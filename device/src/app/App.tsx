@@ -12,7 +12,6 @@ import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachin
 import Breadcrumb from "./components/Breadcrumb";
 import { useSelector } from '@xstate/react';
 import TrackAudio from "./components/TrackAudio";
-import ProactiveQuestionAIVoiceModal from "./components/ProactiveQuestionAIVoiceModal";
 
 // Simple component to render text like a keyboard key
 
@@ -97,7 +96,6 @@ const App: React.FC = () => {
 			</div>
 			<DeviceIndicator />
 			<TrackAudio />
-			{/* <ProactiveQuestionAIVoiceModal /> */}
 		</div>
 	);
 };

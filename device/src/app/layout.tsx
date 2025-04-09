@@ -7,13 +7,14 @@ import "./globals.css";
 import { WebSocketProvider } from "./contexts/WebSocketContext";
 import { LiveKitRoom } from "@livekit/components-react";
 import { MediaDeviceFailure } from "livekit-client";
-import useDeviceState from "./DeviceState";
-import WebSocketStatus from "./components/WebSocketStatus";
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from "./DeviceStateMachine";
+import { useSelector } from "@xstate/react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
+  
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -39,12 +40,14 @@ export default function RootLayout({
 }>) {
   // WebSocket server URL should come from environment variables in production
   const wsServerUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL || 'ws://localhost:8000/api/v1/ws/';
-  const {
-    livekitConnectionDetails,
-    setIsLivekitRoomConnected,
-    setIsConnectingToLivekit,
-    setLivekitConnectionDetails
-  } = useDeviceState();
+  const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+    return {
+      value: state.value,
+      context: state.context
+    }
+  });
+
+  const { livekitConnectionDetails } = deviceContext.context;
 
   return (
     <html lang="en">
@@ -58,15 +61,6 @@ export default function RootLayout({
             audio={true}
             video={false}
             connect={livekitConnectionDetails !== null}
-            onConnected={() => {
-              setIsConnectingToLivekit(false)
-              setIsLivekitRoomConnected(true)
-            }}
-            onDisconnected={() => {
-              setIsConnectingToLivekit(false)
-              setIsLivekitRoomConnected(false)
-              setLivekitConnectionDetails(null)
-            }}
             onMediaDeviceFailure={onDeviceFailure}
           >
             {children}

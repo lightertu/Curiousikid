@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useState } from "react";
-import useDeviceState from '../DeviceState';
 
 import { CloseIcon } from "./livekit/CloseIcon";
 import { NoAgentNotification } from "./livekit/NoAgentNotification";
@@ -12,21 +10,20 @@ import {
   DisconnectButton,
   RoomAudioRenderer,
   VoiceAssistantControlBar,
-  useVoiceAssistant,
   useMaybeRoomContext,
 } from "@livekit/components-react";
-import { RoomEvent } from 'livekit-client';
+import { AudioTrack, RoomEvent } from 'livekit-client';
 
 export interface AIVoiceModalProps {
   show: boolean;
   headline: string;
+  agentState: AgentState;
+  audioTrack: AudioTrack;
   onDisconnect: () => void;
   onConnect: () => void;
 }
 
-const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnect, onConnect: onConnected }) => {
-  const [agentConnected, setAgentConnected] = useState<boolean>(false);
-  const { state, audioTrack } = useVoiceAssistant();
+const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, agentState, audioTrack, onDisconnect, onConnect: onConnected }) => {
   const room = useMaybeRoomContext();
 
 
@@ -50,14 +47,12 @@ const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnec
   }, [room]);
 
   useEffect(() => {
-    setVoiceAgentState(state);
-    const isAgentConnected = state === "speaking" || state === "listening" || state === "thinking";
-    setAgentConnected(isAgentConnected);
+    const isAgentConnected = agentState === "speaking" || agentState === "listening" || agentState === "thinking";
     if (isAgentConnected) {
       onConnected();
     }
 
-  }, [state]);
+  }, [agentState]);
 
   return (
     <>
@@ -74,16 +69,16 @@ const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnec
             <main data-lk-theme="default" className="p-8">
               <div className="h-[300px] mx-auto mb-6">
                 <BarVisualizer
-                  state={state}
+                  state={agentState}
                   barCount={5}
                   trackRef={audioTrack}
                   className="agent-visualizer"
                   options={{ minHeight: 24 }}
                 />
               </div>
-              <ControlBar agentState={voiceAgentState} onDisconnect={onDisconnect} />
+              <ControlBar agentState={agentState} onDisconnect={onDisconnect} />
               <RoomAudioRenderer />
-              <NoAgentNotification state={voiceAgentState} />
+              <NoAgentNotification state={agentState} />
             </main>
           </div>
         </div>
