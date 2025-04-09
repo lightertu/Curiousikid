@@ -6,7 +6,7 @@ from livekit.agents import llm
 from memory.story.service import StoryService
 from memory.story.models import ProactiveQuestionPoint
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
-from livekit.plugins import openai, deepgram, silero, elevenlabs
+from livekit.plugins import openai, deepgram, silero
 
 
 from mem0 import AsyncMemoryClient, MemoryClient
@@ -236,11 +236,9 @@ class ProactiveQuestionAgent(Agent):
 
     async def on_enter(self):
         """Called when the task is entered"""
-        print("=================Entering proactive question agent================")
-        question_point = self.connection_metadata.metadata
-        print("Asking question: ", question_point.question)
-        await self.session.say(text=question_point.question, allow_interruptions=False)
-        print("=================End proactive question agent================")
+        await self.session.say(
+            text=self.connection_metadata.metadata.question, allow_interruptions=False
+        )
 
     async def on_exit(self):
         """Called when the task is exited"""

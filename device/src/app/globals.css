@@ -2,11 +2,54 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
-  --lk-va-bar-width: 72px;
-  --lk-control-bar-height: unset;
+  --foreground: #181717;
 }
 
+[data-lk-theme="custom-theme"] {
+  --lk-bg: #f9f6f0;
+  --lk-va-bar-width: 100px;
+  --lk-control-bar-height: 100px;
+
+  .lk-device-menu {
+    background-color: #d7d4cf;
+  }
+
+  .lk-audio-bar-visualizer {
+    gap: var(--lk-va-bar-gap, 24px);
+  }
+}
+
+/* Define styles for your custom LiveKit theme
+[data-lk-theme="custom-theme"] {
+  /* Use your Tailwind defined colors or raw hex codes */
+/* --lk-bg: theme('colors.white'); */
+/* Example using Tailwind helper */
+/* --lk-bg2: #f8f8f8; */
+/* Example raw hex */
+/* --lk-accent-bg: theme('colors.lightblue'); */
+/* --lk-accent-bg-hover: #a0d0e0; */
+/* Slightly darker lightblue */
+/* --lk-text-color: theme('colors.black'); */
+/* --lk-button-bg: theme('colors.khaki'); */
+/* Use your custom khaki */
+/* --lk-button-bg-hover: #e6da80; */
+/* Darker khaki */
+/* --lk-border-color: theme('colors.gray.300'); */
+
+/* Define other variables as needed */
+/* --lk-font-family: ...; */
+/* --lk-danger-color: theme('colors.red.500'); */
+/* } */
+
+/* You can also define dark mode overrides */
+/* html.dark [data-lk-theme="custom-theme"] {
+  --lk-bg: theme('colors.gray.800');
+  --lk-bg2: theme('colors.gray.700');
+  --lk-text-color: theme('colors.white');
+  --lk-border-color: theme('colors.gray.600');
+  --lk-button-bg: theme('colors.gray.600');
+  --lk-button-bg-hover: theme('colors.gray.500');
+} */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -27,7 +70,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.agent-visualizer > .lk-audio-bar {
+.agent-visualizer>.lk-audio-bar {
   display: inline-block;
   width: 72;
   height: 72px;

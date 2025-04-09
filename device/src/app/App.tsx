@@ -1,21 +1,32 @@
 "use client";
 
-import React, { useEffect } from "react";
-import Link from "next/link";
+import React, { use, useEffect } from "react";
 
 // Import components
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
-import useGlobalState from "./GlobalState";
-import WebSocketHandler from "./components/WebSocketHandler";
-import WebSocketStatus from "./components/WebSocketStatus";
+import useDeviceState from "./DeviceState";
+import PixelScreen from "./components/PixelScreen";
+import DeviceIndicator from "./components/DeviceIndicator";
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR, VoiceAgentModel } from "./DeviceStateMachine";
+import Breadcrumb from "./components/Breadcrumb";
+import { useSelector } from '@xstate/react';
+import TrackAudio from "./components/TrackAudio";
+import { useVoiceAssistant } from "@livekit/components-react";
+// Simple component to render text like a keyboard key
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
-	const { isWebSocketConnected } = useGlobalState();
-	const { userId } = useGlobalState();
+	const { isWebSocketConnected, userId } = useDeviceState();
+	const { state: agentState } = useVoiceAssistant();
 
-	// Log that the app has loaded
+	const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+		return {
+			value: state.value,
+			context: state.context
+		}
+	});
+
 	useEffect(() => {
 		if (isWebSocketConnected) {
 			console.log("userId", userId);
@@ -28,27 +39,70 @@ const App: React.FC = () => {
 				type: MessageType.GET_CHAT_CHARACTER_LIST,
 				payload: { userId: userId }
 			});
+
 		}
 
-	}, [isWebSocketConnected]);
+	}, [isWebSocketConnected, userId, websocketService]);
+
+	useEffect(() => {
+		console.log("agentState", agentState);
+		DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_AGENT_STATE, payload: { agentState: agentState } });
+	}, [agentState]);
+
+	// Keyboard event handling
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.repeat) return; // Ignore repeated keydown events
+
+			switch (event.key) {
+				case 'Escape':
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ESC_PRESSED });
+					break;
+				case 'Enter':
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ENTER_PRESSED });
+					break;
+				case 'ArrowLeft':
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.LEFT_PRESSED });
+					break;
+				case 'ArrowRight':
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.RIGHT_PRESSED });
+					break;
+				case ' ':
+					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SPACE_PRESSED });
+					break;
+				default:
+					break;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyDown);
+
+		// Cleanup function
+		return () => {
+			window.removeEventListener('keydown', handleKeyDown);
+		};
+	}, [deviceContext]); // Dependency array
+
+	// // Effect to log state changes
+	// useEffect(() => {
+	// 	// This code runs after every state transition
+	// 	console.log("State Machine Changed:");
+	// 	console.log("  - State Value:", deviceContext.value);
+	// 	console.log("  - Context:", deviceContext.context);
+	// }, [deviceContext]); // Re-run this effect whenever the deviceState object changes
 
 	return (
-		<div className="flex items-center justify-center min-h-screen bg-gray-100">
-			<div className="flex space-x-8">
-				{/* Card 1 */}
-				<Link href="/player">
-					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
-						Player
-					</div>
-				</Link>
-
-				{/* Card 2 */}
-				<Link href="/chat-characters">
-					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
-						Chat Characters
-					</div>
-				</Link>
+		// Adjust layout to include indicators
+		<div className="flex min-h-screen items-center justify-center space-x-16" style={{ backgroundColor: '#f0ece2' }}>
+			{/* Main content area with instructions and PixelGrid */}
+			<div className="flex flex-col items-center">
+				{/* Render the Breadcrumb component */}
+				<Breadcrumb context={deviceContext.context} stateValue={deviceContext.value} />
+				{/* Render the PixelGrid */}
+				<PixelScreen rows={32} cols={32} pixelData={deviceContext.context.screen} />
 			</div>
+			<DeviceIndicator />
+			<TrackAudio />
 		</div>
 	);
 };

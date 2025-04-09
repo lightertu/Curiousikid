@@ -1,315 +1,247 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
-import useGlobalState from "../GlobalState";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
 import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
+import { useSelector } from "@xstate/react";
+import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from "../DeviceStateMachine";
+
+const SET_PROGRESS_INTERVAL_IN_MS = 2000;
+
 
 const TrackAudio: React.FC = () => {
-	// --- Refs for Web Audio API objects ---
-	const audioContext = useRef<AudioContext | null>(null);
-	const audioSource = useRef<AudioBufferSourceNode | null>(null);
-	const gainNode = useRef<GainNode | null>(null);
+	// Ref for the <audio> element
+	const audioElementRef = useRef<HTMLAudioElement | null>(null);
+	// State to hold the duration once loaded
+	const [internalDuration, setInternalDuration] = useState<number>(0);
+	// Track loading state specifically for the audio element
+	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
 
-	// --- Refs for managing playback state ---
-	const playbackPosition = useRef<number>(0);
-	const playbackStartTime = useRef<number>(0);
-	const audioDuration = useRef<number>(0);
-	const timeUpdateInterval = useRef<number | null>(null);
-	const audioBuffer = useRef<AudioBuffer | null>(null);
-	const isLoading = useRef<boolean>(false);
+	// Ref to track the last time progress was updated
+	const lastUpdateTime = useRef<number>(0);
 
 	// --- Global State ---
+	const deviceStateMachine = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+		return {
+			value: state.value,
+			context: state.context
+		}
+	});
+
 	const {
 		currentStory,
 		stories,
-		setCurrentStory,
-		isPlaying,
-		setIsPlaying,
-		isConnectingToLivekit,
-		setIsConnectingToLivekit,
-		setLivekitConnectionDetails,
+		isStoryPlaying,
 		isLivekitRoomConnected,
-		isProactiveQuestionActive,
 		isUserQuestionActive,
-		setIsProactiveQuestionActive,
 		proactiveQuestionPoint,
 		livekitConnectionDetails,
+		isConnectingToLivekit,
 		userId
-	} = useGlobalState();
+	} = deviceStateMachine.context;
+
+	const sendSetCurrentStoryEvent = (currentStory: CurrentStory) => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.SET_CURRENT_STORY, payload: { currentStory }
+		});
+	}
+
+	const sendStopPlaybackEvent = () => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.STOP_PLAYBACK
+		});
+	}
+
+
+	const sendSetAgentModelEvent = (agentModel: VoiceAgentModel) => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.SET_AGENT_MODEL, payload: { agentModel }
+		});
+	}
+
+	const sendStartProactiveQuestionSessionEvent = () => {
+		DEVICE_STATE_MACHINE_ACTOR.send({
+			type: DeviceEventType.START_PROACTIVE_QUESTION_SESSION
+		});
+	}
+
 	const { websocketService } = useWebSocket();
 
-	// --- Local State ---
-	const [lastSentTime, setLastSentTime] = useState<number>(-1);
-
-	// --- Component Lifecycle: Mount & Unmount ---
+	// --- Effect for Loading New Audio Source ---
 	useEffect(() => {
+		const audioEl = audioElementRef.current;
+		if (!currentStory?.audioUrl || !audioEl) return;
 
-		const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-		audioContext.current = new AudioContextClass();
-
-		gainNode.current = audioContext.current.createGain();
-		gainNode.current.connect(audioContext.current.destination);
-
-		return () => {
-
-			stopPlayback();
-			if (timeUpdateInterval.current) {
-				window.clearInterval(timeUpdateInterval.current);
-			}
-
-			if (audioContext.current && audioContext.current.state !== 'closed') {
-				audioContext.current.close();
-			}
-		};
-	}, []);
-
-	// --- Audio Loading ---
-	useEffect(() => {
-		if (!currentStory?.audioUrl || !audioContext.current || isLoading.current) return;
-
-		const loadAudio = async () => {
-			try {
-				isLoading.current = true;
-
-				const response = await fetch(currentStory.audioUrl);
-				if (!response.ok) {
-					throw new Error(`HTTP error! status: ${response.status}`);
-				}
-				const arrayBuffer = await response.arrayBuffer();
-
-				if (!audioContext.current) return;
-				const buffer = await audioContext.current.decodeAudioData(arrayBuffer);
-
-				audioBuffer.current = buffer;
-				audioDuration.current = buffer.duration;
-				playbackPosition.current = 0;
-
-				setCurrentStory({
-					...currentStory,
-					currentTime: 0,
-					duration: buffer.duration
-				});
-
-				if (isPlaying) {
-					startPlayback();
-				}
-
-				isLoading.current = false;
-			} catch (error) {
-				console.error("Error loading or decoding audio:", error);
-				isLoading.current = false;
-				setIsPlaying(false);
-			}
-		};
-
-		stopPlayback();
-		loadAudio();
-	}, [currentStory?.audioUrl, setCurrentStory, setIsPlaying]);
-
-	// --- Stop Playback ---
-	const stopPlayback = useCallback(() => {
-		if (timeUpdateInterval.current) {
-			window.clearInterval(timeUpdateInterval.current);
-			timeUpdateInterval.current = null;
+		// Only change source if the URL is different
+		if (audioEl.src !== currentStory.audioUrl) {
+			console.log(`[TrackAudio] Loading new source: ${currentStory.audioUrl}`);
+			setIsAudioLoading(true);
+			audioEl.src = currentStory.audioUrl;
+			audioEl.load(); // Tell the browser to load the new source
+			setInternalDuration(0); // Reset duration until metadata loads
 		}
 
-		if (audioSource.current) {
-			try {
-				playbackPosition.current = getCurrentTime();
+	}, [currentStory?.audioUrl]); // Dependency: Only the URL
 
-				audioSource.current.stop(0);
-				audioSource.current.disconnect();
-				audioSource.current = null;
-			} catch (e) {
-				console.error("Error stopping playback source:", e);
-				audioSource.current = null;
-			}
+	// --- Effect for Play/Pause Control ---
+	useEffect(() => {
+		const audioEl = audioElementRef.current;
+		if (!audioEl || isAudioLoading) return; // Don't try to play/pause if loading
+
+		if (isStoryPlaying) {
+			console.log("[TrackAudio] Playing audio");
+			// The play() method returns a promise which might be rejected
+			// if the user hasn't interacted with the page yet.
+			audioEl.play().catch(error => {
+				console.warn("[TrackAudio] Audio play failed (likely needs user interaction first):", error);
+				// If play fails, we should probably reflect that in the state machine
+				sendStopPlaybackEvent();
+			});
+		} else {
+			console.log("[TrackAudio] Pausing audio");
+			audioEl.pause();
 		}
-	}, []); // No state/prop dependencies needed here
+		// Run when isStoryPlaying changes, or when loading finishes
+	}, [isStoryPlaying, isAudioLoading]);
 
-	// --- Handle Song End ---
-	const handleSongEnd = useCallback(() => {
-		stopPlayback(); // Now stopPlayback is defined above
+	// --- Effect for Seeking ---
+	useEffect(() => {
+		const audioEl = audioElementRef.current;
+		// Ensure element exists, isn't loading, metadata is ready, and story context is available
+		if (!audioEl || !currentStory || isAudioLoading || audioEl.readyState < 1 /* HAVE_METADATA */) return;
 
-		const currentIndex = stories.findIndex((song) => song.id === currentStory?.id);
-		const nextSong = stories[(currentIndex + 1) % stories.length];
+		const targetTime = currentStory.currentTime;
+		const currentTime = audioEl.currentTime;
+		const difference = Math.abs(targetTime - currentTime);
 
-		setCurrentStory({ ...nextSong, currentTime: 0, duration: 0 });
-		playbackPosition.current = 0;
+		// Only seek if the difference is significant (e.g., > 1 second) to avoid fighting onTimeUpdate
+		// Also check if targetTime is a valid number
+		if (difference > 1 && !isNaN(targetTime) && isFinite(targetTime)) {
+			console.log(`[TrackAudio] Seeking from ${currentTime.toFixed(2)} to ${targetTime.toFixed(2)}`);
+			audioEl.currentTime = targetTime;
+		}
+		// Run when the target time from context changes, or loading finishes
+	}, [currentStory?.currentTime, isAudioLoading]);
 
-		setIsPlaying(true);
-	}, [stories, currentStory?.id, setCurrentStory, setIsPlaying, stopPlayback]); // Keep stopPlayback dependency
+	// --- <audio> Element Event Handlers ---
 
-	// --- Time Update Logic ---
-	const updatePlaybackTime = useCallback(() => {
-		// Exit if context or story is missing, or not currently playing
-		if (!audioContext.current || !currentStory || !audioSource.current || !isPlaying) return;
+	// Called when metadata (including duration) is loaded
+	const handleLoadedMetadata = useCallback(() => {
+		const audioEl = audioElementRef.current;
+		if (!audioEl || !currentStory) return;
 
-		// --- Calculate Current Time ---
-		// Get the precise current playback time
-		const currentTime = getCurrentTime();
-		// Get the latest lastSentTime from state (needed for comparison)
-		const currentLastSentTime = lastSentTime;
+		const duration = audioEl.duration;
+		if (!isNaN(duration) && isFinite(duration)) {
+			console.log(`[TrackAudio] Metadata loaded. Duration: ${duration.toFixed(2)}`);
+			setInternalDuration(duration);
+			// Update the state machine context with the correct duration and reset time
+			// Resetting time ensures consistency when a new track loads
+			sendSetCurrentStoryEvent({
+				...currentStory,
+				currentTime: 0, // Start at the beginning of the new track
+				duration: duration
+			});
+		} else {
+			console.warn("[TrackAudio] Loaded metadata but duration is invalid:", duration);
+		}
+		setIsAudioLoading(false); // Loading is complete
+	}, [currentStory, sendSetCurrentStoryEvent]); // Dependency: currentStory to update context
 
-		// --- Update Global State & Send WS Message (Throttled) ---
-		// Check if the difference exceeds the 2-second threshold
-		if (Math.abs(currentTime - currentLastSentTime) > 2) {
-			// Update the global state with the new time and duration
-			setCurrentStory({
-				...currentStory, // Keep existing properties
-				currentTime, // Update current time
-				duration: audioDuration.current // Ensure duration is up-to-date
+	// Called frequently during playback
+	const handleTimeUpdate = useCallback(() => {
+		const audioEl = audioElementRef.current;
+		// Ensure element exists, isn't loading, data is available, and we have context/duration
+		if (!audioEl || !currentStory || isAudioLoading || audioEl.readyState < 2 /* HAVE_CURRENT_DATA */ || internalDuration <= 0) return;
+
+		const currentTime = audioEl.currentTime;
+		const now = Date.now();
+
+		// --- Throttling Logic (Update every 2 seconds) ---
+		if (now - lastUpdateTime.current >= SET_PROGRESS_INTERVAL_IN_MS) {
+			lastUpdateTime.current = now; // Update the last update time
+
+			// --- Update State Machine Context (Throttled) ---
+			sendSetCurrentStoryEvent({
+				...currentStory,
+				currentTime: currentTime,
+				duration: internalDuration // Use state variable for duration
 			});
 
-			// Send the progress update via WebSocket
+			// --- Send WebSocket Progress (Throttled) ---
 			websocketService.storyProtocol.setStoryProgress({
-				type: MessageType.SET_STORY_PROGRESS, // Message type
-				payload: { // Message payload
-					...currentStory, // Include story details
-					currentTime, // Include current time
+				type: MessageType.SET_STORY_PROGRESS,
+				payload: {
+					...currentStory, // Send necessary story info
+					currentTime: currentTime,
 				},
 			});
-			// Update the last sent time state with the precise current time
-			// Use functional update to ensure we're updating based on the latest state
-			setLastSentTime(currentTime);
 		}
 
-		// --- LiveKit Connection Trigger ---
-		// Check if conditions are met to initiate LiveKit connection
-		// Log values used in LiveKit check
-		// Check if at a question point
+		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
 		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
-		// Check if LiveKit is not already connected or connecting
-		const canConnectToLiveKit = !isConnectingToLivekit && !isLivekitRoomConnected && !livekitConnectionDetails;
-		// If conditions met, initiate connection
-		if (isAtProactiveQuestionPoint && isPlaying && canConnectToLiveKit && !isUserQuestionActive) {
-			// Set connecting state
-			setIsConnectingToLivekit(true);
-			setIsProactiveQuestionActive(true);
-			// Fetch LiveKit connection details
-			getLiveKitRoomConnectionDetails({
-				metadata: proactiveQuestionPoint,
-				agentType: "proactive_question",
-				userId: userId
-			}).then((connectionDetails) => {
-				setLivekitConnectionDetails(connectionDetails);
-			}).catch((error) => { // Handle errors
-				// Reset connecting state on error
-				setIsConnectingToLivekit(false);
-				// Log the error
-				console.error("[TrackAudio LiveKit Trigger] Error connecting to LiveKit", error);
-			});
-		}
-		// Log if conditions were not met
-		// else if (isAtProactiveQuestionPoint || isPlaying || canConnectToLiveKit) { 
-		// 	console.log(`[TrackAudio LiveKit Check] Conditions not met. isAtQP: ${isAtProactiveQuestionPoint}, isPlaying: ${isPlaying}, canConnect: ${canConnectToLiveKit}`);
-		// }
 
-		// --- Check for End of Track ---
-		if (currentTime >= audioDuration.current - 0.1 && audioDuration.current > 0) {
-			handleSongEnd(); // handleSongEnd is defined above now
+		const canConnectToLiveKit = !isConnectingToLivekit && !livekitConnectionDetails;
+		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
+			sendStartProactiveQuestionSessionEvent();
+			sendSetAgentModelEvent(VoiceAgentModel.PROACTIVE_QUESTION);
 		}
-		// Dependencies without handleSongEnd
-	}, [currentStory,
-		isPlaying,
-		isConnectingToLivekit,
-		isLivekitRoomConnected,
-		setCurrentStory,
-		setIsPlaying,
-		setIsConnectingToLivekit,
-		setLivekitConnectionDetails,
+
+	}, [ // Extensive dependencies due to needing lots of context for updates/checks
+		currentStory,
+		isAudioLoading,
+		internalDuration,
 		websocketService,
 		proactiveQuestionPoint,
 		livekitConnectionDetails,
-		userId
+		isStoryPlaying,
+		isUserQuestionActive,
+		userId,
+		sendSetCurrentStoryEvent,
 	]);
 
-	// --- Get Current Time ---
-	const getCurrentTime = (): number => {
-		if (!audioContext.current || !isPlaying || !audioSource.current) {
-			return playbackPosition.current;
-		}
-
-		const elapsed = audioContext.current.currentTime - playbackStartTime.current;
-		const currentTime = playbackPosition.current + elapsed;
-
-		return Math.min(currentTime, audioDuration.current);
-	};
-
-	// --- Get LiveKit Connection Details ---
-	const getLiveKitRoomConnectionDetails = async (metadata: ProactiveQuestionConnectionMetadata): Promise<LiveKitConnectionDetails> => {
-		const liveKitApi = new LiveKitApi();
-		return await liveKitApi.getConnectionDetails(metadata) as LiveKitConnectionDetails;
-	};
-
-	// --- Ref for Interval Callback ---
-	const updatePlaybackTimeRef = useRef(updatePlaybackTime);
-	useEffect(() => {
-		updatePlaybackTimeRef.current = updatePlaybackTime;
-	}, [updatePlaybackTime]);
-
-	// --- Start Playback ---
-	const startPlayback = useCallback(() => {
-		if (!audioContext.current || !audioBuffer.current || !gainNode.current) {
-			console.error("Cannot start playback - audio context, buffer, or gain node not ready.");
+	// Called when the audio track naturally finishes playing
+	const handleAudioEnded = useCallback(() => {
+		console.log("[TrackAudio] Audio ended.");
+		// Logic to advance to the next story
+		const currentIndex = stories.findIndex((song) => song.id === currentStory?.id);
+		// Ensure we have a valid index and stories array
+		if (currentIndex === -1 || stories.length === 0) {
+			console.warn("[TrackAudio] Could not find current story index or stories list is empty.");
+			sendStopPlaybackEvent(); // Stop if something went wrong
 			return;
 		}
+		const nextSong = stories[(currentIndex + 1) % stories.length];
+		// Set the next story in the state machine, resetting time/duration for the loading effect
+		sendSetCurrentStoryEvent({ ...nextSong, currentTime: 0, duration: 0 });
+		// Note: We don't explicitly call play here. The state machine logic +
+		// the `isStoryPlaying` effect should handle starting the new track
+		// if the player is intended to auto-advance.
+	}, [stories, currentStory?.id, sendSetCurrentStoryEvent, sendStopPlaybackEvent]); // Dependencies for finding next story
 
-		if (audioContext.current.state === 'suspended') {
-			audioContext.current.resume().catch(err => console.error("Error resuming audio context:", err));
-		}
+	// Called when there's an error loading or playing the audio
+	const handleError = useCallback((e: React.SyntheticEvent<HTMLAudioElement, Event>) => {
+		const audioEl = audioElementRef.current;
+		console.error("[TrackAudio] Audio Element Error:", audioEl?.error, e);
+		setIsAudioLoading(false); // Stop loading state on error
+		// Signal error state / stop playback in the state machine
+		sendStopPlaybackEvent();
+		// Consider adding a specific error event to the state machine
+	}, [sendStopPlaybackEvent]);
 
-		const source = audioContext.current.createBufferSource();
-		source.buffer = audioBuffer.current;
-		source.connect(gainNode.current);
-
-		source.start(0, playbackPosition.current);
-
-		audioSource.current = source;
-		playbackStartTime.current = audioContext.current.currentTime;
-
-		if (timeUpdateInterval.current) {
-			window.clearInterval(timeUpdateInterval.current);
-		}
-		// Use the ref to the latest callback in setInterval
-		timeUpdateInterval.current = window.setInterval(() => updatePlaybackTimeRef.current(), 100);
-
-		source.onended = () => {
-			if (audioSource.current === source) {
-				handleSongEnd(); // handleSongEnd is defined above now
-			}
-		};
-	}, [handleSongEnd]); // Keep handleSongEnd dependency
-
-	// --- Play/Pause State Change Handler ---
-	useEffect(() => {
-		if (isPlaying) {
-			if (!audioSource.current && audioBuffer.current) {
-				startPlayback();
-			}
-		} else {
-			stopPlayback();
-		}
-	}, [isPlaying, startPlayback, stopPlayback]);
-
-	// --- Seeking Handler ---
-	useEffect(() => {
-		if (!audioContext.current || !audioBuffer.current || !currentStory) return;
-
-		const internalTime = getCurrentTime();
-
-		if (Math.abs(internalTime - currentStory.currentTime) > 1) {
-
-			playbackPosition.current = currentStory.currentTime;
-
-			if (isPlaying && audioSource.current) {
-				stopPlayback();
-				startPlayback();
-			}
-		}
-	}, [currentStory?.currentTime, isPlaying, startPlayback, stopPlayback]);
-
-	return null;
+	// --- Render the hidden <audio> element ---
+	return (
+		<>
+			<audio
+				ref={audioElementRef}
+				onLoadedMetadata={handleLoadedMetadata}
+				onTimeUpdate={handleTimeUpdate}
+				onEnded={handleAudioEnded}
+				onError={handleError}
+				onLoadStart={() => setIsAudioLoading(true)} // Explicitly set loading on load start
+				// `preload="metadata"` helps get duration faster
+				preload="metadata"
+			/>
+		</>
+	);
 };
 
 export default TrackAudio;

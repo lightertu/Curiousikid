@@ -29,7 +29,10 @@ os.environ["LIVEKIT_API_KEY"] = ENV.LIVEKIT_API_KEY
 os.environ["LIVEKIT_API_SECRET"] = ENV.LIVEKIT_API_SECRET
 os.environ["OPENAI_API_KEY"] = ENV.OPENAI_API_KEY
 os.environ["DEEPGRAM_API_KEY"] = ENV.DEEPGRAM_API_KEY
+os.environ["ELEVENLABS_API_KEY"] = ENV.ELEVENLABS_API_KEY
+os.environ["ANTHROPIC_API_KEY"] = ENV.ANTHROPIC_API_KEY
 os.environ["MEM0_API_KEY"] = ENV.MEM0_API_KEY
+os.environ["PIXEL_LAB_API_KEY"] = ENV.PIXEL_LAB_API_KEY
 
 # `envvar_prefix` = export envvars with `export DYNACONF_FOO=bar`.
 # `settings_files` = Load these files in the order.

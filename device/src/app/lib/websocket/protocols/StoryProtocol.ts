@@ -1,8 +1,8 @@
-import { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/GlobalState';
+import useDeviceState, { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/DeviceState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
-import useGlobalState from '../../../GlobalState';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, deviceMachine } from '@/app/DeviceStateMachine';
 
 
 // Type definitions for story payloads
@@ -60,8 +60,8 @@ export class StoryProtocol extends BaseProtocol {
 
     // Initial request for story list
     if (this.connection.isConnected()) {
-      const globalState = useGlobalState.getState();
-      const userId = globalState.userId;
+      const DeviceState = useDeviceState.getState();
+      const userId = DeviceState.userId;
       this.getStoryList({
         type: MessageType.GET_STORY_LIST,
         payload: { userId: userId }
@@ -96,8 +96,7 @@ export class StoryProtocol extends BaseProtocol {
   protected async handleStoryList(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
     const message = raw as SendStoryListMessage;
-    const globalState = useGlobalState.getState();
-    globalState.setStories(message.payload);
+    DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_STORIES, payload: { stories: message.payload } });
   }
 
   /**
@@ -105,18 +104,9 @@ export class StoryProtocol extends BaseProtocol {
    */
   protected async handleSetProactiveQuestionPoint(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
+    console.log("handleSetProactiveQuestionPoint", raw);
     const message = raw as SetProactiveQuestionPointMessage;
-    const globalState = useGlobalState.getState();
-    const { currentStory, isPlaying } = globalState;
-
-    console.log("handleSetProactiveQuestionPoint.globalState", globalState);
-
-    if (isPlaying && currentStory) {
-      // Only update the current story if the storyId matches
-      console.log("handleSetProactiveQuestionPoint", message);
-      globalState.setProactiveQuestionPoint(message.payload);
-
-      this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
-    }
+    DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SET_PROACTIVE_QUESTION_POINT, payload: { proactiveQuestionPoint: message.payload } });
+    this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
   }
 }
