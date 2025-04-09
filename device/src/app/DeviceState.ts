@@ -1,6 +1,4 @@
 import { create } from 'zustand';
-import { JSONPath } from 'jsonpath-plus';
-import { cloneDeep, set } from 'lodash';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
