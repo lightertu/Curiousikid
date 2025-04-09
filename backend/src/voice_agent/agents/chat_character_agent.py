@@ -55,7 +55,7 @@ My main goal has evolved from just assisting to pursuing understanding, connecti
 }
 
 ACTIVE_PERSONA = "nemo"
-TEMP_USER_NAME = "emma_davis_family"
+TEMP_USER_NAME = "emma_davis_family" # oliver_chen_family
 
 def generate_system_prompt(persona_key, memories):
     persona = PERSONAS.get(persona_key, PERSONAS["nemo"])  # Default to Nemo if not found

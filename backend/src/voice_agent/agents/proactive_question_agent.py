@@ -26,7 +26,7 @@ class ProactiveQuestionAgent(Agent):
         logger.info(f"Loading participant metadata: {metadata}")
 
         child_name = "Emma" # TODO: remove the hardcoded child name
-        user_id = "emma_davis_family" # TODO: remove the hardcoded user id
+        user_id = "emma_davis_family" # TODO: remove the hardcoded user id # oliver_chen_family
 
         self.story_service = StoryService()
         self.connection_metadata = ProactiveQuestionConnectionMetadata(**metadata)
@@ -36,8 +36,6 @@ class ProactiveQuestionAgent(Agent):
         story_text = self.story_service.get_story_text(
             self.connection_metadata.metadata.storyId
         )
-        
-        logger.info("User ID: ", user_id)
 
         results = mem0_sync.get_all(user_id=user_id)
 
@@ -203,17 +201,24 @@ class ProactiveQuestionAgent(Agent):
             
             Story Context:
             Here's what the child has listened to so far:
-            {story_context}
+            CURENT_STORY_CONTEXT:{story_context}
 
             Complete Story:
             Here is the complete story text (DO NOT reveal unheard portions to the child):
-            {story_text}
+            COMPLETE_STORY:{story_text}
+            
+            Conversation Turn Guidelines (Found inside Conversational Turn count in the chat context):
+            - IF Conversational Turn count is < 2: Have a meaningful conversation about their response
+            - IF Conversational Turn count is > 2 and <4: Begin guiding back to the story
+            - IF IF Conversational Turn count is > 5: Return to the story
             
             Your first task is to ask the child the question point about the story in a natural, engaging way, then have a meaningful conversation about their response. 
             Make sure to use {child_name}'s name naturally throughout the conversation, express genuine human-like emotions, and make the child feel like they're talking with a real, caring friend who is excited to discuss the story with them. 
             Remember to keep all responses short (1-3 sentences), use age-appropriate language, and focus on building their critical thinking and emotional intelligence through story discussion.
             DO NOT ASK TOO MANY QUESTIONS - YOU ARE A STORYTELLER, NOT A CHIT CHATTER BOT!!!
-            YOU NEED TO ROUTE BACK TO THE STORY AFTER A FEW ROUNDS OF QUESTIONS AND ANSWERS (LOOK AT THE LONG TERM MEMORY)""",
+            YOU NEED TO ROUTE BACK TO THE STORY AFTER A FEW ROUNDS OF QUESTIONS AND ANSWERS
+            DO NOT LEAK THE STORY BEYONG THE CURENT_STORY_CONTEXT IN YOUR CONVERSATION""",
+
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
@@ -258,7 +263,20 @@ class ProactiveQuestionAgent(Agent):
         # callback when user input is transcribed
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
-        await self.update_chat_ctx(chat_ctx)
+        
+        # Count user messages in the chat context
+        user_turns = sum(1 for message in chat_ctx.items if message.role == "user")
+        logger.info(f"Conversation turns: {user_turns}")
+
+        user_turn_message = new_message.copy()
+        user_turn_message.role = "system"
+        
+        user_turn_message.content = [f"Conversational Turn count: {user_turns}"]
+        chat_ctx.items.append(user_turn_message)
+        
+        logger.info(f"user_turn_message: {user_turn_message.content}")
+        
+        logger.info("add user_turn_message to chat context", extra={"content": user_turn_message.content})
         logger.info("add user message to chat context", extra={"content": new_message.content})
 
         try:
@@ -276,5 +294,7 @@ class ProactiveQuestionAgent(Agent):
                 infer=False
             )
             
+        except Exception as e:
+            logger.error(f"Failed to add memory: {e}")
         except Exception as e:
             logger.error(f"Failed to add memory: {e}")
