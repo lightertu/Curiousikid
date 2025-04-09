@@ -235,6 +235,7 @@ export const deviceMachine = createMachine(
                 on: {
                     SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    ENTER_PRESSED: { target: 'startingUserQuestionSession' },
                 },
             },
             startingProactiveQuestionSession: {
