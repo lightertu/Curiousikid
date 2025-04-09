@@ -6,27 +6,27 @@ interface LibraryProps {
 	story: StoryMetadata;
 }
 
-const LibrarySong: React.FC<LibraryProps> = ({ 
-	story, 
+const LibrarySong: React.FC<LibraryProps> = ({
+	story,
 }) => {
 	// Function
-	const { currentStory, setCurrentStory } = useGlobalState();
+	const { currentStory, setCurrentStory, setIsPlaying } = useGlobalState();
 	const selectTrackHandler = async (): Promise<void> => {
 		setCurrentStory({ ...story, currentTime: 0, });
 	};
 
 	return (
-		<div 
-			onClick={selectTrackHandler} 
+		<div
+			onClick={selectTrackHandler}
 			className={clsx(
-				"px-8 h-[100px] w-full flex transition-all duration-300 ease-in-out hover:bg-lightblue",
+				"px-8 py-2 h-[100px] w-full flex items-center transition-all duration-300 ease-in-out hover:bg-lightblue hover:shadow-lg",
 				story?.id === currentStory?.id ? "bg-pink" : "bg-white"
 			)}
 		>
-			<img 
-				src={story.thumbnailUrl} 
+			<img
+				src={story.thumbnailUrl}
 				alt={story.title}
-				className="my-5 h-[60px]"
+				className="h-[60px]"
 			/>
 			<div className="w-full h-full flex flex-col justify-center">
 				<h3 className="pl-4 text-base">{story.title}</h3>

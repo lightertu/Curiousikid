@@ -1,6 +1,7 @@
 from typing import List, Optional
 from pydantic import BaseModel
 
+
 # -----------------------------
 # Define Pydantic models
 # -----------------------------
@@ -14,23 +15,33 @@ class StoryMetadata(BaseModel):
     thumbnailUrl: str
     transcriptUrl: Optional[str] = None
 
+
 class CurrentStory(StoryMetadata):
     currentTime: float
-    
+
+
 class QuestionPoint(BaseModel):
     storyId: str
     userId: str
-    question: str
-    questionPointId: str
-    connectAt: float
     interruptAt: float
-    
+
+
+class ProactiveQuestionPoint(QuestionPoint):
+    id: str
+    question: str
+    connectAt: float
+
+
+class UserQuestionPoint(QuestionPoint):
+    pass
+
+
 class Segment(BaseModel):
     start: float
     end: float
     text: str
 
+
 class StoryTranscription(BaseModel):
     text: str
     segments: List[Segment]
-    

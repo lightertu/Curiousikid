@@ -1,4 +1,4 @@
-import { DeviceState, StoryMetadata, CurrentStory, QuestionPoint } from '@/app/GlobalState';
+import { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/GlobalState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
@@ -25,17 +25,17 @@ export interface SetStoryProgressMessage extends Message {
   payload: CurrentStory;
 }
 
-export interface SetQuestionPointMessage extends Message {
+export interface SetProactiveQuestionPointMessage extends Message {
   type: MessageType.SET_QUESTION_POINT;
-  payload: QuestionPoint;
+  payload: ProactiveQuestionPoint;
 }
 
-export interface ACKSetQuestionPointMessage extends Message {
+export interface ACKSetProactiveQuestionPointMessage extends Message {
   type: MessageType.ACK_SET_QUESTION_POINT;
-  payload: QuestionPoint;
+  payload: ProactiveQuestionPoint;
 }
 
-export interface ClearQuestionPointMessage extends Message {
+export interface ClearProactiveQuestionPointMessage extends Message {
   type: MessageType.CLEAR_QUESTION_POINT;
 }
 /**
@@ -48,7 +48,7 @@ export class StoryProtocol extends BaseProtocol {
       connection,
       new Map<string, MessageHandler>([
         [MessageType.SEND_STORY_LIST, (payload: unknown) => this.handleStoryList(payload)],
-        [MessageType.SET_QUESTION_POINT, (payload: unknown) => this.handleSetQuestionPoint(payload)],
+        [MessageType.SET_QUESTION_POINT, (payload: unknown) => this.handleSetProactiveQuestionPoint(payload)],
       ])
     );
   }
@@ -60,9 +60,11 @@ export class StoryProtocol extends BaseProtocol {
 
     // Initial request for story list
     if (this.connection.isConnected()) {
+      const globalState = useGlobalState.getState();
+      const userId = globalState.userId;
       this.getStoryList({
         type: MessageType.GET_STORY_LIST,
-        payload: { userId: "test-user" }
+        payload: { userId: userId }
       });
     }
   }
@@ -71,7 +73,6 @@ export class StoryProtocol extends BaseProtocol {
    * Request the list of available stories
    */
   getStoryList(payload: GetStoryListMessage): void {
-    console.log("getStoryList", payload);
     this.send(MessageType.GET_STORY_LIST, { ...payload });
   }
 
@@ -85,7 +86,7 @@ export class StoryProtocol extends BaseProtocol {
     this.send(MessageType.SET_STORY_PROGRESS, { ...payload });
   }
 
-  clearQuestionPoint(payload: ClearQuestionPointMessage): void {
+  clearProactiveQuestionPoint(payload: ClearProactiveQuestionPointMessage): void {
     this.send(MessageType.CLEAR_QUESTION_POINT, { ...payload });
   }
 
@@ -94,7 +95,6 @@ export class StoryProtocol extends BaseProtocol {
    */
   protected async handleStoryList(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
-    console.log("handleStoryList RAW", raw);
     const message = raw as SendStoryListMessage;
     const globalState = useGlobalState.getState();
     globalState.setStories(message.payload);
@@ -103,18 +103,18 @@ export class StoryProtocol extends BaseProtocol {
   /**
    * Handle SET_QUESTION_POINT message
    */
-  protected async handleSetQuestionPoint(raw: unknown): Promise<void> {
+  protected async handleSetProactiveQuestionPoint(raw: unknown): Promise<void> {
     // Type guard to check if raw has the structure we expect
-    const message = raw as SetQuestionPointMessage;
+    const message = raw as SetProactiveQuestionPointMessage;
     const globalState = useGlobalState.getState();
     const { currentStory, isPlaying } = globalState;
 
-    console.log("handleSetQuestionPoint.globalState", globalState);
+    console.log("handleSetProactiveQuestionPoint.globalState", globalState);
 
     if (isPlaying && currentStory) {
       // Only update the current story if the storyId matches
-      console.log("handleSetQuestionPoint", message);
-      globalState.setQuestionPoint(message.payload);
+      console.log("handleSetProactiveQuestionPoint", message);
+      globalState.setProactiveQuestionPoint(message.payload);
 
       this.send(MessageType.ACK_SET_QUESTION_POINT, { ...message });
     }

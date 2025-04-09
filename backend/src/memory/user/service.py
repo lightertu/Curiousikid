@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_USERS_FILE = Path(os.path.join(MEMORY_ROOT, "user", "data", "users.yml"))
 
+
 def load_users_from_yaml(file_path: Path = DEFAULT_USERS_FILE) -> List[User]:
     """Loads story metadata from a YAML file using the generic loader."""
     logger.info(f"Loading users from: {file_path}")
@@ -18,17 +19,21 @@ def load_users_from_yaml(file_path: Path = DEFAULT_USERS_FILE) -> List[User]:
         logger.warning(f"No users were loaded from {file_path}.")
     return users
 
+
 class UserService:
     def __init__(self):
         self.users = {user.id: user for user in load_users_from_yaml()}
 
     def get_user(self, id: str) -> User:
-        return self.users.get(id) 
-        
+        if id not in self.users:
+            raise ValueError(f"No user found with id {id} in {DEFAULT_USERS_FILE}")
+
+        return self.users[id]
+
     def get_users(self) -> List[User]:
         return list(self.users.values())
-        
+
+
 if __name__ == "__main__":
     users = load_users_from_yaml()
     print(users)
-

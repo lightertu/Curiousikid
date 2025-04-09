@@ -1,86 +1,56 @@
 "use client";
 
 import React, { useEffect } from "react";
-import clsx from "clsx";
+import Link from "next/link";
 
 // Import components
-import Player from "./components/Player";
-import Library from "./components/Library";
-import Nav from "./components/Nav";
-import useGlobalState from "./GlobalState";
-import AIVoiceModal from "./components/AIVoiceModal";
-import WebSocketHandler from "./components/WebSocketHandler";
-import WebSocketStatus from "./components/WebSocketStatus";
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
-import { LiveKitRoom } from "@livekit/components-react";
-import { MediaDeviceFailure } from "livekit-client";
-// Define interfaces
-//
+import useGlobalState from "./GlobalState";
+import WebSocketHandler from "./components/WebSocketHandler";
+import WebSocketStatus from "./components/WebSocketStatus";
 
 const App: React.FC = () => {
-	const {
-		libraryStatus,
-		livekitConnectionDetails,
-		isLivekitRoomConnected,
-		setIsLivekitRoomConnected,
-		isConnectingToLivekit,
-		setIsConnectingToLivekit,
-		setLivekitConnectionDetails
-	} = useGlobalState();
 	const { websocketService } = useWebSocket();
+	const { isWebSocketConnected } = useGlobalState();
+	const { userId } = useGlobalState();
 
 	// Log that the app has loaded
 	useEffect(() => {
-		if (websocketService?.storyProtocol) {
+		if (isWebSocketConnected) {
+			console.log("userId", userId);
 			websocketService.storyProtocol.getStoryList({
 				type: MessageType.GET_STORY_LIST,
-				payload: { userId: "1" }
+				payload: { userId: userId }
+			});
+
+			websocketService.chatCharacterProtocol.getChatCharacterList({
+				type: MessageType.GET_CHAT_CHARACTER_LIST,
+				payload: { userId: userId }
 			});
 		}
-	}, []);
+
+	}, [isWebSocketConnected]);
 
 	return (
-		<div className={clsx(
-			"flex flex-col justify-center transition-all duration-500 ease-in-out",
-			libraryStatus ? "md:ml-80" : "ml-0",
-			"max-md:ml-0"
-		)}>
-			{/* WebSocketHandler manages connection - no UI */}
-			<LiveKitRoom
-				serverUrl={livekitConnectionDetails?.serverUrl}
-				token={livekitConnectionDetails?.participantToken}
-				audio={true}
-				video={false}
-				connect={livekitConnectionDetails !== null}
-				onConnected={() => {
-					setIsConnectingToLivekit(false)
-					setIsLivekitRoomConnected(true)
-				}}
-				onDisconnected={() => {
-					setIsConnectingToLivekit(false)
-					setIsLivekitRoomConnected(false)
-					setLivekitConnectionDetails(null)
-				}}
-				onMediaDeviceFailure={onDeviceFailure}
-			>
-				<WebSocketHandler />
-				<Nav />
-				<Player />
-				<Library />
-				<AIVoiceModal />
-				{/* Status indicator for WebSocket connection */}
-				<WebSocketStatus />
-			</LiveKitRoom>
+		<div className="flex items-center justify-center min-h-screen bg-gray-100">
+			<div className="flex space-x-8">
+				{/* Card 1 */}
+				<Link href="/player">
+					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
+						Player
+					</div>
+				</Link>
+
+				{/* Card 2 */}
+				<Link href="/chat-characters">
+					<div className="w-64 h-64 bg-white rounded-lg shadow-lg flex items-center justify-center text-xl font-semibold text-gray-700 cursor-pointer hover:shadow-xl transition-shadow duration-300">
+						Chat Characters
+					</div>
+				</Link>
+			</div>
 		</div>
 	);
 };
-
-function onDeviceFailure(error?: MediaDeviceFailure) {
-	console.error(error);
-	alert(
-		"Error acquiring camera or microphone permissions. Please make sure you grant the necessary permissions in your browser and reload the tab"
-	);
-}
 
 export default App;
