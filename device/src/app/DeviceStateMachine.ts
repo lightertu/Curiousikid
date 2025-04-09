@@ -1,4 +1,4 @@
-import { createMachine, assign, MachineContext, createActor, setup, fromPromise } from 'xstate';
+import { createMachine, assign, MachineContext, createActor, setup, fromPromise, } from 'xstate';
 import { LiveKitApi, LiveKitConnectionDetails, ConnectionMetadataType } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
@@ -255,18 +255,18 @@ export const deviceMachine = createMachine(
                         actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
                     },
                     onError: {
-                        target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                        target: 'storyQuestionSessionEnded',
                     },
                 },
+                on: {
+                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
+                }
             },
             proactiveQuestionSession: {
                 entry: ['stopStory', 'showAIVoiceConsole', 'clearProactiveQuestionPoint'],
                 on: {
-                    STORY_QUESTION_SESSION_ENDED: {
-                        target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
-                    },
+                    STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' },
+                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
                 },
             },
             startingUserQuestionSession: {
@@ -289,19 +289,23 @@ export const deviceMachine = createMachine(
                         actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
                     },
                     onError: {
-                        target: 'storyIsPlaying',
-                        actions: ['hideAIVoiceConsole', 'startStory', 'setAgentModelInactive', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                        target: 'storyQuestionSessionEnded',
                     },
                 },
+                on: {
+                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
+                }
             },
             userQuestionSession: {
                 entry: ['stopStory', 'showAIVoiceConsole'],
                 on: {
-                    STORY_QUESTION_SESSION_ENDED: {
-                        target: 'storyIsPlaying',
-                        actions: ['startStory', 'hideAIVoiceConsole', 'setAgentModelInactive', 'clearLivekitConnectionDetails']
-                    },
+                    STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' },
+                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
                 },
+            },
+            storyQuestionSessionEnded: {
+                entry: ['startStory', 'hideAIVoiceConsole', 'clearProactiveQuestionPoint', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit'],
+                always: { target: 'storyIsPlaying' }
             },
             chatSelection: {
                 entry: ['renderCharacterCover'],

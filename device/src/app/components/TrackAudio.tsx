@@ -158,7 +158,6 @@ const TrackAudio: React.FC = () => {
 			lastUpdateTime.current = now; // Update the last update time
 
 			// --- Update State Machine Context (Throttled) ---
-			console.log("update current story", currentTime);
 			sendSetCurrentStoryEvent({
 				...currentStory,
 				currentTime: currentTime,

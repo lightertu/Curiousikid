@@ -52,7 +52,7 @@ const PixelScreen: React.FC<PixelScreenProps> = ({ pixelData, rows = 32, cols = 
                     height: `${totalHeight}px`,
                 }}
             >
-                <AIVoiceConsole show={true} headline="Proactive Question" onDisconnect={handleDisconnect} onConnect={() => { }} />
+                <AIVoiceConsole show={true} onDisconnect={handleDisconnect} onConnect={() => { }} />
             </div>
         );
     }
