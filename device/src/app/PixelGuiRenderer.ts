@@ -48,12 +48,10 @@ export const renderBackwardPlayback = (context: DeviceContext): string[][] => {
 }
 export const renderStoryCover = (context: DeviceContext): string[][] => {
     const pixelArtCover = context.stories[context.selectedStoryIndex].pixelArtCover;
-    console.log(context.stories[context.selectedStoryIndex].title);
     return pixelArtCover || [];
 }
 
 export const renderCharacterCover = (context: DeviceContext): string[][] => {
     const pixelArtCover = context.characters[context.selectedCharacterIndex].pixelArtCover;
-    console.log(pixelArtCover);
     return pixelArtCover || [];
 }

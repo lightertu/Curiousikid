@@ -86,7 +86,6 @@ export interface DeviceContext extends MachineContext {
     proactiveQuestionPoint: ProactiveQuestionPoint | null;
     isStoryPlaying: boolean;
     selectedStoryIndex: number;
-    selectedAIIndex: number;
 
     // chat character state
     characters: ChatCharacter[];
@@ -169,7 +168,6 @@ export const deviceMachine = createMachine(
             stories: [],
             isStoryPlaying: false,
             selectedStoryIndex: 0,
-            selectedAIIndex: 0,
 
             // chat character state
             characters: [],
@@ -312,21 +310,49 @@ export const deviceMachine = createMachine(
                 on: {
                     LEFT_PRESSED: [
                         { guard: 'isAtChatSelectionLeftMost', target: 'chatSelectionBlinking' },
-                        { actions: ['prevAI', 'renderCharacterCover'], target: 'chatSelection' }
+                        { actions: ['prevChatCharacter', 'renderCharacterCover'], target: 'chatSelection' }
                     ],
                     RIGHT_PRESSED: [
                         { guard: 'isAtChatSelectionRightMost', target: 'chatSelectionBlinking' },
-                        { actions: ['nextAI', 'renderCharacterCover'], target: 'chatSelection' }
+                        { actions: ['nextChatCharacter', 'renderCharacterCover'], target: 'chatSelection' }
                     ],
-                    ENTER_PRESSED: { target: 'chatActive' },
+                    ENTER_PRESSED: { target: 'startingChatCharacterSession', actions: ['selectChatCharacter'] },
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
-            chatActive: {
+            startingChatCharacterSession: {
+                entry: ['setConnectingToLivekit'],
+                invoke: {
+                    src: 'connectToLivekit',
+                    input: ({ context, event }) => {
+                        return {
+                            agentType: 'chat_character',
+                            userId: context.userId,
+                            metadata: context.currentCharacter
+                        }
+                    },
+                    onDone: {
+                        target: 'chatCharacterSession',
+                        actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    },
+                    onError: {
+                        target: 'storyQuestionSessionEnded',
+                    },
+                },
                 on: {
                     ESC_PRESSED: { target: 'chatSelection' },
                     // Possibly handle SPACE for toggling mic, etc.
                 },
+            },
+            chatCharacterSession: {
+                entry: ['stopStory', 'showAIVoiceConsole'],
+                on: {
+                    ESC_PRESSED: { target: 'chatCharacterSessionEnded' }
+                },
+            },
+            chatCharacterSessionEnded: {
+                entry: ['hideAIVoiceConsole', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit'],
+                always: { target: 'chatSelection' }
             },
             // Temporary state to show blank screen during left blink
             mainMenuBlinking: {
@@ -467,22 +493,23 @@ export const deviceMachine = createMachine(
                 isStoryPlaying: ({ context, event }) => !context.isStoryPlaying,
             }),
 
-            prevAI: assign({
-                selectedAIIndex: ({ context, event }) => {
+            prevChatCharacter: assign({
+                selectedCharacterIndex: ({ context, event }) => {
                     const len = context.characters.length;
-                    return Math.max(0, (context.selectedAIIndex - 1 + len) % len);
+                    return Math.max(0, (context.selectedCharacterIndex - 1 + len) % len);
                 }
             }),
 
-            // Action to simply log the event when ENTER is pressed in mainMenu
-            debugActionRecieved: ({ context, event }) => {
-                console.log("debugActionRecieved: Event received in mainMenu on ENTER", event);
-            },
-
-            nextAI: assign({
-                selectedAIIndex: ({ context, event }) => {
+            nextChatCharacter: assign({
+                selectedCharacterIndex: ({ context, event }) => {
                     const len = context.characters.length;
-                    return Math.max(0, (context.selectedAIIndex + 1) % len);
+                    return Math.max(0, (context.selectedCharacterIndex + 1) % len);
+                }
+            }),
+
+            selectChatCharacter: assign({
+                currentCharacter: ({ context, event }) => {
+                    return context.characters[context.selectedCharacterIndex];
                 }
             }),
 
