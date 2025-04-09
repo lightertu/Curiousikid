@@ -18,7 +18,8 @@ module.exports = {
       colors: {
         'lightblue': '#add8e6',
         'pink': '#ffc0cb',
-      }
+        khaki: '#F0E68C',
+      },
     },
   },
   plugins: [],

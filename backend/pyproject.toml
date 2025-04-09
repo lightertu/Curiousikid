@@ -36,6 +36,7 @@ dependencies = [
     "langchain-anthropic>=0.3.10",
     "langchain-community>=0.3.21",
     "mem0ai>=0.1.81",
+    "pillow>=11.1.0",
 ]
 
 [tool.pytest.ini_options]

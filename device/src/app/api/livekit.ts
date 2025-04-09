@@ -1,5 +1,5 @@
 import { AccessToken, AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
-import { ProactiveQuestionPoint, ChatCharacter, UserProactiveQuestionPoint } from "../GlobalState";
+import { ProactiveQuestionPoint, ChatCharacter, UserProactiveQuestionPoint } from "../DeviceState";
 
 export const revalidate = 0;
 
@@ -47,7 +47,7 @@ console.log("LIVEKIT_API_KEY", LIVEKIT_API_KEY);
 console.log("LIVEKIT_API_SECRET", LIVEKIT_API_SECRET);
 
 // Define the union type alias
-type ConnectionMetadataType = ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata | UserQuestionConnectionMetadata;
+export type ConnectionMetadataType = ProactiveQuestionConnectionMetadata | ChatCharacterConnectionMetadata | UserQuestionConnectionMetadata;
 
 export class LiveKitApi {
   async getConnectionDetails(metadata: ConnectionMetadataType) {
