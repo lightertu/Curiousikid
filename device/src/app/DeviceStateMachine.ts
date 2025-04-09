@@ -103,6 +103,8 @@ export enum DeviceEventType {
     STORY_ENDED = 'STORY_ENDED',
     STOP_PLAYBACK = 'STOP_PLAYBACK',
     START_PLAYBACK = 'START_PLAYBACK',
+    PROACTIVE_QUESTION_SESSION_STARTED = 'PROACTIVE_QUESTION_SESSION_STARTED',
+    PROACTIVE_QUESTION_SESSION_ENDED = 'PROACTIVE_QUESTION_SESSION_ENDED',
 
     // livekit events
     SET_IS_CONNECTING_TO_LIVEKIT = 'SET_IS_CONNECTING_TO_LIVEKIT',
@@ -211,11 +213,13 @@ export const deviceMachine = createMachine(
                     LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
                     RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
                     SPACE_PRESSED: { actions: ['stopStory'], target: 'storyIsPaused' },
-                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
-                    SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
-                    STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
                     STOP_PLAYBACK: { actions: ['stopStory'] },
                     START_PLAYBACK: { actions: ['startStory'] },
+                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
+                    PROACTIVE_QUESTION_SESSION_STARTED: { target: 'proactiveQuestionSession' },
+                    PROACTIVE_QUESTION_SESSION_ENDED: { target: 'storyIsPlaying' },
+                    SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
+                    STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
             storyIsPaused: {
@@ -223,6 +227,16 @@ export const deviceMachine = createMachine(
                 on: {
                     SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
+                },
+            },
+            proactiveQuestionSession: {
+                entry: ['renderProactiveQuestionSession'],
+                on: {
+                    PROACTIVE_QUESTION_SESSION_ENDED: {
+                        target: 'storyIsPlaying',
+                        actions: ['stopStory']
+                    },
                 },
             },
             chatSelection: {

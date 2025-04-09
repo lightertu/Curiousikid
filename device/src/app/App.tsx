@@ -12,8 +12,7 @@ import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachin
 import Breadcrumb from "./components/Breadcrumb";
 import { useSelector } from '@xstate/react';
 import TrackAudio from "./components/TrackAudio";
-// Moved KeyCap to its own component file
-// import { KeyCap } from "./components/KeyCap"; // Assuming you create this
+import ProactiveQuestionAIVoiceModal from "./components/ProactiveQuestionAIVoiceModal";
 
 // Simple component to render text like a keyboard key
 
@@ -52,23 +51,18 @@ const App: React.FC = () => {
 			switch (event.key) {
 				case 'Escape':
 					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ESC_PRESSED });
-					console.log('Escape key pressed, state:', deviceContext.value);
 					break;
 				case 'Enter':
 					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.ENTER_PRESSED });
-					console.log('Enter key pressed, state:', deviceContext.value);
 					break;
 				case 'ArrowLeft':
 					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.LEFT_PRESSED });
-					console.log('ArrowLeft key pressed, state:', deviceContext.value);
 					break;
 				case 'ArrowRight':
 					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.RIGHT_PRESSED });
-					console.log('ArrowRight key pressed, state:', deviceContext.value);
 					break;
 				case ' ':
 					DEVICE_STATE_MACHINE_ACTOR.send({ type: DeviceEventType.SPACE_PRESSED });
-					console.log('Space key pressed - Toggling play/pause, state:', deviceContext.value);
 					break;
 				default:
 					break;
@@ -103,6 +97,7 @@ const App: React.FC = () => {
 			</div>
 			<DeviceIndicator />
 			<TrackAudio />
+			{/* <ProactiveQuestionAIVoiceModal /> */}
 		</div>
 	);
 };

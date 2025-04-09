@@ -25,7 +25,6 @@ export interface AIVoiceModalProps {
 }
 
 const AIVoiceModal: React.FC<AIVoiceModalProps> = ({ show, headline, onDisconnect, onConnect: onConnected }) => {
-  const { voiceAgentState, setVoiceAgentState } = useDeviceState();
   const [agentConnected, setAgentConnected] = useState<boolean>(false);
   const { state, audioTrack } = useVoiceAssistant();
   const room = useMaybeRoomContext();

@@ -13,27 +13,31 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
     if (typeof stateValue === 'string') {
         switch (stateValue) {
             case 'mainMenu':
+            case 'mainMenuBlinking':
                 // Path is already ['Main Menu']
-                path.push(`(${context.topMenuSelections[context.topMenuHighlightedIndex]})`);
+                path.push(`[${context.topMenuSelections[context.topMenuHighlightedIndex]}]`);
                 break;
             case 'storiesSelection':
+            case 'storiesSelectionBlinking':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
-                path.push(`(${context.stories[context.selectedStoryIndex].title})`);
+                path.push(`[${context.stories[context.selectedStoryIndex].title}]`);
                 break;
             case 'chatSelection':
+            case 'chatSelectionBlinking':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
-                path.push(`(${context.characters[context.selectedCharacterIndex].name})`);
+                path.push(`[${context.characters[context.selectedCharacterIndex].name}]`);
                 break;
             case 'storyIsPlaying':
             case 'storyIsPaused':
-                path.push('Stories'); // Might need context to know which story
+            case 'backwardPlaybackBlinking':
+            case 'forwardPlaybackBlinking':
+                path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(context.currentStory?.title || 'Playback');
                 break;
             case 'chatActive':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(`${context.characters[context.selectedCharacterIndex].name}`);
                 break;
-            // Add other cases as needed
             default:
                 break;
         }

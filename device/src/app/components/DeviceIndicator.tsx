@@ -3,7 +3,7 @@ import { StatusIndicator } from "./StatusIndicator";
 
 // Simple component to render text like a keyboard key
 const KeyCap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-    <span className="inline-block border border-gray-600 rounded px-1.5 py-0.5 mx-1 text-black font-mono text-3xl" style={{ backgroundColor: '#cac4c0' }}>
+    <span className="inline-block border border-gray-600 rounded px-1.5 py-0.5 mx-1 text-black font-mono text-3xl" style={{ backgroundColor: '#ded8cf' }}>
         {children}
     </span>
 );

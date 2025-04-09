@@ -5,6 +5,8 @@ import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetada
 import { useSelector } from "@xstate/react";
 import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from "../DeviceStateMachine";
 
+const SET_PROGRESS_INTERVAL_IN_MS = 2000;
+
 const TrackAudio: React.FC = () => {
 	// Ref for the <audio> element
 	const audioElementRef = useRef<HTMLAudioElement | null>(null);
@@ -12,6 +14,9 @@ const TrackAudio: React.FC = () => {
 	const [internalDuration, setInternalDuration] = useState<number>(0);
 	// Track loading state specifically for the audio element
 	const [isAudioLoading, setIsAudioLoading] = useState<boolean>(false);
+
+	// Ref to track the last time progress was updated
+	const lastUpdateTime = useRef<number>(0);
 
 	// --- Global State ---
 	const deviceStateMachine = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
@@ -143,15 +148,24 @@ const TrackAudio: React.FC = () => {
 		if (!audioEl || !currentStory || isAudioLoading || audioEl.readyState < 2 /* HAVE_CURRENT_DATA */ || internalDuration <= 0) return;
 
 		const currentTime = audioEl.currentTime;
+		const now = Date.now();
 
-		// --- Update State Machine Context (Throttling could be added if needed) ---
+		// --- Throttling Logic (Update every 2 seconds) ---
+		if (now - lastUpdateTime.current < SET_PROGRESS_INTERVAL_IN_MS) {
+			return; // Not enough time has passed
+		}
+
+		lastUpdateTime.current = now; // Update the last update time
+
+		// --- Update State Machine Context (Throttled) ---
+		console.log("update current story", currentTime);
 		sendSetCurrentStoryEvent({
 			...currentStory,
 			currentTime: currentTime,
 			duration: internalDuration // Use state variable for duration
 		});
 
-		// --- Send WebSocket Progress ---
+		// --- Send WebSocket Progress (Throttled) ---
 		websocketService.storyProtocol.setStoryProgress({
 			type: MessageType.SET_STORY_PROGRESS,
 			payload: {
@@ -160,7 +174,7 @@ const TrackAudio: React.FC = () => {
 			},
 		});
 
-		// --- LiveKit Connection Trigger Logic (same as before) ---
+		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
 		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
 		const canConnectToLiveKit = !isConnectingToLivekit && !isLivekitRoomConnected && !livekitConnectionDetails;
 		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
