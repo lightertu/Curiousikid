@@ -591,12 +591,12 @@ export const deviceMachine = createMachine(
             isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
 
             isProactiveQuestionActive: (ctx) => {
-                const { agentModel, isLivekitRoomConnected, isStoryPlaying, agentState } = ctx.context;
+                const { agentModel, isStoryPlaying, agentState } = ctx.context;
 
                 return agentModel === VoiceAgentModel.PROACTIVE_QUESTION && isStoryPlaying && (agentState === 'listening' || agentState === 'thinking' || agentState === 'speaking');
             },
             isUserQuestionActive: (ctx) => {
-                const { agentModel, isLivekitRoomConnected, isStoryPlaying } = ctx.context;
+                const { agentModel, isStoryPlaying } = ctx.context;
                 return agentModel === VoiceAgentModel.USER_QUESTION && isStoryPlaying;
             },
         },

@@ -19,6 +19,7 @@ const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
 	const { isWebSocketConnected, userId } = useDeviceState();
 	const { state: agentState } = useVoiceAssistant();
+
 	const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
 		return {
 			value: state.value,
@@ -97,7 +98,7 @@ const App: React.FC = () => {
 				{/* Render the Breadcrumb component */}
 				<Breadcrumb context={deviceContext.context} stateValue={deviceContext.value} />
 				{/* Render the PixelGrid */}
-				<PixelScreen rows={32} cols={32} pixelData={deviceContext.context.screen} validatePixelData={false} />
+				<PixelScreen rows={32} cols={32} pixelData={deviceContext.context.screen} />
 			</div>
 			<DeviceIndicator />
 			<TrackAudio />

@@ -1,5 +1,7 @@
+import { useSelector } from "@xstate/react";
 import useDeviceState from "../DeviceState";
 import { StatusIndicator } from "./StatusIndicator";
+import { DEVICE_STATE_MACHINE_ACTOR } from "../DeviceStateMachine";
 
 // Simple component to render text like a keyboard key
 const KeyCap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -9,17 +11,24 @@ const KeyCap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const DeviceIndicator: React.FC = () => {
-    const { isLivekitRoomConnected, isWebSocketConnected } = useDeviceState();
-    const { userId } = useDeviceState();
+    const { isWebSocketConnected } = useDeviceState();
+    const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+        return {
+            value: state.value,
+            context: state.context
+        }
+    });
+
+    const isMicrophoneOn = deviceContext.context.agentState === 'speaking' || deviceContext.context.agentState === 'listening' || deviceContext.context.agentState === 'thinking';
 
     return (
         <div className="flex flex-col">
             <StatusIndicator
                 labelOn="Microphone On"
                 labelOff="Microphone Off"
-                colorOn="#60a5fa" // Light Blue for On
+                colorOn="#4ade80" // Light Green for On
                 colorOff="#ada9a5" // Grey for Off
-                isOn={isLivekitRoomConnected}
+                isOn={isMicrophoneOn}
             />
             <StatusIndicator
                 labelOn="Online"
