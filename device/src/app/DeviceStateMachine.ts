@@ -1,4 +1,4 @@
-import { createMachine, assign, MachineContext, createActor, setup, fromPromise, } from 'xstate';
+import { createMachine, assign, MachineContext, createActor, fromPromise, } from 'xstate';
 import { LiveKitApi, LiveKitConnectionDetails, ConnectionMetadataType } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';

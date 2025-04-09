@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
-import { useVoiceAssistant, useMaybeRoomContext, RoomAudioRenderer, BarVisualizer, VoiceAssistantControlBar, DisconnectButton } from '@livekit/components-react';
+import { useVoiceAssistant, useMaybeRoomContext, RoomAudioRenderer, BarVisualizer, VoiceAssistantControlBar } from '@livekit/components-react';
 import { RoomEvent } from 'livekit-client';
-import { CloseIcon } from './CloseIcon';
 
 interface AIVoiceConsoleProps {
     show: boolean;
@@ -46,8 +45,8 @@ const AIVoiceConsole: React.FC<AIVoiceConsoleProps> = ({ show = true, onDisconne
     }
 
     return (
-        <div className="w-full h-full flex flex-col bg-white dark:bg-gray-800 text-black dark:text-white overflow-hidden">
-            <main data-lk-theme="default" className="flex-grow flex flex-col p-2 overflow-hidden">
+        <div className="w-full h-full flex flex-col dark:bg-gray-800 text-black dark:text-white overflow-hidden" style={{ backgroundColor: '#f9f6f0' }} >
+            <main data-lk-theme="custom-theme" className="flex-grow flex flex-col p-2 overflow-hidden">
                 <div className="flex-grow flex items-center justify-center mb-2">
                     <BarVisualizer
                         state={agentState}
@@ -58,11 +57,11 @@ const AIVoiceConsole: React.FC<AIVoiceConsoleProps> = ({ show = true, onDisconne
                     />
                 </div>
                 {agentState !== "disconnected" && (
-                    <div className="flex-shrink-0 flex h-10 justify-center items-center space-x-2 p-1 border-t dark:border-gray-700">
+                    <div
+                        className="flex-shrink-0 flex h-10 justify-center items-center space-x-10 p-1 dark:border-gray-700"
+                        style={{ transform: 'scale(2.0)', marginBottom: '7em' }}
+                    >
                         <VoiceAssistantControlBar controls={{ leave: false }} />
-                        <DisconnectButton onClick={onDisconnect}>
-                            <CloseIcon />
-                        </DisconnectButton>
                     </div>
                 )}
                 <RoomAudioRenderer />

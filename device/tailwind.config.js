@@ -18,13 +18,7 @@ module.exports = {
       colors: {
         'lightblue': '#add8e6',
         'pink': '#ffc0cb',
-      },
-      theme: {
-        extend: {
-          colors: {
-            khaki: '#F0E68C', // Add this line
-          },
-        },
+        khaki: '#F0E68C',
       },
     },
   },
