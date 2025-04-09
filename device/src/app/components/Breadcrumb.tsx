@@ -30,6 +30,8 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
             case 'storyIsPlaying':
             case 'storyIsPaused':
             case 'backwardPlaybackBlinking':
+            case 'proactiveQuestionSession':
+            case 'userQuestionSession':
             case 'forwardPlaybackBlinking':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(context.currentStory?.title || 'Playback');

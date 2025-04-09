@@ -51,10 +51,10 @@ export enum BreadcrumbItem {
 }
 
 export enum VoiceAgentModel {
-    INACTIVE = 'inactive',
-    PROACTIVE_QUESTION = 'proactive_question',
-    USER_QUESTION = 'user_question',
-    CHAT_CHARACTER = 'chat_character',
+    INACTIVE = 'Inactive',
+    PROACTIVE_QUESTION = 'Proactive Question',
+    USER_QUESTION = 'User Question',
+    CHAT_CHARACTER = 'Chat Character',
 }
 
 export interface DeviceContext extends MachineContext {
