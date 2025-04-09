@@ -135,17 +135,16 @@ class StoryProtocol(Protocol):
         ).device_state
         device_state.currentStory = message
 
-        if not device_state.ProactiveQuestionPoint:
-            question_point = self.get_question_point(message.id, message.currentTime)
+        question_point = self.get_question_point(message.id, message.currentTime)
 
-            if question_point:
-                logger.info(
-                    f"Detected question point for {message.id} at {message.currentTime}"
-                )
-                await self.send_message(
-                    connection_id,
-                    SetProactiveQuestionPointMessage(payload=question_point),
-                )
+        if question_point:
+            logger.info(
+                f"Detected question point for {message.id} at {message.currentTime}"
+            )
+            await self.send_message(
+                connection_id,
+                SetProactiveQuestionPointMessage(payload=question_point),
+            )
 
     async def handle_ack_set_question_point(
         self, connection_id: str, message: Dict[str, Any]
