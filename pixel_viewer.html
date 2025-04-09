@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Grid Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .pixel-grid {
+            display: grid;
+            grid-template-columns: repeat(64, 1fr);
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        
+        .pixel {
+            width: 8px;
+            height: 8px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 512px;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            padding: 8px 16px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #3367d6;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Pixel Grid Viewer</h1>
+        
+        <div class="controls">
+            <input type="file" id="json-file" accept=".json">
+            <div class="zoom-controls">
+                <button id="zoom-in">Zoom In</button>
+                <button id="zoom-out">Zoom Out</button>
+                <button id="reset-zoom">Reset Zoom</button>
+            </div>
+        </div>
+        
+        <div id="pixel-grid" class="pixel-grid"></div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const gridContainer = document.getElementById('pixel-grid');
+            const fileInput = document.getElementById('json-file');
+            const zoomInBtn = document.getElementById('zoom-in');
+            const zoomOutBtn = document.getElementById('zoom-out');
+            const resetZoomBtn = document.getElementById('reset-zoom');
+            
+            let pixelSize = 8;
+            
+            // Load and render pixel data from JSON file
+            fileInput.addEventListener('change', (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const pixelData = JSON.parse(e.target.result);
+                        renderPixelGrid(pixelData);
+                    } catch (error) {
+                        console.error('Error parsing JSON:', error);
+                        alert('Invalid JSON file');
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            // Zoom controls
+            zoomInBtn.addEventListener('click', () => {
+                pixelSize += 2;
+                updatePixelSize();
+            });
+            
+            zoomOutBtn.addEventListener('click', () => {
+                if (pixelSize > 2) {
+                    pixelSize -= 2;
+                    updatePixelSize();
+                }
+            });
+            
+            resetZoomBtn.addEventListener('click', () => {
+                pixelSize = 8;
+                updatePixelSize();
+            });
+            
+            function updatePixelSize() {
+                const pixels = document.querySelectorAll('.pixel');
+                pixels.forEach(pixel => {
+                    pixel.style.width = `${pixelSize}px`;
+                    pixel.style.height = `${pixelSize}px`;
+                });
+            }
+            
+            function renderPixelGrid(pixelData) {
+                // Clear existing grid
+                gridContainer.innerHTML = '';
+                
+                // Set grid dimensions
+                const gridSize = pixelData.length;
+                gridContainer.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+                
+                // Create pixels
+                for (let y = 0; y < gridSize; y++) {
+                    for (let x = 0; x < gridSize; x++) {
+                        const color = pixelData[y][x];
+                        const pixel = document.createElement('div');
+                        pixel.className = 'pixel';
+                        pixel.style.backgroundColor = color;
+                        pixel.style.width = `${pixelSize}px`;
+                        pixel.style.height = `${pixelSize}px`;
+                        gridContainer.appendChild(pixel);
+                    }
+                }
+            }
+            
+            // Optional: Load a default image
+            // fetch('sample_array.json')
+            //     .then(response => response.json())
+            //     .then(data => renderPixelGrid(data))
+            //     .catch(error => console.error('Error loading default image:', error));
+        });
+    </script>
+</body>
+</html> 
