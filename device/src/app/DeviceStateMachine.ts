@@ -225,7 +225,6 @@ export const deviceMachine = createMachine(
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                 },
             },
-
             chatSelection: {
                 entry: ['renderCharacterCover'],
                 on: {
@@ -241,7 +240,6 @@ export const deviceMachine = createMachine(
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
-
             chatActive: {
                 on: {
                     ESC_PRESSED: { target: 'chatSelection' },
@@ -524,7 +522,6 @@ export const deviceMachine = createMachine(
             }),
         },
         guards: {
-
             isAtMainMenuLeftMost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
             isAtMainMenuRightMost: (ctx) => ctx.context.topMenuHighlightedIndex >= 1,
 
