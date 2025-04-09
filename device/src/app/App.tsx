@@ -86,9 +86,9 @@ const App: React.FC = () => {
 	// Effect to log state changes
 	useEffect(() => {
 		// This code runs after every state transition
-		console.log("State Machine Changed:");
-		console.log("  - State Value:", deviceContext.value);
-		console.log("  - Context:", deviceContext.context);
+		// console.log("State Machine Changed:");
+		// console.log("  - State Value:", deviceContext.value);
+		// console.log("  - Context:", deviceContext.context);
 		// Optionally log the event that caused the change
 		// console.log("  - Event:", deviceState.event);
 	}, [deviceContext]); // Re-run this effect whenever the deviceState object changes

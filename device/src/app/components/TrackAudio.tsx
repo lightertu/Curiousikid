@@ -191,7 +191,7 @@ const TrackAudio: React.FC = () => {
 		// --- Calculate Current Time ---
 		// Get the precise current playback time
 		const currentTime = getCurrentTime();
-		console.log("updatePlaybackTime", currentTime);
+		// console.log("updatePlaybackTime", currentTime);
 		sendSetCurrentStoryEvent({
 			...currentStory, // Keep existing properties
 			currentTime, // Update current time

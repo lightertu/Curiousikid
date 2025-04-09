@@ -2,7 +2,7 @@ import { createMachine, assign, MachineContext, createActor } from 'xstate';
 import { LiveKitConnectionDetails } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
-import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover } from './PixelGuiRenderer';
+import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover, renderForwardPlayback, renderBackwardPlayback } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
 
@@ -208,8 +208,8 @@ export const deviceMachine = createMachine(
                 ],
                 on: {
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
-                    LEFT_PRESSED: { actions: ['backwardPlayback'] },
-                    RIGHT_PRESSED: { actions: ['forwardPlayback'] },
+                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
+                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
                     SPACE_PRESSED: { actions: ['stopStory'], target: 'storyIsPaused' },
                     SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                     SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
@@ -262,10 +262,31 @@ export const deviceMachine = createMachine(
                     50: { target: 'storiesSelection' } // After 50ms, go back to storiesSelection
                 }
             },
+            // Temporary state to show blank screen during left blink
+            forwardPlaybackBlinking: {
+                entry: ['forwardPlayback', 'renderForwardPlayback'],
+                after: {
+                    200: { target: 'storyIsPlaying' } // After 50ms, go back to storiesSelection
+                },
+                on: {
+                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
+                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' }
+                }
+            },
+            backwardPlaybackBlinking: {
+                entry: ['backwardPlayback', 'renderBackwardPlayback'],
+                after: {
+                    200: { target: 'storyIsPlaying' }
+                },
+                on: {
+                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
+                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' }
+                }
+            },
             chatSelectionBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
                 after: {
-                    50: { target: 'chatSelection' } // After 50ms, go back to chatSelection
+                    50: { target: 'chatSelection' }
                 }
             },
         },
@@ -317,7 +338,7 @@ export const deviceMachine = createMachine(
 
             setCurrentStory: assign({
                 currentStory: ({ context, event }) => {
-                    console.log("setCurrentStory", event.payload);
+                    // console.log("setCurrentStory", event.payload);
                     return event.payload.currentStory;
                 }
             }),
@@ -455,6 +476,18 @@ export const deviceMachine = createMachine(
             renderCharacterCover: assign({
                 screen: ({ context, event }) => {
                     return renderCharacterCover(context);
+                }
+            }),
+
+            renderForwardPlayback: assign({
+                screen: ({ context, event }) => {
+                    return renderForwardPlayback(context);
+                }
+            }),
+
+            renderBackwardPlayback: assign({
+                screen: ({ context, event }) => {
+                    return renderBackwardPlayback(context);
                 }
             }),
 
