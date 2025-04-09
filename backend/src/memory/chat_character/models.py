@@ -10,6 +10,7 @@ class ChatCharacter(BaseModel):
     name: str
     description: str
     imageUrl: str
+    pixelArtCover: List[List[str]]
 
 
 class UserCharacterMapping(BaseModel):
