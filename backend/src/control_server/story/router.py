@@ -37,4 +37,4 @@ async def get_story_audio(
         logger.error(f"Audio file not found: {file_path}")
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    return FileResponse(path=file_path, media_type="audio/mpeg", filename="audio.mp3") 
+    return FileResponse(path=file_path, media_type="audio/mpeg", filename="audio.mp3")

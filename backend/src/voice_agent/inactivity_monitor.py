@@ -7,10 +7,10 @@ from livekit.agents import AgentSession, JobContext
 
 logger = logging.getLogger("agent-monitor")
 
-TIMEOUT_SECONDS = 3
-PROMPT_WARNING_TIME = 3
+TIMEOUT_SECONDS = 8
+PROMPT_WARNING_TIME = 8
 GOODBYE_DELAY = 0.5
-SILENCE_FOLLOW_UP_RETRY = 2
+SILENCE_FOLLOW_UP_RETRY = 10
 
 class InteractionActivityState(BaseModel):
     last_interaction_time: float

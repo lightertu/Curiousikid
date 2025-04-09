@@ -4,7 +4,7 @@
   id: "1"
   connectAt: 24.3
   interruptAt: 29.3
-  question: "Why do you think the snow turned to mush so quickly instead of staying fluffy?"
+  question: "The snow turned to mushy water. Why do you think that happened?"
 
 - storyId: "1"
   userId: "1"
@@ -12,7 +12,7 @@
   id: "2"
   connectAt: 91.12
   interruptAt: 96.12
-  question: "Why do you think Birdie said he would 'see what he can do'? What might he have to think about first?"
+  question: "Do you think Birdie will come on the ski trip?"
 
 - storyId: "1"
   userId: "1"
@@ -20,7 +20,7 @@
   id: "3"
   connectAt: 123.8
   interruptAt: 128.8
-  question: "Why might Jake think it’s funny to imagine his dad wobbling on skis?"
+  question: "Jake thinks Dad will be funny on skis. What makes you laugh?"
 
 - storyId: "1"
   userId: "1"
@@ -28,7 +28,7 @@
   id: "4"
   connectAt: 224.88
   interruptAt: 229.88
-  question: "What do you think Dad meant when he joked about going 'up in the world'?"
+  question: "Mom is very good at skiing. What are you good at?"
 
 - storyId: "1"
   userId: "1"
@@ -44,7 +44,7 @@
   id: "6"
   connectAt: 374.8
   interruptAt: 379.8
-  question: "Aunty Sue likes shopping more than skiing—why might people enjoy different things on vacation?"
+  question: "Aunty Sue likes shopping. What do you like to do?"
 
 - storyId: "1"
   userId: "1"
@@ -52,7 +52,7 @@
   id: "7"
   connectAt: 486.12
   interruptAt: 491.12
-  question: "What do you think Uncle Jim felt when he couldn't find Mum after she disappeared?"
+  question: "Uncle Jim couldn't find Mom. How do you feel when you can't find someone?"
 
 - storyId: "1"
   userId: "1"
@@ -60,7 +60,7 @@
   id: "8"
   connectAt: 523.6
   interruptAt: 528.6
-  question: "Why did Auntie Sue think Birdie was a bad omen, while Jake believed he was helpful?"
+  question: "Aunty Sue was scared of the bird, but Jake knew it was Birdie his friend. Do you have any animal friends?"
 
 - storyId: "1"
   userId: "1"
@@ -68,7 +68,7 @@
   id: "9"
   connectAt: 709.3
   interruptAt: 714.3
-  question: "Mum couldn’t remember the chalet's address or call for help—what would you do if you got lost like Mum?"
+  question: "Mom got lost and couldn't call home. What would you do if you got lost?"
 
 - storyId: "1"
   userId: "1"
@@ -76,7 +76,7 @@
   id: "10"
   connectAt: 798.48
   interruptAt: 803.48
-  question: "Why do you think Birdie was described as a 'wise old friend' instead of just a regular bird?"
+  question: "Birdie helped everyone find Mom. Who helps you when you need help?"
 
 - storyId: "2"
   userId: "1"
@@ -84,7 +84,7 @@
   id: "121"
   connectAt: 20.72
   interruptAt: 25.72
-  question: "Why do you think Grandma said the ocean is full of secrets? What kind of secrets could the ocean have?"
+  question: "Grandma says the ocean has secrets. What do you think lives in the ocean?"
 
 - storyId: "2"
   userId: "1"
@@ -92,7 +92,7 @@
   id: "122"
   connectAt: 33.6
   interruptAt: 38.6
-  question: "What would you do if you saw something sparkly far away in the water? Would you go closer or stay safe near the shore?"
+  question: "Maya saw something sparkly. What sparkly things do you like?"
 
 - storyId: "2"
   userId: "1"
@@ -100,7 +100,7 @@
   id: "123"
   connectAt: 54.26
   interruptAt: 59.26
-  question: "Why do you think the boat got stuck on the rainbow reef? Was it an accident, or could it be something special?"
+  question: "The boat is stuck on a rainbow reef. What colors are in rainbows?"
 
 - storyId: "2"
   userId: "1"
@@ -108,7 +108,7 @@
   id: "124"
   connectAt: 90.44
   interruptAt: 95.44
-  question: "Why do you think the rainbow reef allowed Maya to understand the turtle, Bubbles?"
+  question: "Bubbles the turtle can talk! If you could talk to an animal, which one would you pick?"
 
 - storyId: "2"
   userId: "1"
@@ -116,7 +116,7 @@
   id: "125"
   connectAt: 130.46
   interruptAt: 134.46
-  question: "How would you feel if you suddenly discovered you could breathe underwater? Would you be scared or excited?"
+  question: "Maya can breathe underwater! What would you want to see underwater?"
 
 - storyId: "2"
   userId: "1"
@@ -124,7 +124,7 @@
   id: "126"
   connectAt: 156.6
   interruptAt: 161.6
-  question: "Why do you think the treasure chest opened only for Maya? What made her special?"
+  question: "Maya found a treasure chest! What would you like to find in a treasure chest?"
 
 - storyId: "2"
   userId: "1"
@@ -132,7 +132,7 @@
   id: "127"
   connectAt: 191.52
   interruptAt: 196.52
-  question: "Why is it important to protect magical places in the ocean? What could happen if no one protected them?"
+  question: "Maya likes the beautiful ocean and animals. Do you like animals in the ocean?"
 
 - storyId: "2"
   userId: "1"
@@ -140,7 +140,7 @@
   id: "128"
   connectAt: 207.92
   interruptAt: 212.92
-  question: "Why do you think Bubbles chose Maya to help protect the ocean?"
+  question: "Bubbles asked Maya to help. Do you like to help people?"
 
 - storyId: "2"
   userId: "1"
@@ -148,7 +148,7 @@
   id: "129"
   connectAt: 240.74
   interruptAt: 244.74
-  question: "Why do you think Grandma smiled knowingly? Did she already know about the ocean's secrets?"
+  question: "Grandma is smiling at Maya's story. Do you like to tell stories?"
 
 - storyId: "2"
   userId: "1"
@@ -156,4 +156,4 @@
   id: "130"
   connectAt: 265.32
   interruptAt: 269.32
-  question: "How can you help protect the ocean and the creatures that live there?"
+  question: "Maya visits Bubbles again. Who do you like to visit?"
