@@ -242,6 +242,8 @@ export const deviceMachine = createMachine(
                     SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
                     ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
                     ENTER_PRESSED: { target: 'startingUserQuestionSession' },
+                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
+                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
                 },
             },
             startingProactiveQuestionSession: {

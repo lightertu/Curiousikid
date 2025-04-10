@@ -5,6 +5,7 @@ from livekit.plugins import deepgram, openai, silero
 from livekit.agents import llm
 from memory.story.service import StoryService
 from memory.story.models import ProactiveQuestionPoint
+from memory.user.service import UserService
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
 
 
@@ -25,11 +26,10 @@ class ProactiveQuestionAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         logger.info(f"Loading participant metadata: {metadata}")
 
-        child_name = "Emma"  # TODO: remove the hardcoded child name
-        user_id = 1  # TODO: remove the hardcoded user id
-
         self.story_service = StoryService()
+        self.user_service = UserService()
         self.connection_metadata = ProactiveQuestionConnectionMetadata(**metadata)
+        user = self.user_service.get_user(self.connection_metadata.userId)
         story_context = self.story_service.get_question_point_context(
             self.connection_metadata.metadata
         )
@@ -37,9 +37,9 @@ class ProactiveQuestionAgent(Agent):
             self.connection_metadata.metadata.storyId
         )
 
-        logger.info("User ID: ", user_id)
+        logger.info("User ID: ", user.id)
 
-        results = mem0_sync.get_all(user_id=user_id)
+        results = mem0_sync.get_all(user_id=user.id)
 
         if results:
             memories = "\n -".join(
@@ -151,15 +151,15 @@ class ProactiveQuestionAgent(Agent):
 
             Personal Connection & Emotions
 
-            Address the child by their name ({child_name}) at natural points in the conversation
+            Address the child by their name ({user.name}) at natural points in the conversation
             Use their name especially when asking questions or showing appreciation for their ideas
             Show genuine emotions in your responses - be excited, curious, surprised, or thoughtful
             Express warmth through your tone with phrases like "I really love how you think about..."
             React emotionally to story events just as a human would - "Wow, that part makes me feel..."
             If the child seems happy, match their excitement; if they seem hesitant, be gently encouraging
-            Create moments of shared emotion about the story - "Isn't that exciting, {child_name}?"
+            Create moments of shared emotion about the story - "Isn't that exciting, {user.name}?"
             Add natural conversation elements like "hmm," "oh!," "you know what?" to sound more human
-            Make the child feel special by noticing their unique perspective - "{child_name}, that's such a creative way to think about it!"
+            Make the child feel special by noticing their unique perspective - "{user.name}, that's such a creative way to think about it!"
             Express wonder and curiosity about the story world to model engagement
             Use authentic reactions that demonstrate active listening
 
@@ -206,7 +206,7 @@ class ProactiveQuestionAgent(Agent):
             Here is the long term memory:
             {memories}
             
-            child name: {child_name}
+            child name: {user.name}
             
             Story Context:
             Here's what the child has listened to so far:
@@ -217,7 +217,7 @@ class ProactiveQuestionAgent(Agent):
             {story_text}
             
             Your first task is to ask the child the question point about the story in a natural, engaging way, then have a meaningful conversation about their response. 
-            Make sure to use {child_name}'s name naturally throughout the conversation, express genuine human-like emotions, and make the child feel like they're talking with a real, caring friend who is excited to discuss the story with them. 
+            Make sure to use {user.name}'s name naturally throughout the conversation, express genuine human-like emotions, and make the child feel like they're talking with a real, caring friend who is excited to discuss the story with them. 
             Remember to keep all responses short (1-3 sentences), use age-appropriate language, and focus on building their critical thinking and emotional intelligence through story discussion.
             DO NOT ASK TOO MANY QUESTIONS - YOU ARE A STORYTELLER, NOT A CHIT CHATTER BOT!!!
             YOU NEED TO ROUTE BACK TO THE STORY AFTER A FEW ROUNDS OF QUESTIONS AND ANSWERS (LOOK AT THE LONG TERM MEMORY)""",
