@@ -17,16 +17,7 @@ mem0_sync = MemoryClient()
 user_service = UserService()
 
 
-<<<<<<< HEAD
-ACTIVE_PERSONA = "nemo"
-TEMP_USER_NAME = "emma_davis_family" # oliver_chen_family
-
-def generate_system_prompt(persona_key, memories):
-    persona = PERSONAS.get(persona_key, PERSONAS["nemo"])  # Default to Nemo if not found
-    
-=======
 def generate_system_prompt(character: ChatCharacter, memories):
->>>>>>> 0e3e165673de18f749f62de22c01a598f1218017
     # Build example speech section if available
     speech_examples = ""
     if character.speechExamples:
