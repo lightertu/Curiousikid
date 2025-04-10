@@ -100,7 +100,7 @@ def generate_pixel_art(
                     image_path=image_filename, width=width, height=height
                 )
                 with open(yaml_filename, "w") as f:
-                    f.write(yaml.dump(result_array, indent=4))
+                    f.write(yaml.dump(result_array, default_flow_style=False))
 
                 with open(json_filename, "w") as f:
                     f.write(json.dumps(result_array, indent=4))
@@ -119,7 +119,7 @@ def generate_pixel_art(
 
 if __name__ == "__main__":
     generate_pixel_art(
-        """A creature with the upper part being a grey cat and the lower part being mermaid, it is called a mercat.""",
+        """A child stands in front of a large rainbow in the sky.""",
         height=32,
         width=32,
     )
