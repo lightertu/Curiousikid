@@ -1,4 +1,4 @@
-import { createMachine, assign, MachineContext, createActor, fromPromise, } from 'xstate';
+import { createMachine, assign, MachineContext, createActor, fromPromise, fromCallback, sendParent } from 'xstate';
 import { LiveKitApi, LiveKitConnectionDetails, ConnectionMetadataType } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
@@ -99,6 +99,9 @@ export interface DeviceContext extends MachineContext {
 }
 
 export enum DeviceEventType {
+    // websocket events
+    SET_IS_WEBSOCKET_CONNECTED = 'SET_IS_WEBSOCKET_CONNECTED',
+
     // Keyboard events
     ESC_PRESSED = 'ESC_PRESSED',
     ESC_LONG_PRESSED = 'ESC_LONG_PRESSED',
@@ -128,21 +131,6 @@ export enum DeviceEventType {
     // chat events
     SET_CHAT_CHARACTERS = 'SET_CHAT_CHARACTERS',
 }
-
-export type DeviceEvent =
-    | { type: DeviceEventType.ESC_PRESSED }
-    | { type: DeviceEventType.ESC_LONG_PRESSED }
-    | { type: DeviceEventType.ENTER_PRESSED }
-    | { type: DeviceEventType.LEFT_PRESSED }
-    | { type: DeviceEventType.RIGHT_PRESSED }
-    | { type: DeviceEventType.SPACE_PRESSED }
-    | { type: DeviceEventType.SET_STORIES, payload: { stories: StoryMetadata[] } }
-    | { type: DeviceEventType.SET_CURRENT_STORY, payload: { currentStory: CurrentStory } }
-    | { type: DeviceEventType.SET_PROACTIVE_QUESTION_POINT, payload: { proactiveQuestionPoint: ProactiveQuestionPoint } }
-    | { type: DeviceEventType.STORY_ENDED }
-    | { type: DeviceEventType.STOP_PLAYBACK }
-    | { type: DeviceEventType.START_PLAYBACK }
-    | { type: DeviceEventType.SET_CHAT_CHARACTERS, payload: { characters: ChatCharacter[] } }
 
 export const deviceMachine = createMachine(
     {
@@ -221,7 +209,6 @@ export const deviceMachine = createMachine(
                     ENTER_PRESSED: { target: '.startingUserQuestionSession' }, // Initiate user question
 
                     // These might need to stay if specific sub-states shouldn't handle them, but let's try moving them
-                    // SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] }, // Handled within playing/paused if needed?
                     // START_PROACTIVE_QUESTION_SESSION: { target: '.startingProactiveQuestionSession' }, // Needs context of playing/paused
                     // SET_CURRENT_STORY: { actions: ['setCurrentStory'] }, // Handled within playing/paused if needed?
                     // SET_AGENT_MODEL: { actions: ['setAgentModel'] }, // Handled within playing/paused if needed?
@@ -238,8 +225,19 @@ export const deviceMachine = createMachine(
                             SPACE_PRESSED: { target: 'paused' }, // Go to paused state
                             STOP_PLAYBACK: { target: 'paused' }, // External signal to pause
                             SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
-                            START_PROACTIVE_QUESTION_SESSION: { target: 'startingProactiveQuestionSession' }, // Target sibling
-                            SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
+                            SET_CURRENT_STORY: [
+                                {
+                                    // First, check if the condition is met AFTER updating the story
+                                    guard: 'isAtProactiveQuestionPoint',
+                                    target: 'startingProactiveQuestionSession',
+                                    // Apply the update AND transition
+                                    actions: ['setCurrentStory']
+                                },
+                                {
+                                    // Otherwise (guard fails), just apply the update
+                                    actions: ['setCurrentStory']
+                                }
+                            ],
                             SET_AGENT_MODEL: { actions: ['setAgentModel'] },
                             LEFT_PRESSED: { target: 'backwardPlaybackWhilePlaying' }, // Initiate seek backward
                             RIGHT_PRESSED: { target: 'forwardPlaybackWhilePlaying' }, // Initiate seek forward
@@ -439,6 +437,9 @@ export const deviceMachine = createMachine(
             SET_AGENT_STATE: {
                 actions: ['setAgentState'],
             },
+            SET_IS_WEBSOCKET_CONNECTED: {
+                actions: ['setIsWebSocketConnected'],
+            },
         },
     },
     {
@@ -448,7 +449,7 @@ export const deviceMachine = createMachine(
                 const livekitConnectionDetails = await LIVEKIT_API.getConnectionDetails(input);
                 console.log("Connected to LiveKit with connection details:", livekitConnectionDetails);
                 return livekitConnectionDetails as LiveKitConnectionDetails;
-            })
+            }),
         },
         actions: {
             // High-level example implementations
@@ -720,6 +721,18 @@ export const deviceMachine = createMachine(
                 livekitConnectionDetails: null,
                 isConnectingToLivekit: false, // Ensure this is reset
             }),
+            // Define the action to update the websocket connection state
+            setIsWebSocketConnected: assign({
+                isWebSocketConnected: ({ context, event }) => {
+                    // Ensure the event has the correct type and payload before accessing it
+                    if (event.type === DeviceEventType.SET_IS_WEBSOCKET_CONNECTED && typeof event.payload?.isWebSocketConnected === 'boolean') {
+                        console.log('Action: setIsWebSocketConnected state update', event.payload.isWebSocketConnected);
+                        return event.payload.isWebSocketConnected;
+                    }
+                    // Return current context value if event is wrong type (shouldn't happen here but good practice)
+                    return context.isWebSocketConnected; // Correctly access context here
+                }
+            }),
         },
         guards: {
             isAtMainMenuLeftMost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
@@ -744,6 +757,16 @@ export const deviceMachine = createMachine(
             isUserQuestionActive: (ctx) => {
                 const { agentModel, isStoryPlaying } = ctx.context;
                 return agentModel === VoiceAgentModel.USER_QUESTION && isStoryPlaying;
+            },
+            isAtProactiveQuestionPoint: ({ context, event }) => {
+                const isAtProactiveQuestionPoint =
+                    event.type === DeviceEventType.SET_CURRENT_STORY &&
+                    event.payload?.currentStory &&
+                    context.proactiveQuestionPoint &&
+                    event.payload.currentStory.currentTime >= context.proactiveQuestionPoint.connectAt &&
+                    event.payload.currentStory.currentTime - context.proactiveQuestionPoint.connectAt <= 1;
+
+                return isAtProactiveQuestionPoint;
             },
         },
     }

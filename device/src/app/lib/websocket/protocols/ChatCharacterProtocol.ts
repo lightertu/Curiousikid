@@ -1,8 +1,7 @@
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
-import useDeviceState, { ChatCharacter } from '../../../DeviceState';
-import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from '@/app/DeviceStateMachine';
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR, ChatCharacter } from '@/app/DeviceStateMachine';
 
 // Type definitions for story payloads
 export interface GetCharacterListMessage extends Message {
@@ -36,8 +35,7 @@ export class ChatCharacterProtocol extends BaseProtocol {
      */
     async initialize(): Promise<void> {
         await super.initialize();
-        const DeviceState = useDeviceState.getState();
-        const userId = DeviceState.userId;
+        const { userId } = DEVICE_STATE_MACHINE_ACTOR.getSnapshot().context;
 
         // Initial request for story list
         if (this.connection.isConnected()) {

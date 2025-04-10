@@ -1,5 +1,4 @@
 import { useSelector } from "@xstate/react";
-import useDeviceState from "../DeviceState";
 import { StatusIndicator } from "./StatusIndicator";
 import { DEVICE_STATE_MACHINE_ACTOR } from "../DeviceStateMachine";
 
@@ -11,13 +10,14 @@ const KeyCap: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 );
 
 const DeviceIndicator: React.FC = () => {
-    const { isWebSocketConnected } = useDeviceState();
     const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
         return {
             value: state.value,
             context: state.context
         }
     });
+
+    const { isWebSocketConnected } = deviceContext.context;
 
     const isMicrophoneOn = deviceContext.context.agentState === 'speaking' || deviceContext.context.agentState === 'listening' || deviceContext.context.agentState === 'thinking';
 
