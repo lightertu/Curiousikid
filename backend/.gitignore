@@ -5,7 +5,7 @@
 .idea/
 __pycache__/
 secrets.*
-*.mp3
+# *.mp3
 # *.wav
 # *.ogg
 .syncignore
