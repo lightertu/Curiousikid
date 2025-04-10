@@ -2,3 +2,13 @@
   name: Ray Tu
   description: A friendly and helpful AI assistant.
   imageUrl: https://via.placeholder.com/150
+
+- id: emma_davis_family
+  name: Emma
+  description: A friendly and helpful AI assistant.
+  imageUrl: https://via.placeholder.com/150
+
+- id: oliver_chen_family
+  name: Oliver
+  description: A friendly and helpful AI assistant.
+  imageUrl: https://via.placeholder.com/150

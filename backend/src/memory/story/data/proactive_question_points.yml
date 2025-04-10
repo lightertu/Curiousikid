@@ -157,3 +157,101 @@
   connectAt: 265.32
   interruptAt: 269.32
   question: "Maya visits Bubbles again. Who do you like to visit?"
+
+- storyId: "3"
+  userId: "1"
+  id: "1"
+  connectAt: 105.04
+  interruptAt: 110.04
+  question: "If you found something magical like the rainbow puddle, who would you want to share it with?"
+
+- storyId: "3"
+  userId: "1"
+  id: "2"
+  connectAt: 136.84
+  interruptAt: 141.84
+  question: "What do you think it feels like when you touch the magical rainbow colors in the puddle?"
+
+- storyId: "3"
+  userId: "1"
+  id: "3"
+  connectAt: 168.56
+  interruptAt: 173.56
+  question: "Rosie said the colors are like us - different but beautiful together. What makes you special and different?"
+
+- storyId: "3"
+  userId: "1"
+  id: "4"
+  connectAt: 198.56
+  interruptAt: 203.56
+  question: "Henry found something better than a rainbow puddle. What do you think it was?"
+
+- storyId: "3"
+  userId: "1"
+  id: "5"
+  connectAt: 213.84
+  interruptAt: 218.84
+  question: "What adventure would you like to have with your friends tomorrow?"
+
+- storyId: "4"
+  userId: "1"
+  id: "1"
+  connectAt: 114.96
+  interruptAt: 119.96
+  question: "Have you ever seen something that glows in the dark? How did it make you feel?"
+
+- storyId: "4"
+  userId: "1"
+  id: "2"
+  connectAt: 140.54
+  interruptAt: 145.54
+  question: "If a firefly could talk to you, what do you think it might say?"
+
+- storyId: "4"
+  userId: "1"
+  id: "3"
+  connectAt: 166.26
+  interruptAt: 171.26
+  question: "What's your favorite thing about nighttime? Do you like to look at the stars?"
+
+- storyId: "4"
+  userId: "1"
+  id: "4"
+  connectAt: 191.18
+  interruptAt: 196.18
+  question: "If you could be an insect for a day, which one would you choose and why?"
+
+- storyId: "4"
+  userId: "1"
+  id: "5"
+  connectAt: 213.30
+  interruptAt: 218.30
+  question: "What's something in nature that makes you feel happy or excited like Emma feels about the fireflies?"
+
+- storyId: "5"
+  userId: "1"
+  id: "1"
+  connectAt: 109.23
+  interruptAt: 114.23
+  question: "If you met a friend with a crooked ear like Hop, what would you want to explore together?"
+
+- storyId: "5"
+  userId: "1"
+  id: "2"
+  connectAt: 135.72
+  interruptAt: 140.72
+  question: "What do you think makes Betsy, Hop, Flitter, and Percy special friends? Do you have friends who are different from you?"
+
+- storyId: "5"
+  userId: "1"
+  id: "3"
+  connectAt: 159.24
+  interruptAt: 164.24
+  question: "Daisy needs help! What do you think Betsy will do to save her? Would you help someone even if they weren't nice to you?"
+
+- storyId: "5"
+  userId: "1"
+  id: "4"
+  connectAt: 188.80
+  interruptAt: 193.80
+  question: "Betsy says being different isn't bad. What makes you special and different from your friends?"

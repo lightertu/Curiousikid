@@ -17,3 +17,23 @@
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   pixelArtCoverFile: assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml
+
+- id: "3"
+  title: "The Rainbow Puddle Adventure"
+  description: "Something cool"
+  artist: "Storynory"
+  audioUrl: "http://localhost:8000/api/v1/stories/3/audio"
+  duration: 856.842449
+  thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  pixelArtCoverFile: assets/pixel_art/550e8400-e29b-41d4-a716-446655440000/cover.yml
+
+- id: "4"
+  title: "The Firefly Night Story"
+  description: "Something cool"
+  artist: "Storynory"
+  audioUrl: "http://localhost:8000/api/v1/stories/4/audio"
+  duration: 856.842449
+  thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  pixelArtCoverFile: assets/pixel_art/8c2d36fa-f52c-4601-9bc2-89eb2f71e0d9/cover.yml
