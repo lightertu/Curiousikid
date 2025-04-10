@@ -69,7 +69,6 @@ export interface DeviceContext extends MachineContext {
     // user state
     userId: string;
     frame: number;
-    topMenuSelectedIndex: number;
 
     // websocket state
     isWebSocketConnected: boolean;
@@ -152,7 +151,6 @@ export const deviceMachine = createMachine(
         context: {
             // user state
             userId: TEST_USER_ID,
-            topMenuSelectedIndex: 0,
             isWebSocketConnected: false,
 
             // screen state
@@ -211,108 +209,166 @@ export const deviceMachine = createMachine(
                         { guard: 'isAtStoriesSelectionRightMost', target: 'storiesSelectionBlinking' },
                         { actions: ['nextStory', 'renderStoryCover'], target: 'storiesSelection' }
                     ],
-                    ENTER_PRESSED: { target: 'storyIsPlaying' },
+                    ENTER_PRESSED: { target: 'inStory' },
                     ESC_PRESSED: { target: 'mainMenu' },
                 },
             },
-            storyIsPlaying: {
-                entry: [
-                    'selectStory',
-                    'startStory',
-                    'renderPlaybackScreen'
-                ],
+            inStory: { // Parent state for all story-related interactions
+                initial: 'playing',
                 on: {
-                    ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
-                    ENTER_PRESSED: { target: 'startingUserQuestionSession' },
-                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
-                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
-                    SPACE_PRESSED: { target: 'storyIsPaused' },
-                    STOP_PLAYBACK: { target: 'storyIsPaused' },
-                    START_PLAYBACK: { target: 'storyIsPlaying' },
-                    SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
-                    START_PROACTIVE_QUESTION_SESSION: { target: 'startingProactiveQuestionSession' },
-                    SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
-                    SET_AGENT_MODEL: { actions: ['setAgentModel'] },
-                    STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] },
+                    // Common events handled by the parent state
+                    ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] }, // Exit story mode
+                    ENTER_PRESSED: { target: '.startingUserQuestionSession' }, // Initiate user question
+
+                    // These might need to stay if specific sub-states shouldn't handle them, but let's try moving them
+                    // SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] }, // Handled within playing/paused if needed?
+                    // START_PROACTIVE_QUESTION_SESSION: { target: '.startingProactiveQuestionSession' }, // Needs context of playing/paused
+                    // SET_CURRENT_STORY: { actions: ['setCurrentStory'] }, // Handled within playing/paused if needed?
+                    // SET_AGENT_MODEL: { actions: ['setAgentModel'] }, // Handled within playing/paused if needed?
+                    STORY_ENDED: { target: 'storiesSelection', actions: ['stopStory'] }, // Exit story mode
                 },
-            },
-            storyIsPaused: {
-                entry: ['stopStory', 'renderPlaybackScreen'],
-                on: {
-                    SPACE_PRESSED: { actions: ['startStory'], target: 'storyIsPlaying' },
-                    ESC_PRESSED: { target: 'storiesSelection', actions: ['stopStory'] },
-                    ENTER_PRESSED: { target: 'startingUserQuestionSession' },
-                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
-                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' },
-                },
-            },
-            startingProactiveQuestionSession: {
-                entry: ['setConnectingToLivekit'],
-                invoke: {
-                    src: 'connectToLivekit',
-                    input: ({ context, event }) => {
-                        return {
-                            agentType: 'proactive_question',
-                            userId: context.userId,
-                            metadata: context.proactiveQuestionPoint
+                states: {
+                    playing: {
+                        entry: [
+                            'selectStory',
+                            'startStory',
+                            'renderPlaybackScreen'
+                        ],
+                        on: {
+                            SPACE_PRESSED: { target: 'paused' }, // Go to paused state
+                            STOP_PLAYBACK: { target: 'paused' }, // External signal to pause
+                            SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
+                            START_PROACTIVE_QUESTION_SESSION: { target: 'startingProactiveQuestionSession' }, // Target sibling
+                            SET_CURRENT_STORY: { actions: ['setCurrentStory'] },
+                            SET_AGENT_MODEL: { actions: ['setAgentModel'] },
+                            LEFT_PRESSED: { target: 'backwardPlaybackWhilePlaying' }, // Initiate seek backward
+                            RIGHT_PRESSED: { target: 'forwardPlaybackWhilePlaying' }, // Initiate seek forward
                         }
                     },
-                    onDone: {
-                        target: 'proactiveQuestionSession',
-                        actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    paused: {
+                        entry: ['stopStory', 'renderPlaybackScreen'],
+                        on: {
+                            SPACE_PRESSED: { target: 'playing' }, // Resume playback
+                            START_PLAYBACK: { target: 'playing' }, // External signal to play
+                            LEFT_PRESSED: { target: 'backwardPlaybackWhilePaused' }, // Initiate seek backward
+                            RIGHT_PRESSED: { target: 'forwardPlaybackWhilePaused' }, // Initiate seek forward
+                        },
                     },
-                    onError: {
-                        target: 'storyQuestionSessionEnded',
-                    },
-                },
-                on: {
-                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
-                }
-            },
-            proactiveQuestionSession: {
-                entry: ['stopStory', 'showAIVoiceConsole', 'clearProactiveQuestionPoint'],
-                on: {
-                    STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' },
-                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
-                },
-            },
-            startingUserQuestionSession: {
-                entry: ['setConnectingToLivekit'],
-                invoke: {
-                    src: 'connectToLivekit',
-                    input: ({ context, event }) => {
-                        return {
-                            agentType: 'user_question',
-                            userId: context.userId,
-                            metadata: {
-                                storyId: context.currentStory?.id,
-                                userId: context.userId,
-                                interruptAt: context.currentStory?.currentTime,
-                            }
+                    startingProactiveQuestionSession: {
+                        entry: ['setConnectingToLivekit'],
+                        invoke: {
+                            src: 'connectToLivekit',
+                            input: ({ context, event }) => {
+                                return {
+                                    agentType: 'proactive_question',
+                                    userId: context.userId,
+                                    metadata: context.proactiveQuestionPoint
+                                }
+                            },
+                            onDone: {
+                                target: 'proactiveQuestionSession', // Target sibling
+                                actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                            },
+                            onError: {
+                                target: 'storyQuestionSessionEnded', // Target sibling
+                            },
+                        },
+                        on: {
+                            ESC_PRESSED: { target: 'storyQuestionSessionEnded' } // Target sibling
                         }
                     },
-                    onDone: {
-                        target: 'userQuestionSession',
-                        actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                    proactiveQuestionSession: {
+                        entry: ['stopStory', 'showAIVoiceConsole', 'clearProactiveQuestionPoint'],
+                        on: {
+                            STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' }, // Target sibling
+                            ESC_PRESSED: { target: 'storyQuestionSessionEnded' } // Target sibling
+                        },
                     },
-                    onError: {
-                        target: 'storyQuestionSessionEnded',
+                    startingUserQuestionSession: {
+                        entry: ['setConnectingToLivekit'],
+                        invoke: {
+                            src: 'connectToLivekit',
+                            input: ({ context, event }) => {
+                                return {
+                                    agentType: 'user_question',
+                                    userId: context.userId,
+                                    metadata: {
+                                        storyId: context.currentStory?.id,
+                                        userId: context.userId,
+                                        interruptAt: context.currentStory?.currentTime,
+                                    }
+                                }
+                            },
+                            onDone: {
+                                target: 'userQuestionSession', // Target sibling
+                                actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
+                            },
+                            onError: {
+                                target: 'storyQuestionSessionEnded', // Target sibling
+                            },
+                        },
+                        on: {
+                            ESC_PRESSED: { target: 'storyQuestionSessionEnded' } // Target sibling
+                        }
                     },
-                },
-                on: {
-                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
+                    userQuestionSession: {
+                        entry: ['stopStory', 'showAIVoiceConsole'],
+                        on: {
+                            STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' }, // Target sibling
+                            ESC_PRESSED: { target: 'storyQuestionSessionEnded' } // Target sibling
+                        },
+                    },
+                    storyQuestionSessionEnded: {
+                        // Use the reusable cleanup action & start story
+                        entry: ['startStory', 'clearProactiveQuestionPoint', 'cleanupLivekitSession'],
+                        // Target the parent state; it will enter its initial state ('playing')
+                        always: { target: 'playing' } // Go specifically back to playing state
+                    },
+                    forwardPlaybackWhilePlaying: {
+                        entry: ['forwardPlayback', 'renderForwardPlayback'],
+                        after: {
+                            // Target the parent state to return to last active substate (playing/paused)
+                            200: { target: 'playing' }
+                        },
+                        on: {
+                            // LEFT_PRESSED handled by parent 'inStory'
+                            RIGHT_PRESSED: { target: 'forwardPlaybackWhilePlaying' } // Re-trigger self
+                        }
+                    },
+                    backwardPlaybackWhilePlaying: {
+                        entry: ['backwardPlayback', 'renderBackwardPlayback'],
+                        after: {
+                            // Target the parent state to return to last active substate (playing/paused)
+                            200: { target: 'playing' }
+                        },
+                        on: {
+                            LEFT_PRESSED: { target: 'backwardPlaybackWhilePlaying' }, // Re-trigger self
+                            // RIGHT_PRESSED handled by parent 'inStory'
+                        }
+                    },
+                    forwardPlaybackWhilePaused: {
+                        entry: ['forwardPlayback', 'renderForwardPlayback'],
+                        after: {
+                            // Target the parent state to return to last active substate (playing/paused)
+                            200: { target: 'paused' }
+                        },
+                        on: {
+                            // LEFT_PRESSED handled by parent 'inStory'
+                            RIGHT_PRESSED: { target: 'forwardPlaybackWhilePaused' } // Re-trigger self
+                        }
+                    },
+                    backwardPlaybackWhilePaused: {
+                        entry: ['backwardPlayback', 'renderBackwardPlayback'],
+                        after: {
+                            // Target the parent state to return to last active substate (playing/paused)
+                            200: { target: 'paused' }
+                        },
+                        on: {
+                            LEFT_PRESSED: { target: 'backwardPlaybackWhilePaused' }, // Re-trigger self
+                            // RIGHT_PRESSED handled by parent 'inStory'
+                        }
+                    }
                 }
-            },
-            userQuestionSession: {
-                entry: ['stopStory', 'showAIVoiceConsole'],
-                on: {
-                    STORY_QUESTION_SESSION_ENDED: { target: 'storyQuestionSessionEnded' },
-                    ESC_PRESSED: { target: 'storyQuestionSessionEnded' }
-                },
-            },
-            storyQuestionSessionEnded: {
-                entry: ['startStory', 'hideAIVoiceConsole', 'clearProactiveQuestionPoint', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit'],
-                always: { target: 'storyIsPlaying' }
             },
             chatSelection: {
                 entry: ['renderCharacterCover'],
@@ -345,7 +401,7 @@ export const deviceMachine = createMachine(
                         actions: ['setLivekitConnectionDetails', 'unsetConnectingToLivekit']
                     },
                     onError: {
-                        target: 'storyQuestionSessionEnded',
+                        target: 'chatSelection',
                     },
                 },
                 on: {
@@ -360,55 +416,23 @@ export const deviceMachine = createMachine(
                 },
             },
             chatCharacterSessionEnded: {
-                entry: ['hideAIVoiceConsole', 'clearLivekitConnectionDetails', 'unsetConnectingToLivekit'],
+                // Use the reusable cleanup action
+                entry: ['cleanupLivekitSession'],
                 always: { target: 'chatSelection' }
             },
             // Temporary state to show blank screen during left blink
             mainMenuBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
-                after: {
-                    50: { target: 'mainMenu' } // After 50ms, go back to mainMenu
-                }
+                after: { 50: { target: 'mainMenu' } }
             },
             // Temporary state to show blank screen during left blink
             storiesSelectionBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
-                after: {
-                    50: { target: 'storiesSelection' } // After 50ms, go back to storiesSelection
-                }
-            },
-            // Temporary state to show blank screen during left blink
-            forwardPlaybackBlinking: {
-                entry: ['forwardPlayback', 'renderForwardPlayback'],
-                after: {
-                    200: [
-                        { guard: 'isStoryPlaying', target: 'storyIsPlaying' },
-                        { guard: 'isStoryPaused', target: 'storyIsPaused' },
-                    ]
-                },
-                on: {
-                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
-                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' }
-                }
-            },
-            backwardPlaybackBlinking: {
-                entry: ['backwardPlayback', 'renderBackwardPlayback'],
-                after: {
-                    200: [
-                        { guard: 'isStoryPlaying', target: 'storyIsPlaying' },
-                        { guard: 'isStoryPaused', target: 'storyIsPaused' },
-                    ]
-                },
-                on: {
-                    LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
-                    RIGHT_PRESSED: { target: 'forwardPlaybackBlinking' }
-                }
+                after: { 50: { target: 'storiesSelection' } }
             },
             chatSelectionBlinking: {
                 entry: assign({ screen: BLANK_SCREEN }),
-                after: {
-                    50: { target: 'chatSelection' }
-                }
+                after: { 50: { target: 'chatSelection' } }
             },
         },
         on: {
@@ -689,6 +713,13 @@ export const deviceMachine = createMachine(
                     return false;
                 }
             }),
+
+            // New reusable cleanup action
+            cleanupLivekitSession: assign({
+                isShowAIVoiceConsole: false,
+                livekitConnectionDetails: null,
+                isConnectingToLivekit: false, // Ensure this is reset
+            }),
         },
         guards: {
             isAtMainMenuLeftMost: (ctx) => ctx.context.topMenuHighlightedIndex === 0,
@@ -701,6 +732,7 @@ export const deviceMachine = createMachine(
             isStoriesSelected: (ctx, event) => ctx.context.topMenuHighlightedIndex === 0,
             isStoryPlaying: (ctx) => ctx.context.isStoryPlaying,
             isStoryPaused: (ctx) => !ctx.context.isStoryPlaying,
+
             isAtStoriesSelectionLeftMost: (ctx) => ctx.context.selectedStoryIndex === 0,
             isAtStoriesSelectionRightMost: (ctx) => ctx.context.selectedStoryIndex >= ctx.context.stories.length - 1,
 
