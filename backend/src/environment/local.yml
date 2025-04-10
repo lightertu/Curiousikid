@@ -2,8 +2,9 @@ AWS_REGION: 'us-east-1'
 LIVEKIT_URL: 'ws://localhost:7880'
 LIVEKIT_API_KEY: 'devkey'
 LIVEKIT_API_SECRET: 'secret'
-# Anwitha's API key
-OPENAI_API_KEY: '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'
+# Ray's API key
+# https://platform.openai.com/settings/organization/limits
+OPENAI_API_KEY: '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'
 DEEPGRAM_API_KEY: '5c07f269ee252b5dc33fe31e05e4c4fd69401481'
 ELEVENLABS_API_KEY: 'sk_c6a1a79cf891116c434959711e8c67d7e8108b9aed0da1cd'
 ANTHROPIC_API_KEY: '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'
