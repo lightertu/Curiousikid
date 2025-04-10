@@ -276,7 +276,6 @@ class ProactiveQuestionAgent(Agent):
         # callback when user input is transcribed
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
-<<<<<<< HEAD
         
         # Count user messages in the chat context
         user_turns = sum(1 for message in chat_ctx.items if message.role == "user")
@@ -292,12 +291,6 @@ class ProactiveQuestionAgent(Agent):
         
         logger.info("add user_turn_message to chat context", extra={"content": user_turn_message.content})
         logger.info("add user message to chat context", extra={"content": new_message.content})
-=======
-        await self.update_chat_ctx(chat_ctx)
-        logger.info(
-            "add user message to chat context", extra={"content": new_message.content}
-        )
->>>>>>> 0e3e165673de18f749f62de22c01a598f1218017
 
         try:
             # Store the message using the correct format
@@ -318,8 +311,5 @@ class ProactiveQuestionAgent(Agent):
 
         except Exception as e:
             logger.error(f"Failed to add memory: {e}")
-<<<<<<< HEAD
         except Exception as e:
             logger.error(f"Failed to add memory: {e}")
-=======
->>>>>>> 0e3e165673de18f749f62de22c01a598f1218017
