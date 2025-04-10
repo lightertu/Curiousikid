@@ -2,7 +2,7 @@ import WebSocketManager from '../websocket/WebSocketManager';
 import { MessageType } from '../websocket/MessageTypes';
 import { StoryProtocol } from '../websocket/protocols/StoryProtocol';
 import { ChatCharacterProtocol } from '../websocket/protocols/ChatCharacterProtocol';
-import useDeviceState from '@/app/DeviceState';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from '@/app/DeviceStateMachine';
 
 export default class WebSocketService {
   private static instance: WebSocketService;
@@ -46,7 +46,7 @@ export default class WebSocketService {
 
   private handleConnected(): void {
     console.log('Connected to WebSocket server');
-    const DeviceState = useDeviceState.getState();
+    const { userId } = DEVICE_STATE_MACHINE_ACTOR.getSnapshot().context;
 
     // Send handshake - retained for compatibility
     this.wsManager.send(MessageType.HANDSHAKE, {
@@ -54,16 +54,16 @@ export default class WebSocketService {
       version: '1.0.0',
       capabilities: ['audio-streaming', 'voice-input', 'playback-control']
     });
-
+    
     // Request initial story list
     this.storyProtocol.getStoryList({
-      payload: { userId: DeviceState.userId },
+      payload: { userId: userId },
       type: MessageType.GET_STORY_LIST
     });
 
     // Request initial story list
     this.chatCharacterProtocol.getChatCharacterList({
-      payload: { userId: DeviceState.userId },
+      payload: { userId: userId },
       type: MessageType.GET_CHAT_CHARACTER_LIST
     });
 
@@ -71,8 +71,12 @@ export default class WebSocketService {
 
   private handleDisconnected(): void {
     console.log('Disconnected from WebSocket server');
-    const deviceState = useDeviceState.getState();
-    deviceState.setIsWebSocketConnected(false);
+    DEVICE_STATE_MACHINE_ACTOR.send({
+      type: DeviceEventType.SET_IS_WEBSOCKET_CONNECTED,
+      payload: {
+        isWebSocketConnected: false
+      }
+    });
   }
 
   public connect(): void {

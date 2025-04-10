@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import WebSocketService from '../lib/services/WebSocketService';
-import useDeviceState from '../DeviceState';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType } from '../DeviceStateMachine';
+import { useSelector } from '@xstate/react';
 
 interface WebSocketContextType {
   isWebSocketConnected: boolean;
@@ -21,7 +22,25 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
   serverUrl
 }) => {
   const [wsService, setWsService] = useState<WebSocketService | null>(null);
-  const { isWebSocketConnected, setIsWebSocketConnected } = useDeviceState();
+
+  const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
+    return {
+      value: state.value,
+      context: state.context
+    }
+  });
+
+  const { isWebSocketConnected } = deviceContext.context;
+
+  const setIsWebSocketConnected = (isConnected: boolean) => {
+    console.log('setIsWebSocketConnected', isConnected);
+    DEVICE_STATE_MACHINE_ACTOR.send({
+      type: DeviceEventType.SET_IS_WEBSOCKET_CONNECTED,
+      payload: {
+        isWebSocketConnected: isConnected
+      }
+    });
+  };
 
   useEffect(() => {
     // Initialize the service
@@ -43,7 +62,7 @@ export const WebSocketProvider: React.FC<WebSocketProviderProps> = ({
       service.wsManager.removeListener('connected', handleConnected);
       service.wsManager.removeListener('disconnected', handleDisconnected);
     };
-  }, [serverUrl, setIsWebSocketConnected]);
+  }, [serverUrl]);
 
   const value = React.useMemo(() => ({
     isWebSocketConnected,

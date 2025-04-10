@@ -1,11 +1,10 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useWebSocket } from "../contexts/WebSocketContext";
 import { MessageType } from "../lib/websocket/MessageTypes";
-import { LiveKitConnectionDetails, LiveKitApi, ProactiveQuestionConnectionMetadata } from "../api/livekit";
 import { useSelector } from "@xstate/react";
 import { CurrentStory, DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, VoiceAgentModel } from "../DeviceStateMachine";
 
-const SET_PROGRESS_INTERVAL_IN_MS = 2000;
+const UPDATE_PROGRESS_INTERVAL_IN_MS = 2000;
 
 
 const TrackAudio: React.FC = () => {
@@ -31,11 +30,7 @@ const TrackAudio: React.FC = () => {
 		currentStory,
 		stories,
 		isStoryPlaying,
-		isLivekitRoomConnected,
 		isUserQuestionActive,
-		proactiveQuestionPoint,
-		livekitConnectionDetails,
-		isConnectingToLivekit,
 		userId
 	} = deviceStateMachine.context;
 
@@ -155,18 +150,14 @@ const TrackAudio: React.FC = () => {
 		const currentTime = audioEl.currentTime;
 		const now = Date.now();
 
-		// --- Throttling Logic (Update every 2 seconds) ---
-		if (now - lastUpdateTime.current >= SET_PROGRESS_INTERVAL_IN_MS) {
+		sendSetCurrentStoryEvent({
+			...currentStory,
+			currentTime: currentTime,
+			duration: internalDuration // Use state variable for duration
+		});
+
+		if (now - lastUpdateTime.current >= UPDATE_PROGRESS_INTERVAL_IN_MS) {
 			lastUpdateTime.current = now; // Update the last update time
-
-			// --- Update State Machine Context (Throttled) ---
-			sendSetCurrentStoryEvent({
-				...currentStory,
-				currentTime: currentTime,
-				duration: internalDuration // Use state variable for duration
-			});
-
-			// --- Send WebSocket Progress (Throttled) ---
 			websocketService.storyProtocol.setStoryProgress({
 				type: MessageType.SET_STORY_PROGRESS,
 				payload: {
@@ -175,23 +166,11 @@ const TrackAudio: React.FC = () => {
 				},
 			});
 		}
-
-		// --- LiveKit Connection Trigger Logic (remains unchanged, checked frequently) ---
-		const isAtProactiveQuestionPoint = proactiveQuestionPoint && currentTime >= proactiveQuestionPoint.connectAt && currentTime - proactiveQuestionPoint.connectAt <= 1;
-
-		const canConnectToLiveKit = !isConnectingToLivekit && !livekitConnectionDetails;
-		if (isAtProactiveQuestionPoint && isStoryPlaying && canConnectToLiveKit && !isUserQuestionActive) {
-			sendStartProactiveQuestionSessionEvent();
-			sendSetAgentModelEvent(VoiceAgentModel.PROACTIVE_QUESTION);
-		}
-
 	}, [ // Extensive dependencies due to needing lots of context for updates/checks
 		currentStory,
 		isAudioLoading,
 		internalDuration,
 		websocketService,
-		proactiveQuestionPoint,
-		livekitConnectionDetails,
 		isStoryPlaying,
 		isUserQuestionActive,
 		userId,

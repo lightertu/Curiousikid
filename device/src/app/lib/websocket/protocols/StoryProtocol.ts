@@ -1,8 +1,7 @@
-import useDeviceState, { DeviceState, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/DeviceState';
 import { BaseProtocol } from '../BaseProtocol';
 import { MessageType, Message } from '../MessageTypes';
 import { MessageHandler, WebSocketConnection } from '../Protocol';
-import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, deviceMachine } from '@/app/DeviceStateMachine';
+import { DEVICE_STATE_MACHINE_ACTOR, DeviceEventType, StoryMetadata, CurrentStory, ProactiveQuestionPoint } from '@/app/DeviceStateMachine';
 
 
 // Type definitions for story payloads
@@ -60,8 +59,7 @@ export class StoryProtocol extends BaseProtocol {
 
     // Initial request for story list
     if (this.connection.isConnected()) {
-      const DeviceState = useDeviceState.getState();
-      const userId = DeviceState.userId;
+      const { userId } = DEVICE_STATE_MACHINE_ACTOR.getSnapshot().context;
       this.getStoryList({
         type: MessageType.GET_STORY_LIST,
         payload: { userId: userId }
