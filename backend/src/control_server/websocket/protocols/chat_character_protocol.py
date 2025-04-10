@@ -102,7 +102,7 @@ class ChatCharacterProtocol(Protocol):
         """
         logger.info(f"Handling send character list request from {connection_id}")
         logger.info(f"Fetching characters for user: {user_id}")
-        characters = self.character_service.get_characters(user_id)
+        characters = self.character_service.get_characters()
 
         # Send the list of characters
         message = SendChatCharacterListMessage(payload=characters).model_dump_json()
