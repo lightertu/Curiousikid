@@ -24,8 +24,8 @@ const DeviceIndicator: React.FC = () => {
     return (
         <div className="flex flex-col">
             <StatusIndicator
-                labelOn="AI On"
-                labelOff="AI Off"
+                labelOn={`AI is ${deviceContext.context.agentState}...`}
+                labelOff={`AI is ${deviceContext.context.agentState}`}
                 colorOn="#4ade80" // Light Green for On
                 colorOff="#ada9a5" // Grey for Off
                 isOn={isMicrophoneOn}

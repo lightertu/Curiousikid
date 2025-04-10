@@ -16,6 +16,7 @@ export interface StoryMetadata {
     audioUrl: string;
     duration: number;
     thumbnailUrl: string;
+    pixelArtFile: string;
     pixelArtCover: string[][];
 }
 
@@ -41,9 +42,14 @@ export interface UserProactiveQuestionPoint {
 export interface ChatCharacter {
     id: string;
     name: string;
-    description: string;
-    imageUrl: string;
+    background: string;
+    traits: string;
+    voice: string;
+    pixelArtFile: string;
     pixelArtCover: string[][];
+    description: string;
+    speechExamples: string[];
+    speakingStyle: string;
 }
 
 export enum BreadcrumbItem {
