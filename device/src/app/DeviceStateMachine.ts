@@ -1,10 +1,11 @@
-import { createMachine, assign, MachineContext, createActor, fromPromise, fromCallback, sendParent } from 'xstate';
+import { createMachine, assign, MachineContext, createActor, fromPromise } from 'xstate';
 import { LiveKitApi, LiveKitConnectionDetails, ConnectionMetadataType } from './api/livekit';
 import { AgentState } from '@livekit/components-react';
 import { BLANK_SCREEN } from './lib/pixel-gui/blank';
 import { renderPlayback, renderTopMenu, renderStoryCover, renderCharacterCover, renderForwardPlayback, renderBackwardPlayback } from './PixelGuiRenderer';
 
 const TEST_USER_ID = process.env.NEXT_PUBLIC_USER_ID as string;
+console.log('TEST_USER_ID', TEST_USER_ID);
 
 const LIVEKIT_API = new LiveKitApi()
 

@@ -1,5 +1,5 @@
 import { AccessToken, AccessTokenOptions, VideoGrant } from "livekit-server-sdk";
-import { ProactiveQuestionPoint, ChatCharacter, UserProactiveQuestionPoint } from "../DeviceState";
+import { ProactiveQuestionPoint, ChatCharacter, UserProactiveQuestionPoint } from "../DeviceStateMachine";
 
 export const revalidate = 0;
 
