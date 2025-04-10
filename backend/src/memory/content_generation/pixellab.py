@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import uuid
 import requests
 import yaml
@@ -9,7 +10,8 @@ from PIL import Image
 DEFAULT_NEGATIVE_PROMPT = (
     "ugly, blurry, low quality, distorted, deformed, text, watermark, signature"
 )
-DEFAULT_OUTPUT_DIR = f"{PROJECT_ROOT}/.cache/generated_images"
+
+DEFAULT_OUTPUT_DIR = f"{PROJECT_ROOT}/assets/pixel_art"
 
 
 def png_to_array(image_path: str, width: int = 32, height: int = 32) -> list[list[str]]:
@@ -86,16 +88,22 @@ def generate_pixel_art(
 
                 # Save the image
                 unique_id = uuid.uuid4()
-                image_filename = f"{DEFAULT_OUTPUT_DIR}/{unique_id}.png"
-                json_filename = f"{DEFAULT_OUTPUT_DIR}/{unique_id}.yml"
+                directory = f"{DEFAULT_OUTPUT_DIR}/{unique_id}"
+                os.makedirs(directory, exist_ok=True)
+                image_filename = f"{directory}/cover.png"
+                yaml_filename = f"{directory}/cover.yml"
+                json_filename = f"{directory}/cover.json"
                 with open(image_filename, "wb") as f:
                     f.write(image_data)
 
                 result_array = png_to_array(
                     image_path=image_filename, width=width, height=height
                 )
-                with open(json_filename, "w") as f:
+                with open(yaml_filename, "w") as f:
                     f.write(yaml.dump(result_array, indent=4))
+
+                with open(json_filename, "w") as f:
+                    f.write(json.dumps(result_array, indent=4))
 
                 print(f"✓ Image saved to {image_filename}")
                 return image_filename
@@ -110,8 +118,22 @@ def generate_pixel_art(
 
 
 if __name__ == "__main__":
-    generate_pixel_art(
-        "A profile picture of a kind and friendly person who dresses like a explorer who is obsessed with insects, keep it simple, and keep the background light color",
-        height=32,
+    # generate_pixel_art(
+    #     """Generate a profile picture of a friendly dinosaur who loves playing games and solving puzzles, use light background and keep it simple""",
+    #     height=32,
+    #     width=32,
+    # )
+    array = png_to_array(
+        image_path="assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.png",
         width=32,
+        height=32,
     )
+    with open(
+        "assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml", "w"
+    ) as f:
+        f.write(yaml.dump(array, indent=4))
+
+    with open(
+        "assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.json", "w"
+    ) as f:
+        f.write(json.dumps(array, indent=4))

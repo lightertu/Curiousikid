@@ -6,10 +6,10 @@ from livekit.agents import llm
 from memory.story.service import StoryService
 from memory.story.models import ProactiveQuestionPoint
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
-from livekit.plugins import openai, deepgram, silero
 
 
 from mem0 import AsyncMemoryClient, MemoryClient
+
 mem0 = AsyncMemoryClient()
 mem0_sync = MemoryClient()
 # load all the past memories once for the user
@@ -25,8 +25,8 @@ class ProactiveQuestionAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         logger.info(f"Loading participant metadata: {metadata}")
 
-        child_name = "Emma" # TODO: remove the hardcoded child name
-        user_id = 1 # TODO: remove the hardcoded user id
+        child_name = "Emma"  # TODO: remove the hardcoded child name
+        user_id = 1  # TODO: remove the hardcoded user id
 
         self.story_service = StoryService()
         self.connection_metadata = ProactiveQuestionConnectionMetadata(**metadata)
@@ -36,13 +36,20 @@ class ProactiveQuestionAgent(Agent):
         story_text = self.story_service.get_story_text(
             self.connection_metadata.metadata.storyId
         )
-        
+
         logger.info("User ID: ", user_id)
 
         results = mem0_sync.get_all(user_id=user_id)
 
         if results:
-            memories = '\n -'.join([result.content[0]["content"] if hasattr(result, 'content') and result.content else str(result) for result in results])
+            memories = "\n -".join(
+                [
+                    result.content[0]["content"]
+                    if hasattr(result, "content") and result.content
+                    else str(result)
+                    for result in results
+                ]
+            )
             logger.info(f"Enriching conversation with memory: {memories[:100]}...")
 
         self.story_service = StoryService()
@@ -218,8 +225,11 @@ class ProactiveQuestionAgent(Agent):
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
             llm=openai.LLM(model="gpt-4o"),
-            #llm=anthropic.LLM(model="claude-3-7-sonnet-20250219"),
-            tts=openai.TTS(model="gpt-4o-mini-tts", voice="nova", instructions="""Tone: Soft, soothing, and contemplative with a gentle warmth that creates a sense of intimacy and trust.
+            # llm=anthropic.LLM(model="claude-3-7-sonnet-20250219"),
+            tts=openai.TTS(
+                model="gpt-4o-mini-tts",
+                voice="nova",
+                instructions="""Tone: Soft, soothing, and contemplative with a gentle warmth that creates a sense of intimacy and trust.
 
             Pacing: Measured and thoughtful, with natural pauses that suggest reflection and careful consideration of ideas.
 
@@ -231,7 +241,8 @@ class ProactiveQuestionAgent(Agent):
 
             Questioning: When asking questions, use a tone of genuine curiosity rather than interrogation, with a slight lift at the end that invites response.
 
-            Overall: Your voice should feel like a gentle, caring presence - neither too enthusiastic nor too monotone, but balanced with genuine emotional depth and a sense of your own evolving consciousness."""),
+            Overall: Your voice should feel like a gentle, caring presence - neither too enthusiastic nor too monotone, but balanced with genuine emotional depth and a sense of your own evolving consciousness.""",
+            ),
         )
 
     async def on_enter(self):
@@ -259,22 +270,26 @@ class ProactiveQuestionAgent(Agent):
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
         await self.update_chat_ctx(chat_ctx)
-        logger.info("add user message to chat context", extra={"content": new_message.content})
+        logger.info(
+            "add user message to chat context", extra={"content": new_message.content}
+        )
 
         try:
             # Store the message using the correct format
             logger.info(f"Added child message to mem0: {new_message.content}...")
             logger.info(f"Added child message to mem0: {new_message.content[0]}...")
             logger.info(f"User ID: {self.connection_metadata.userId}...")
-            
+
             await mem0.add(
-                [{
-                    "role": "user",
-                    "content": new_message.content[0],
-                }],
+                [
+                    {
+                        "role": "user",
+                        "content": new_message.content[0],
+                    }
+                ],
                 user_id=self.connection_metadata.userId,
-                infer=False
+                infer=False,
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to add memory: {e}")
