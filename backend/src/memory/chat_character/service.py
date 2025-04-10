@@ -43,25 +43,14 @@ class CharacterService:
         self.characters = {
             character.id: character for character in load_characters_from_yaml()
         }
-        self.user_character_mappings = {
-            mapping.userId: mapping
-            for mapping in load_user_character_mappings_from_yaml()
-        }
 
         self.user_service = user_service
 
     def get_character(self, id: str) -> ChatCharacter:
         return self.characters.get(id)
 
-    def get_characters(self, user_id: str) -> List[ChatCharacter]:
-        user = self.user_service.get_user(user_id)
-        if user.id not in self.user_character_mappings:
-            raise ValueError(f"No user character mappings found for user {user.id}")
-
-        return [
-            self.characters[character_id]
-            for character_id in self.user_character_mappings[user.id].characters
-        ]
+    def get_characters(self) -> List[ChatCharacter]:
+        return list(self.characters.values())
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 {
-	"folders": [
+    "folders": [
         {
             "path": "backend"
         },
@@ -7,38 +7,14 @@
             "path": "device"
         },
     ],
-	"settings": {
-        "remote.portsAttributes": {
-			"3000": {
-				"label": "Frontend",
-				"protocol": "http"
-			},
-            "8000": {
-                "label": "Backend API",
-                "protocol": "http"
-            },
-            "7880": {
-                "label": "LiveKit Server",
-                "protocol": "http",
-            }
-        },
-        "remote.SSH.defaultForwardedPorts": [
-			{
-                "localPort": 3000,
-                "remotePort": 3000,
-                "name": "Frontend"
-            },
-            {
-                "localPort": 8000,
-                "remotePort": 8000,
-                "name": "Backend API"
-            },
-            {
-                "localPort": 7880,
-                "remotePort": 7880,
-                "name": "LiveKit Server"
-            }
-        ],
+    "settings": {
+        "files.autoSave": "afterDelay",
+        "files.autoSaveDelay": 100,
+        "editor.formatOnSave": true,
+        "editor.bracketPairColorization.enabled": true,
+        "window.autoDetectColorScheme": true,
+        "workbench.preferredLightColorTheme": "Atom One Light",
+        "workbench.preferredDarkColorTheme": "Atom One Dark",
         "search.exclude": {
             "**/node_modules": false
         }

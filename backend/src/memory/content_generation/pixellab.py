@@ -1,5 +1,6 @@
 import base64
 import json
+import os
 import uuid
 import requests
 import yaml
@@ -9,7 +10,8 @@ from PIL import Image
 DEFAULT_NEGATIVE_PROMPT = (
     "ugly, blurry, low quality, distorted, deformed, text, watermark, signature"
 )
-DEFAULT_OUTPUT_DIR = f"{PROJECT_ROOT}/.cache/generated_images"
+
+DEFAULT_OUTPUT_DIR = f"{PROJECT_ROOT}/assets/pixel_art"
 
 
 def png_to_array(image_path: str, width: int = 32, height: int = 32) -> list[list[str]]:
@@ -86,16 +88,22 @@ def generate_pixel_art(
 
                 # Save the image
                 unique_id = uuid.uuid4()
-                image_filename = f"{DEFAULT_OUTPUT_DIR}/{unique_id}.png"
-                json_filename = f"{DEFAULT_OUTPUT_DIR}/{unique_id}.yml"
+                directory = f"{DEFAULT_OUTPUT_DIR}/{unique_id}"
+                os.makedirs(directory, exist_ok=True)
+                image_filename = f"{directory}/cover.png"
+                yaml_filename = f"{directory}/cover.yml"
+                json_filename = f"{directory}/cover.json"
                 with open(image_filename, "wb") as f:
                     f.write(image_data)
 
                 result_array = png_to_array(
                     image_path=image_filename, width=width, height=height
                 )
-                with open(json_filename, "w") as f:
+                with open(yaml_filename, "w") as f:
                     f.write(yaml.dump(result_array, indent=4))
+
+                with open(json_filename, "w") as f:
+                    f.write(json.dumps(result_array, indent=4))
 
                 print(f"✓ Image saved to {image_filename}")
                 return image_filename
@@ -111,7 +119,7 @@ def generate_pixel_art(
 
 if __name__ == "__main__":
     generate_pixel_art(
-        "A profile picture of a kind and friendly person who dresses like a explorer who is obsessed with insects, keep it simple, and keep the background light color",
+        """A creature with the upper part being a grey cat and the lower part being mermaid, it is called a mercat.""",
         height=32,
         width=32,
     )

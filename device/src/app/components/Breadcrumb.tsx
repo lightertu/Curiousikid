@@ -27,12 +27,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(`[${context.characters[context.selectedCharacterIndex].name}]`);
                 break;
-            case 'storyIsPlaying':
-            case 'storyIsPaused':
-            case 'backwardPlaybackBlinking':
-            case 'proactiveQuestionSession':
-            case 'userQuestionSession':
-            case 'forwardPlaybackBlinking':
+            case 'inStory':
                 path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
                 path.push(context.currentStory?.title || 'Playback');
                 break;
@@ -45,12 +40,17 @@ const Breadcrumb: React.FC<BreadcrumbProps> = ({ context, stateValue }) => {
                 path.push(`${context.characters[context.selectedCharacterIndex].name}`);
                 break;
             default:
+                console.log('Breadcrumb: default', stateValue);
                 break;
         }
         displayValue = path.join(' > ');
     } else {
         // Handle complex/parallel states if necessary
-        displayValue = JSON.stringify(stateValue);
+        if ("inStory" in stateValue) {
+            path.push(`${context.topMenuSelections[context.topMenuHighlightedIndex]}`);
+            path.push(context.currentStory?.title || 'Playback');
+        }
+        displayValue = path.join(' > ');
     }
 
     return (
