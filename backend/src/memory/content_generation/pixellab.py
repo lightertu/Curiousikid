@@ -118,22 +118,8 @@ def generate_pixel_art(
 
 
 if __name__ == "__main__":
-    # generate_pixel_art(
-    #     """Generate a profile picture of a friendly dinosaur who loves playing games and solving puzzles, use light background and keep it simple""",
-    #     height=32,
-    #     width=32,
-    # )
-    array = png_to_array(
-        image_path="assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.png",
-        width=32,
+    generate_pixel_art(
+        """A creature with the upper part being a grey cat and the lower part being mermaid, it is called a mercat.""",
         height=32,
+        width=32,
     )
-    with open(
-        "assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml", "w"
-    ) as f:
-        f.write(yaml.dump(array, indent=4))
-
-    with open(
-        "assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.json", "w"
-    ) as f:
-        f.write(json.dumps(array, indent=4))
