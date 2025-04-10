@@ -5,10 +5,9 @@ import React, { use, useEffect } from "react";
 // Import components
 import { useWebSocket } from "./contexts/WebSocketContext";
 import { MessageType } from "./lib/websocket/MessageTypes";
-import useDeviceState from "./DeviceState";
 import PixelScreen from "./components/PixelScreen";
 import DeviceIndicator from "./components/DeviceIndicator";
-import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR, VoiceAgentModel } from "./DeviceStateMachine";
+import { DeviceEventType, DEVICE_STATE_MACHINE_ACTOR } from "./DeviceStateMachine";
 import Breadcrumb from "./components/Breadcrumb";
 import { useSelector } from '@xstate/react';
 import TrackAudio from "./components/TrackAudio";
@@ -17,7 +16,6 @@ import { useVoiceAssistant } from "@livekit/components-react";
 
 const App: React.FC = () => {
 	const { websocketService } = useWebSocket();
-	const { isWebSocketConnected, userId } = useDeviceState();
 	const { state: agentState } = useVoiceAssistant();
 
 	const deviceContext = useSelector(DEVICE_STATE_MACHINE_ACTOR, (state) => {
@@ -26,6 +24,8 @@ const App: React.FC = () => {
 			context: state.context
 		}
 	});
+
+	const { isWebSocketConnected, userId } = deviceContext.context;
 
 	useEffect(() => {
 		if (isWebSocketConnected) {
