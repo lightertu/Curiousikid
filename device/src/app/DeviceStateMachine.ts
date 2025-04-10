@@ -381,7 +381,10 @@ export const deviceMachine = createMachine(
             forwardPlaybackBlinking: {
                 entry: ['forwardPlayback', 'renderForwardPlayback'],
                 after: {
-                    200: { target: 'storyIsPlaying' } // After 50ms, go back to storiesSelection
+                    200: [
+                        { guard: 'isStoryPlaying', target: 'storyIsPlaying' },
+                        { guard: 'isStoryPaused', target: 'storyIsPaused' },
+                    ]
                 },
                 on: {
                     LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
@@ -391,7 +394,10 @@ export const deviceMachine = createMachine(
             backwardPlaybackBlinking: {
                 entry: ['backwardPlayback', 'renderBackwardPlayback'],
                 after: {
-                    200: { target: 'storyIsPlaying' }
+                    200: [
+                        { guard: 'isStoryPlaying', target: 'storyIsPlaying' },
+                        { guard: 'isStoryPaused', target: 'storyIsPaused' },
+                    ]
                 },
                 on: {
                     LEFT_PRESSED: { target: 'backwardPlaybackBlinking' },
