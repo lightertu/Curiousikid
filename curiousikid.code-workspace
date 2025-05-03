@@ -6,6 +6,9 @@
         {
             "path": "device"
         },
+        {
+            "path": "chrome-extension"
+        },
     ],
     "settings": {
         "files.autoSave": "afterDelay",
@@ -13,10 +16,22 @@
         "editor.formatOnSave": true,
         "editor.bracketPairColorization.enabled": true,
         "window.autoDetectColorScheme": true,
-        "workbench.preferredLightColorTheme": "Atom One Light",
+        "workbench.preferredLightColorTheme": "Solarized Light",
         "workbench.preferredDarkColorTheme": "Atom One Dark",
         "search.exclude": {
             "**/node_modules": false
         }
+    },
+    "extensions": {
+        "recommendations": [
+            "pkief.material-icon-theme",
+            "asvetliakov.vscode-neovim",
+            "charliermarsh.ruff",
+            "ms-python.python",
+            "ms-python.debugpy",
+        ],
+        "unwantedRecommendations": [
+            // Add extension IDs you want to discourage here
+        ]
     }
 }
