@@ -146,7 +146,7 @@ export const deviceMachine = createMachine(
             topMenuHighlightedIndex: 0,
             frame: 0,
             screen: BLANK_SCREEN,
-            topMenuSelections: ["Conversational Stories", "Chat with a Character"],
+            topMenuSelections: ["Conversational Audios Learning", "Chat with a Character"],
             isShowAIVoiceConsole: false,
 
             // livekit state
