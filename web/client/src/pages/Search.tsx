@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import { DefaultCard } from '../components/DefaultCard'
 import { Category } from '../utils/Data'
 import { searchPodcast } from '../api/index'
-import { PodcastCard } from '../components/PodcastCard'
 import TopResult from '../components/TopResult'
 import MoreResult from '../components/MoreResult'
 import { Link } from 'react-router-dom'

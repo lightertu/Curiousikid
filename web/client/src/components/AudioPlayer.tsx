@@ -166,26 +166,30 @@ const AudioPlayer = ({ episode, podid, currenttime, index }) => {
     const [progressWidth, setProgressWidth] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
-    const audioRef = useRef(null);
+    const audioRef = useRef<HTMLAudioElement>(null);
     const dispatch = useDispatch();
 
     const handleTimeUpdate = () => {
-        const duration = audioRef.current.duration;
-        const currentTime = audioRef.current.currentTime;
-        const progress = (currentTime / duration) * 100;
-        setProgressWidth(progress);
-        setDuration(duration);
-        dispatch(
-            setCurrentTime({
-                currenttime: currentTime
-            })
-        )
+        if (audioRef.current) {
+            const duration = audioRef.current.duration;
+            const currentTime = audioRef.current.currentTime;
+            const progress = (currentTime / duration) * 100;
+            setProgressWidth(progress);
+            setDuration(duration);
+            dispatch(
+                setCurrentTime({
+                    currenttime: currentTime
+                })
+            )
+        }
     }
 
     const handleVolumeChange = (event) => {
         const volume = event.target.value;
         setVolume(volume);
-        audioRef.current.volume = volume;
+        if (audioRef.current) {
+            audioRef.current.volume = volume;
+        }
     };
 
     const goToNextPodcast = () => {
@@ -261,7 +265,7 @@ const AudioPlayer = ({ episode, podid, currenttime, index }) => {
                         onEnded={() => goToNextPodcast()}
                         autoPlay
                         controls
-                        onPlay={() => { audioRef.current.currentTime = currenttime }}
+                        onPlay={() => { if (audioRef.current) { audioRef.current.currentTime = currenttime } }}
                         src={episode?.file}
                     />
                     <IcoButton>

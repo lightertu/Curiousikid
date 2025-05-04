@@ -103,7 +103,7 @@ const OTP = ({ email, name, otpVerified, setOtpVerified, reason }) => {
     const [timer, setTimer] = useState('00:00');
 
 
-    const Ref = useRef(null);
+    const Ref = useRef<NodeJS.Timeout | null>(null);
 
     const getTimeRemaining = (e) => {
         const total = Date.parse(e) - Date.parse(new Date().toString());
@@ -141,7 +141,10 @@ const OTP = ({ email, name, otpVerified, setOtpVerified, reason }) => {
         // If you try to remove this line the 
         // updating of timer Variable will be
         // after 1000ms or 1sec
-        if (Ref.current) clearInterval(Ref.current);
+        if (Ref.current) {
+            clearInterval(Ref.current);
+        }
+
         const id = setInterval(() => {
             startTimer(e);
         }, 1000)

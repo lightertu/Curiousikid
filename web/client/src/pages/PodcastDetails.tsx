@@ -293,7 +293,7 @@ const PodcastDetails = () => {
                 </CreatorDetails>
                 <Views>• {podcast?.views} Views</Views>
                 <Views>
-                  • {format(podcast?.createdAt)}
+                  • {podcast?.createdAt ? format(podcast?.createdAt) : ''}
                 </Views>
                 <Icon>
                   {podcast?.type === "audio" ?

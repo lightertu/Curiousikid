@@ -183,7 +183,7 @@ const Profile = () => {
                 <Topic>Your Favourites
                 </Topic>
                 <Podcasts>
-                    {user && user?.favorits.map((podcast) => (
+                    {user && user?.favorits && user?.favorits.map((podcast) => (
                         <PodcastCard podcast={podcast} user={user} />
                     ))}
                 </Podcasts>

@@ -96,15 +96,17 @@ const Btn = styled.div`
 
 const VideoPlayer = ({ episode, podid, currenttime, index }) => {
     const dispatch = useDispatch();
-    const videoref = useRef(null);
+    const videoref = useRef<HTMLVideoElement>(null);
 
     const handleTimeUpdate = () => {
-        const currentTime = videoref.current.currentTime;
-        dispatch(
-            setCurrentTime({
-                currenttime: currentTime
-            })
-        )
+        if (videoref.current) {
+            const currentTime = videoref.current.currentTime;
+            dispatch(
+                setCurrentTime({
+                    currenttime: currentTime
+                })
+            )
+        }
     }
 
     const goToNextPodcast = () => {
@@ -181,7 +183,7 @@ const VideoPlayer = ({ episode, podid, currenttime, index }) => {
                         onTimeUpdate={handleTimeUpdate}
                         onEnded={() => goToNextPodcast()}
                         autoPlay
-                        onPlay={() => {videoref.current.currentTime = currenttime}}
+                        onPlay={() => { if (videoref.current) { videoref.current.currentTime = currenttime } }}
                     >
                         <source src={episode.file} type="video/mp4" />
                         <source src={episode.file} type="video/webm" />

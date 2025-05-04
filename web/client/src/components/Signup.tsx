@@ -184,7 +184,7 @@ const SignUp = ({ setSignUpOpen, setSignInOpen }) => {
             setDisabled(false);
           }
         });
-      } catch (err) {
+      } catch (err: any) {
         dispatch(loginFailure());
         setLoading(false);
         setDisabled(false);

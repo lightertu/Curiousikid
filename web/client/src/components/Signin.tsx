@@ -220,7 +220,7 @@ const SignIn = ({ setSignInOpen, setSignUpOpen }) => {
             setcredentialError(`Invalid Credentials : ${res.data.message}`);
           }
         });
-      } catch (err) {
+      } catch (err: any) {
         dispatch(loginFailure());
         setLoading(false);
         setDisabled(false);

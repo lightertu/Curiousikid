@@ -17,7 +17,7 @@ import LogoIcon from '../Images/Logo.png'
 import { openSignin } from '../redux/setSigninSlice';
 import { RootState } from '../redux/store';
 
-const MenuContainer = styled.div<{ setMenuOpen: boolean }>`
+const MenuContainer = styled.div<{ setMenuOpen: any }>`
   flex: 0.5;
   flex-direction: column;
   height: 100vh;

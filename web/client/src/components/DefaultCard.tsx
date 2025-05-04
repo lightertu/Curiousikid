@@ -39,7 +39,7 @@ align-items: flex-end;
 `
 export const DefaultCard = ({category}) => {
   return (
-    <Card style={{"background-color":`${category.color}`}}>
+    <Card style={{backgroundColor: `${category.color}`}}>
         <DefaultCardText>
             {category.name}
         </DefaultCardText>

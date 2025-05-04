@@ -468,9 +468,11 @@ const Upload = ({ setUploadOpen }) => {
                                     </FileUpload>
                                     <File style={{ marginTop: "16px" }} type="file" accept="file_extension|audio/*|video/*|media_type" id={"fileField" + index}
                                         onChange={(e) => {
-                                            podcast.episodes[index].file = e.target.files[0];
-                                            setPodcast({ ...podcast, episodes: podcast.episodes });
-                                            uploadFile(podcast.episodes[index].file, index);
+                                            if (e.target.files) {
+                                                podcast.episodes[index].file = e.target.files[0];
+                                                setPodcast({ ...podcast, episodes: podcast.episodes });
+                                                uploadFile(podcast.episodes[index].file, index);
+                                            }
                                         }}
                                     />
                                     <OutlinedBox >

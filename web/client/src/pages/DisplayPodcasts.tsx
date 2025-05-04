@@ -57,7 +57,7 @@ color: ${({ theme }) => theme.text_primary};
 
 
 const DisplayPodcasts = () => {
-    const { type } = useParams();
+    const { type } = useParams<{ type: string }>();
     const [podcasts, setPodcasts] = useState([]);
     const [string, setString] = useState("");
     const dispatch = useDispatch();
@@ -105,12 +105,14 @@ const DisplayPodcasts = () => {
             setLoading(false);
         }
         else {
-            setLoading(true);
-            let arr = type.split("");
-            arr[0] = arr[0].toUpperCase();
-            setString(arr.join(""));
-            await getCategory();
-            setLoading(false);
+            if (type) {
+                setLoading(true);
+                let arr = type.split("");
+                arr[0] = arr[0].toUpperCase();
+                setString(arr.join(""));
+                await getCategory();
+                setLoading(false);
+            }
         }
     }
 

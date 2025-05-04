@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { darkTheme, lightTheme } from './utils/Themes';
 import Signup from '../src/components/Signup';
 import Signin from '../src/components/Signin';
-import OTP from '../src/components/OTP';
 import Navbar from '../src/components/Navbar';
 import Menu from '../src/components/Menu';
 import Dashboard from '../src/pages/Dashboard';
