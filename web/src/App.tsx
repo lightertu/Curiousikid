@@ -1,17 +1,17 @@
 import { ThemeProvider } from "styled-components";
 import { useState, useEffect } from "react";
 import { darkTheme, lightTheme } from './utils/Themes';
-import Signup from '../src/components/Signup';
-import Signin from '../src/components/Signin';
-import Navbar from '../src/components/Navbar';
-import Menu from '../src/components/Menu';
-import Dashboard from '../src/pages/Dashboard';
+import Signup from './components/Signup';
+import Signin from './components/Signin';
+import Navbar from './components/Navbar';
+import Menu from './components/Menu';
+import Dashboard from './pages/Dashboard';
 import ToastMessage from './components/ToastMessage';
-import Search from '../src/pages/Search';
-import Favourites from '../src/pages/Favourites';
-import Profile from '../src/pages/Profile';
-import Upload from '../src/components/Upload';
-import DisplayPodcasts from '../src/pages/DisplayPodcasts';
+import Search from './pages/Search';
+import Favourites from './pages/Favourites';
+import Profile from './pages/Profile';
+import Upload from './components/Upload';
+import DisplayPodcasts from './pages/DisplayPodcasts';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
 import styled from 'styled-components';
@@ -38,7 +38,7 @@ const Podstream = styled.div`
 `;
 
 function App() {
-    const [darkMode, setDarkMode] = useState<boolean>(true);
+    const [darkMode, setDarkMode] = useState<boolean>(false);
     const { open, message, severity } = useSelector((state: RootState) => state.snackbar);
     const { openplayer, type, episode, podid, currenttime, index } = useSelector((state: RootState) => state.audioplayer);
     const { opensi } = useSelector((state: RootState) => state.signin);

@@ -42,6 +42,10 @@ serve:
 
 serve-agent:
     .venv/bin/python src/voice_agent/entrypoint.py dev
+    
+serve-web-server:
+    @echo "Starting FastAPI server on http://0.0.0.0:8000"
+    @.venv/bin/python -m src.web_server
 
 serve-livekit: check-deps
     livekit-server --dev --bind 0.0.0.0

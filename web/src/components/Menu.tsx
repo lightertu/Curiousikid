@@ -84,7 +84,7 @@ const Logo = styled.div`
   margin: 16px 0px;
 `;
 const Image = styled.img`
-  height: 40px;
+  height: 90px;
 `;
 
 interface MenuProps {
@@ -108,10 +108,9 @@ const Menu = ({ setMenuOpen, darkMode, setDarkMode, setUploadOpen, setSignInOpen
     return (
         <MenuContainer setMenuOpen={setMenuOpen}>
             <Flex>
-                <Link to="/" style={{ textDecoration: "none", color: "inherit" }}>
+                <Link to="/" >
                     <Logo>
                         <Image src={LogoIcon} />
-                        PODSTREAM
                     </Logo>
                 </Link>
                 <Close>
@@ -130,59 +129,7 @@ const Menu = ({ setMenuOpen, darkMode, setDarkMode, setUploadOpen, setSignInOpen
                     <NavText>Search</NavText>
                 </Elements>
             </Link>
-            {
-                currentUser ?
-                    <Link to='/favourites' style={{ textDecoration: "none", color: "inherit", width: '100%' }}>
-                        <Elements>
-                            <FavoriteRoundedIcon />
-                            <NavText>Favourites</NavText>
-                        </Elements>
-                    </Link >
-                    :
-                    <Link to="/" onClick={() =>
-                        dispatch(
-                            openSignin()
-                        )
-                    } style={{ textDecoration: "none", color: "inherit", width: '100%' }}>
-                        <Elements>
-                            <FavoriteRoundedIcon />
-                            <NavText>Favourites</NavText>
-                        </Elements>
-                    </Link >
-            }
             <HR />
-            <Link to="/" onClick={() => {
-                if (currentUser) {
-                    setUploadOpen(true)
-                } else {
-                    dispatch(
-                        openSignin()
-                    )
-                }
-            }} style={{ textDecoration: "none", color: "inherit", width: '100%' }}>
-                <Elements>
-                    <BackupRoundedIcon />
-                    <NavText>Upload</NavText>
-                </Elements>
-            </Link>
-
-
-            {
-                darkMode ?
-                    <>
-                        <Elements onClick={() => setDarkMode(false)}>
-                            <LightModeRoundedIcon />
-                            <NavText>Light Mode</NavText>
-                        </Elements>
-                    </>
-                    :
-                    <>
-                        <Elements onClick={() => setDarkMode(true)}>
-                            <DarkModeRoundedIcon />
-                            <NavText>Dark Mode</NavText>
-                        </Elements>
-                    </>
-            }
             {
                 currentUser ?
                     <Elements onClick={() => logoutUser()}>
