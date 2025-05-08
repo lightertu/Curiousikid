@@ -6,8 +6,11 @@ from typing import List, Optional
 from ..models.models import PodcastCreate, Podcast, Episode, EpisodeCreate
 from ..db.memory_db import db
 from ..auth.auth import get_current_user
+from memory.podcast.podcast import PodcastService
 
 router = APIRouter(prefix="/api/podcasts", tags=["Podcasts"])
+
+podcast_service = PodcastService()
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
@@ -102,55 +105,14 @@ async def add_episodes(
 
 @router.get("/")
 async def get_podcasts():
-    podcasts = []
-
-    for podcast_id, podcast in db.podcasts.items():
-        # Get creator info
-        creator = db.users.get(podcast["creator_id"], {})
-        creator_info = {"name": creator.get("name", ""), "img": creator.get("img", "")}
-
-        # Get episodes
-        episodes = []
-        for episode_id in podcast["episodes"]:
-            episode = db.episodes.get(episode_id)
-            if episode:
-                episodes.append(episode)
-
-        # Construct response
-        podcast_with_relations = {
-            **podcast,
-            "creator": creator_info,
-            "episodes": episodes,
-        }
-
-        podcasts.append(podcast_with_relations)
-
+    podcasts = podcast_service.get_podcasts()
     return podcasts
 
 
 @router.get("/get/{id}")
 async def get_podcast_by_id(id: str):
-    podcast = db.podcasts.get(id)
-    if not podcast:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Podcast not found"
-        )
-
-    # Get creator info
-    creator = db.users.get(podcast["creator_id"], {})
-    creator_info = {"name": creator.get("name", ""), "img": creator.get("img", "")}
-
-    # Get episodes
-    episodes = []
-    for episode_id in podcast["episodes"]:
-        episode = db.episodes.get(episode_id)
-        if episode:
-            episodes.append(episode)
-
-    # Construct response
-    podcast_with_relations = {**podcast, "creator": creator_info, "episodes": episodes}
-
-    return podcast_with_relations
+    podcast = podcast_service.get_podcast_by_id(id)
+    return podcast
 
 
 @router.post("/favorit")

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { getMostPopularPodcast } from '../api/index';
+import { getAllPodcasts, getMostPopularPodcast } from '../api/index';
 import { getPodcastByCategory } from '../api';
 import { PodcastCard } from '../components/PodcastCard'
 import { getUsers } from '../api/index';
@@ -94,7 +94,7 @@ interface User {
 }
 
 const Dashboard = ({ setSignInOpen }) => {
-  const [mostPopular, setMostPopular] = useState([]);
+  const [allPodcasts, setAllPodcasts] = useState([]);
   const [user, setUser] = useState<User | null>(null);
   const [comedy, setComedy] = useState([]);
   const [news, setNews] = useState([]);
@@ -114,52 +114,51 @@ const Dashboard = ({ setSignInOpen }) => {
     });
   }
 
-  const getPopularPodcast = async () => {
-    await getMostPopularPodcast()
-      .then((res) => {
-        setMostPopular(res.data)
-        console.log(res.data)
-      })
-      .catch((error) => {
-        console.log(error)
-      });
+  const getAllPodcast = async () => {
+    try {
+      const res = await getAllPodcasts()
+      setAllPodcasts(res.data)
+      console.log(res.data)
+    } catch (error: any) {
+      console.log(error)
+    }
   }
 
-  const getCommedyPodcasts = async () => {
-    getPodcastByCategory("comedy")
-      .then((res) => {
-        setComedy(res.data)
-        console.log(res.data)
-      })
-      .catch((error) => console.log(error));
-  }
+  // const getCommedyPodcasts = async () => {
+  //   getPodcastByCategory("comedy")
+  //     .then((res) => {
+  //       setComedy(res.data)
+  //       console.log(res.data)
+  //     })
+  //     .catch((error) => console.log(error));
+  // }
 
-  const getNewsPodcasts = async () => {
-    getPodcastByCategory("news")
-      .then((res) => {
-        setNews(res.data)
-        console.log(res.data)
-      })
-      .catch((error) => console.log(error));
-  }
+  // const getNewsPodcasts = async () => {
+  //   getPodcastByCategory("news")
+  //     .then((res) => {
+  //       setNews(res.data)
+  //       console.log(res.data)
+  //     })
+  //     .catch((error) => console.log(error));
+  // }
 
-  const getSportsPodcasts = async () => {
-    getPodcastByCategory("sports")
-      .then((res) => {
-        setsports(res.data)
-        console.log(res.data)
-      })
-      .catch((error) => console.log(error));
-  }
+  // const getSportsPodcasts = async () => {
+  //   getPodcastByCategory("sports")
+  //     .then((res) => {
+  //       setsports(res.data)
+  //       console.log(res.data)
+  //     })
+  //     .catch((error) => console.log(error));
+  // }
 
-  const getCrimePodcasts = async () => {
-    getPodcastByCategory("crime")
-      .then((res) => {
-        setCrime(res.data)
-        console.log(res.data)
-      })
-      .catch((error) => console.log(error));
-  }
+  // const getCrimePodcasts = async () => {
+  //   getPodcastByCategory("crime")
+  //     .then((res) => {
+  //       setCrime(res.data)
+  //       console.log(res.data)
+  //     })
+  //     .catch((error) => console.log(error));
+  // }
 
   const getallData = async () => {
     setLoading(true);
@@ -167,12 +166,7 @@ const Dashboard = ({ setSignInOpen }) => {
       setLoading(true);
       await getUser();
     }
-    await getPopularPodcast();
-    await getCommedyPodcasts();
-    await getNewsPodcasts();
-    await getCommedyPodcasts();
-    await getCrimePodcasts();
-    await getSportsPodcasts();
+    await getAllPodcast();
     setLoading(false);
   }
 
@@ -203,61 +197,13 @@ const Dashboard = ({ setSignInOpen }) => {
             </FilterContainer>
           }
           <FilterContainer>
-            <Topic>Most Popular
-              <Link to={`/showpodcasts/mostpopular`} style={{ textDecoration: "none" }}>
+            <Topic>Podcasts
+              {/* <Link to={`/showpodcasts/mostpopular`} style={{ textDecoration: "none" }}>
                 <Span>Show All</Span>
-              </Link>
+              </Link> */}
             </Topic>
             <Podcasts>
-              {mostPopular.slice(0, 10).map((podcast) => (
-                <PodcastCard podcast={podcast} user={user} setSignInOpen={setSignInOpen} />
-              ))}
-            </Podcasts>
-          </FilterContainer>
-          <FilterContainer>
-            <Topic>Comedy
-              <Link to={`/showpodcasts/comedy`} style={{ textDecoration: "none" }}>
-                <Span>Show All</Span>
-              </Link>
-            </Topic>
-            <Podcasts>
-              {comedy.slice(0, 10).map((podcast) => (
-                <PodcastCard podcast={podcast} user={user} setSignInOpen={setSignInOpen} />
-              ))}
-            </Podcasts>
-          </FilterContainer>
-          <FilterContainer>
-            <Link to={`/showpodcasts/news`} style={{ textDecoration: "none" }}>
-              <Topic>News
-                <Span>Show All</Span>
-              </Topic>
-            </Link>
-            <Podcasts>
-              {news.slice(0, 10).map((podcast) => (
-                <PodcastCard podcast={podcast} user={user} setSignInOpen={setSignInOpen} />
-              ))}
-            </Podcasts>
-          </FilterContainer>
-          <FilterContainer>
-            <Link to={`/showpodcasts/crime`} style={{ textDecoration: "none" }}>
-              <Topic>Crime
-                <Span>Show All</Span>
-              </Topic>
-            </Link>
-            <Podcasts>
-              {crime.slice(0, 10).map((podcast) => (
-                <PodcastCard podcast={podcast} user={user} setSignInOpen={setSignInOpen} />
-              ))}
-            </Podcasts>
-          </FilterContainer>
-          <FilterContainer>
-            <Link to={`/showpodcasts/sports`} style={{ textDecoration: "none" }}>
-              <Topic>Sports
-                <Span>Show All</Span>
-              </Topic>
-            </Link>
-            <Podcasts>
-              {sports.slice(0, 10).map((podcast) => (
+              {allPodcasts.slice(0, 10).map((podcast) => (
                 <PodcastCard podcast={podcast} user={user} setSignInOpen={setSignInOpen} />
               ))}
             </Podcasts>

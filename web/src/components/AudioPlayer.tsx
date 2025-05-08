@@ -250,7 +250,7 @@ const AudioPlayer = ({ episode, podid, currenttime, index }) => {
                 <Image src={podid?.thumbnail} />
                 <PodData>
                     <Title>{episode?.name}</Title>
-                    <Artist>{episode?.creator.name}</Artist>
+                    <Artist>{episode?.creator?.name}</Artist>
                 </PodData>
             </Left>
 

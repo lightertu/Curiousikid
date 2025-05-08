@@ -167,7 +167,7 @@ export const PodcastCard = ({ podcast, user, setSignInOpen }: PodcastCardProps) 
   const token = localStorage.getItem("podstreamtoken");
 
   const favoritpodcast = async () => {
-    await favoritePodcast(podcast._id, token).then((res) => {
+    await favoritePodcast(podcast.id, token).then((res) => {
       if (res.status === 200) {
         setFavourite(!favourite)
       }
@@ -179,7 +179,7 @@ export const PodcastCard = ({ podcast, user, setSignInOpen }: PodcastCardProps) 
 
   React.useEffect(() => {
     //favorits is an array of objects in which each object has a podcast id match it to the current podcast id
-    if (user?.favorits?.find((fav) => fav._id === podcast._id)) {
+    if (user?.favorits?.find((fav) => fav.id === podcast.id)) {
       setFavourite(true)
     }
   }, [user])
@@ -188,7 +188,7 @@ export const PodcastCard = ({ podcast, user, setSignInOpen }: PodcastCardProps) 
   const { currentUser } = useSelector((state: RootState) => state.user);
 
   return (
-    <Card to={`/podcast/${podcast._id}`}>
+    <Card to={`/podcast/${podcast.id}`}>
       <div>
 
         <Top>

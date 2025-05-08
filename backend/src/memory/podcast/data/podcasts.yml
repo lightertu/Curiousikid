@@ -1,0 +1,24 @@
+- id: "1"
+  name: "Buy Why: A Podcast for Curious Kids"
+  desc: "But Why is a show led by kids. They ask the questions and we find the answers. It’s a big interesting world out there. On But Why, we tackle topics large and small, about nature, words, even the end of the world. Know a kid with a question? Record it with a smartphone. Be sure to include your kid's first name, age, and town and send the recording to questions@butwhykids.org!"
+  thumbnail: "https://static.feedpress.com/logo/vpr-but-why-62b4d4edadb66.png"
+  category: "Kids & Family"
+  type: "Podcast"
+  views: 1000
+  tags:
+    - "Kids"
+    - "Family"
+    - "Education"
+    - "Science"
+  createdAt: "2021-01-01"
+  creator:
+    name: "Vermont Public"
+    img: "https://npr.brightspotcdn.com/dims4/default/bded82f/2147483647/strip/true/crop/3096x4128+174+0/resize/150x200!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Faf%2F8e%2Fe9a8755b40ffbca9bb1b5035572f%2Fjane-lindholm-bishop-2022.jpg"
+  episodes:
+    - id: "1"
+      name: "What’s a seal? What’s a sea lion?"
+      file: "https://www.podtrac.com/pts/redirect.mp3/dovetail.prxu.org/_/326/7730726a-37ed-4a0b-9ce3-9d85cbf1d47f/ButWhy_Pinnipeds_Ep260.mp3"
+      desc: "The first episode of The Joe Rogan Experience"
+      creator:
+        name: "Vermont Public"
+        img: "https://npr.brightspotcdn.com/dims4/default/bded82f/2147483647/strip/true/crop/3096x4128+174+0/resize/150x200!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Faf%2F8e%2Fe9a8755b40ffbca9bb1b5035572f%2Fjane-lindholm-bishop-2022.jpg"

@@ -72,7 +72,7 @@ const Navbar = ({ menuOpen, setMenuOpen, setSignInOpen, setSignUpOpen }) => {
       <IcoButton onClick={() => setMenuOpen(!menuOpen)}>
         <MenuIcon />
       </IcoButton>
-      {currentUser ?
+      {/* {currentUser ?
         <Welcome>
           Welcome, {currentUser.name}
         </Welcome>
@@ -89,7 +89,7 @@ const Navbar = ({ menuOpen, setMenuOpen, setSignInOpen, setSignUpOpen }) => {
             <PersonIcon style={{ fontSize: "18px" }} />
             Login
           </ButtonDiv>
-      }
+      } */}
     </NavbarDiv>
   )
 }

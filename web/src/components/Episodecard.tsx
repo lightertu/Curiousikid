@@ -81,7 +81,6 @@ const Episodecard = ({ episode, podid, user, type, index }) => {
 
     return (
         <Card onClick={async () => {
-            await addviewtToPodcast();
             if (type === "audio") {
                 //open audio player
                 dispatch(
@@ -110,7 +109,7 @@ const Episodecard = ({ episode, podid, user, type, index }) => {
         }}>
             <ImageContainer>
                 <Image src={podid?.thumbnail} />
-                <PlayCircleOutlineIcon style={{position:"absolute",top:"26px",left:"26px",color:"white",width:"50px",height:"50px"}}/>
+                <PlayCircleOutlineIcon style={{ position: "absolute", top: "26px", left: "26px", color: "white", width: "50px", height: "50px" }} />
             </ImageContainer>
             <Details>
                 <Title>{episode.name}</Title>

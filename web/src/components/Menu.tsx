@@ -6,11 +6,6 @@ import { logout } from "../redux/userSlice";
 import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import FavoriteRoundedIcon from '@mui/icons-material/FavoriteRounded';
-import BackupRoundedIcon from '@mui/icons-material/BackupRounded';
-import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
-import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import ExitToAppRoundedIcon from '@mui/icons-material/ExitToAppRounded';
 import CloseRounded from '@mui/icons-material/CloseRounded';
 import LogoIcon from '../Images/Logo.png'
@@ -123,14 +118,14 @@ const Menu = ({ setMenuOpen, darkMode, setDarkMode, setUploadOpen, setSignInOpen
                     <NavText>Dashboard</NavText>
                 </Elements>
             </Link>
-            <Link to='/search' style={{ textDecoration: "none", color: "inherit", width: '100%' }}>
+            {/* <Link to='/search' style={{ textDecoration: "none", color: "inherit", width: '100%' }}>
                 <Elements>
                     <SearchRoundedIcon />
                     <NavText>Search</NavText>
                 </Elements>
-            </Link>
+            </Link> */}
             <HR />
-            {
+            {/* {
                 currentUser ?
                     <Elements onClick={() => logoutUser()}>
                         <ExitToAppRoundedIcon />
@@ -142,7 +137,7 @@ const Menu = ({ setMenuOpen, darkMode, setDarkMode, setUploadOpen, setSignInOpen
                         <ExitToAppRoundedIcon />
                         <NavText>Log In</NavText>
                     </Elements>
-            }
+            } */}
 
         </MenuContainer >
     )

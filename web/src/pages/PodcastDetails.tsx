@@ -151,7 +151,7 @@ padding: 6px;
 
 // Add interface after imports
 interface Podcast {
-  _id: string;
+  id: string;
   name: string;
   desc: string;
   thumbnail: string;
@@ -183,7 +183,7 @@ const PodcastDetails = () => {
   const favoritpodcast = async () => {
     setLoading(true);
     if (podcast !== null) {
-      await favoritePodcast(podcast._id, token).then((res) => {
+      await favoritePodcast(podcast.id, token).then((res) => {
         if (res.status === 200) {
           setFavourite(!favourite)
           setLoading(false)
@@ -267,13 +267,13 @@ const PodcastDetails = () => {
         :
         <>
           <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-            <Favorite onClick={() => favoritpodcast()}>
+            {/* <Favorite onClick={() => favoritpodcast()}>
               {favourite ?
                 <FavoriteIcon style={{ color: "#E30022", width: '16px', height: '16px' }}></FavoriteIcon>
                 :
                 <FavoriteIcon style={{ width: '16px', height: '16px' }}></FavoriteIcon>
               }
-            </Favorite>
+            </Favorite> */}
           </div>
           <Top>
             <Image src={podcast?.thumbnail} />

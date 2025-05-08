@@ -61,6 +61,7 @@ export const getRandomPodcast = async () => await API.get('/podcasts/random');
 export const getPodcastByTags = async (tags) => await API.get(`/podcasts/tags?tags=${tags}`);
 export const getPodcastByCategory = async (category) => await API.get(`/podcasts/category?q=${category}`);
 export const getMostPopularPodcast = async () => await API.get('/podcasts/mostpopular');
+export const getAllPodcasts = async () => await API.get('/podcasts');
 export const getPodcastById = async (id) => await API.get(`/podcasts/get/${id}`);
 export const addView = async (id) => await API.post(`/podcasts/addview/${id}`);
 export const searchPodcast = async (search) => await API.get(`/podcasts/search?q=${search}`);

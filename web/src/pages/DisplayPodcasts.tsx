@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom';
-import { getPodcastByCategory, getMostPopularPodcast } from '../api/index'
+import { getPodcastByCategory, getMostPopularPodcast, getAllPodcasts } from '../api/index'
 import styled from 'styled-components'
 import { PodcastCard } from '../components/PodcastCard'
 import { useDispatch } from 'react-redux'
@@ -53,9 +53,6 @@ width: 100%;
 color: ${({ theme }) => theme.text_primary};
 `
 
-
-
-
 const DisplayPodcasts = () => {
     const { type } = useParams<{ type: string }>();
     const [podcasts, setPodcasts] = useState([]);
@@ -64,7 +61,7 @@ const DisplayPodcasts = () => {
     const [Loading, setLoading] = useState(false);
 
     const mostPopular = async () => {
-        await getMostPopularPodcast()
+        await getAllPodcasts()
             .then((res) => {
                 setPodcasts(res.data)
             })
@@ -94,31 +91,23 @@ const DisplayPodcasts = () => {
     }
 
     const getallpodcasts = async () => {
-        if (type === 'mostpopular') {
-            setLoading(true);
-            let arr = type.split("");
-            arr[0] = arr[0].toUpperCase();
-            arr.splice(4, 0, " ");
-            setString(arr.join(""));
-            console.log(string);
-            await mostPopular();
-            setLoading(false);
+        setLoading(true);
+        try {
+            const res = await getAllPodcasts()
+            setPodcasts(res.data)
+        } catch (err: any) {
+            dispatch(
+                openSnackbar({
+                    message: err.message,
+                    severity: "error",
+                })
+            );
         }
-        else {
-            if (type) {
-                setLoading(true);
-                let arr = type.split("");
-                arr[0] = arr[0].toUpperCase();
-                setString(arr.join(""));
-                await getCategory();
-                setLoading(false);
-            }
-        }
+        setLoading(false);
     }
 
     useEffect(() => {
         getallpodcasts();
-
     }, [])
     return (
         <DisplayMain>
