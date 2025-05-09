@@ -13,6 +13,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import { RootState } from "../redux/store";
 import { User } from '../redux/userSlice';
+import { openPlayer } from '../redux/audioplayerSlice';
+import { useAudio } from '../context/AudioContext';
+import AudioControls from '../components/AudioControls';
 
 const Container = styled.div`
 padding: 20px 30px;
@@ -166,6 +169,35 @@ interface Podcast {
   createdAt: string;
 }
 
+// Add a styled wrapper for the episode card
+const CardWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  
+  &:hover {
+    background-color: ${({ theme }) => theme.card + '50'};
+    border-radius: 4px;
+  }
+`;
+
+// Position the audio controls on the right side of the episode card
+const ControlsWrapper = styled.div`
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
 const PodcastDetails = () => {
 
   const { id } = useParams();
@@ -173,8 +205,15 @@ const PodcastDetails = () => {
   const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [selectedEpisodeId, setSelectedEpisodeId] = useState<string | null>(null);
 
   const dispatch = useDispatch();
+
+  // Get current audio player state from Redux
+  const { openPlayer: openplayer, episode: currentEpisode } = useSelector((state: RootState) => state.audioplayer);
+
+  // Get audio control methods from the context
+  const { isPlaying, play, pause } = useAudio();
 
   const token = localStorage.getItem("podstreamtoken");
   //user
@@ -258,6 +297,84 @@ const PodcastDetails = () => {
     }
   }, [currentUser, podcast])
 
+  const handleEpisodeClick = (episode, index) => {
+    console.log("Episode clicked:", episode);
+    console.log("Podcast:", podcast);
+    console.log("Episode file URL:", episode?.file);
+    console.log("Episode data structure:", JSON.stringify(episode, null, 2));
+
+    if (!podcast || !episode) {
+      dispatch(
+        openSnackbar({
+          message: "Cannot play episode. Missing data.",
+          severity: "error"
+        })
+      );
+      return;
+    }
+
+    try {
+      setSelectedEpisodeId(episode.id);
+
+      // If this episode is already loaded in the player
+      if (openplayer && currentEpisode && currentEpisode.id === episode.id) {
+        // Toggle play/pause
+        if (isPlaying) {
+          pause();
+          dispatch(
+            openSnackbar({
+              message: "Paused: " + episode.name,
+              severity: "info"
+            })
+          );
+        } else {
+          play();
+          dispatch(
+            openSnackbar({
+              message: "Playing: " + episode.name,
+              severity: "success"
+            })
+          );
+        }
+      } else {
+        // Load a new episode
+        dispatch(
+          openPlayer({
+            type: podcast.type || "audio",
+            podid: podcast,
+            index: index,
+            currenttime: 0,
+            episode: episode
+          })
+        );
+
+        // Wait a moment for the audio to load, then play
+        setTimeout(() => {
+          play();
+          dispatch(
+            openSnackbar({
+              message: "Playing: " + episode.name,
+              severity: "success"
+            })
+          );
+        }, 100);
+      }
+    } catch (error) {
+      console.error("Error controlling playback:", error);
+      dispatch(
+        openSnackbar({
+          message: "Error playing episode. See console for details.",
+          severity: "error"
+        })
+      );
+    }
+  };
+
+  // Check if an episode is currently selected
+  const isEpisodeSelected = (episodeId) => {
+    return openplayer && currentEpisode && currentEpisode.id === episodeId;
+  };
+
   return (
     <Container>
       {loading ?
@@ -309,7 +426,18 @@ const PodcastDetails = () => {
             <Topic>All Episodes</Topic>
             <EpisodeWrapper>
               {podcast?.episodes.map((episode, index) => (
-                <Episodecard episode={episode} podid={podcast} type={podcast.type} user={user} index={index} />
+                <CardWrapper key={index} onClick={() => handleEpisodeClick(episode, index)}>
+                  <Episodecard
+                    episode={episode}
+                    podid={podcast}
+                    type={podcast.type}
+                    user={user}
+                    index={index}
+                  />
+                  <ControlsWrapper>
+                    <AudioControls size="small" />
+                  </ControlsWrapper>
+                </CardWrapper>
               ))}
             </EpisodeWrapper>
           </Episodes>

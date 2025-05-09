@@ -1,7 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { Episode } from "../types/podcast";
 
-const initialState = {
-    openplayer: false,
+interface AudioPlayerState {
+    openPlayer: boolean;
+    type: string;
+    episode: Episode | null;
+    podid: string | null;
+    currenttime: number;
+    index: number;
+}
+
+const initialState: AudioPlayerState = {
+    openPlayer: false,
     type: "audio",
     episode: null,
     podid: null,
@@ -14,7 +24,7 @@ const audioplayer = createSlice({
     initialState,
     reducers: {
         openPlayer: (state, action) => {
-            state.openplayer = true;
+            state.openPlayer = true;
             state.type = action.payload.type;
             state.episode = action.payload.episode;
             state.podid = action.payload.podid;
@@ -22,7 +32,7 @@ const audioplayer = createSlice({
             state.index = action.payload.index;
         },
         closePlayer: (state) => {
-            state.openplayer = false;
+            state.openPlayer = false;
         },
         setCurrentTime: (state, action) => {
             state.currenttime = action.payload.currenttime;
@@ -30,6 +40,6 @@ const audioplayer = createSlice({
     }
 });
 
-export const { openPlayer, closePlayer,setCurrentTime } = audioplayer.actions;
+export const { openPlayer, closePlayer, setCurrentTime } = audioplayer.actions;
 
 export default audioplayer.reducer;

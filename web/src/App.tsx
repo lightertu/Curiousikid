@@ -10,7 +10,6 @@ import ToastMessage from './components/ToastMessage';
 import Search from './pages/Search';
 import Favourites from './pages/Favourites';
 import Profile from './pages/Profile';
-import Upload from './components/Upload';
 import DisplayPodcasts from './pages/DisplayPodcasts';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
@@ -20,6 +19,7 @@ import VideoPlayer from "./components/VideoPlayer";
 import PodcastDetails from "./pages/PodcastDetails";
 import { closeSignin } from "./redux/setSigninSlice";
 import { RootState } from "./redux/store";
+import { AudioProvider } from './context/AudioContext';
 
 const Frame = styled.div`
   display: flex;
@@ -40,7 +40,7 @@ const Podstream = styled.div`
 function App() {
     const [darkMode, setDarkMode] = useState<boolean>(false);
     const { open, message, severity } = useSelector((state: RootState) => state.snackbar);
-    const { openplayer, type, episode, podid, currenttime, index } = useSelector((state: RootState) => state.audioplayer);
+    const { openPlayer: openplayer, type, episode, podid, currenttime, index } = useSelector((state: RootState) => state.audioplayer);
     const { opensi } = useSelector((state: RootState) => state.signin);
     const [SignUpOpen, setSignUpOpen] = useState<boolean>(false);
     const [SignInOpen, setSignInOpen] = useState<boolean>(false);
@@ -72,29 +72,30 @@ function App() {
 
     return (
         <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-            <BrowserRouter>
-                {opensi && <Signin setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />}
-                {SignUpOpen && <Signup setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />}
-                {uploadOpen && <Upload setUploadOpen={setUploadOpen} />}
-                {/* {openplayer && type === 'video' && <VideoPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />}
-                {openplayer && type === 'audio' && <AudioPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />} */}
-                {openplayer && <AudioPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />}
-                <Podstream>
-                    {menuOpen && <Menu setMenuOpen={setMenuOpen} darkMode={darkMode} setDarkMode={setDarkMode} setUploadOpen={setUploadOpen} setSignInOpen={setSignInOpen} />}
-                    <Frame>
-                        <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen} setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />
-                        <Routes>
-                            <Route path='/' element={<Dashboard setSignInOpen={setSignInOpen} />} />
-                            <Route path='/search' element={<Search />} />
-                            <Route path='/favourites' element={<Favourites />} />
-                            <Route path='/profile' element={<Profile />} />
-                            <Route path='/podcast/:id' element={<PodcastDetails />} />
-                            <Route path='/showpodcasts/:type' element={<DisplayPodcasts />} />
-                        </Routes>
-                    </Frame>
-                    {open && <ToastMessage open={open} message={message} severity={severity} />}
-                </Podstream>
-            </BrowserRouter>
+            <AudioProvider>
+                <BrowserRouter>
+                    {opensi && <Signin setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />}
+                    {SignUpOpen && <Signup setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />}
+                    {/* {openplayer && type === 'video' && <VideoPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />}
+                    {openplayer && type === 'audio' && <AudioPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />} */}
+                    {openplayer && <AudioPlayer episode={episode} podid={podid} currenttime={currenttime} index={index} />}
+                    <Podstream>
+                        {menuOpen && <Menu setMenuOpen={setMenuOpen} darkMode={darkMode} setDarkMode={setDarkMode} setUploadOpen={setUploadOpen} setSignInOpen={setSignInOpen} />}
+                        <Frame>
+                            <Navbar menuOpen={menuOpen} setMenuOpen={setMenuOpen} setSignInOpen={setSignInOpen} setSignUpOpen={setSignUpOpen} />
+                            <Routes>
+                                <Route path='/' element={<Dashboard setSignInOpen={setSignInOpen} />} />
+                                <Route path='/search' element={<Search />} />
+                                <Route path='/favourites' element={<Favourites />} />
+                                <Route path='/profile' element={<Profile />} />
+                                <Route path='/podcast/:id' element={<PodcastDetails />} />
+                                <Route path='/showpodcasts/:type' element={<DisplayPodcasts />} />
+                            </Routes>
+                        </Frame>
+                        {open && <ToastMessage open={open} message={message} severity={severity} />}
+                    </Podstream>
+                </BrowserRouter>
+            </AudioProvider>
         </ThemeProvider>
     );
 }

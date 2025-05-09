@@ -1,10 +1,11 @@
-import { Pause, PlayArrow, SkipNextRounded, SkipPreviousRounded, SouthRounded, VolumeUp } from '@mui/icons-material'
+import { Pause, PlayArrow, SkipNextRounded, SkipPreviousRounded, VolumeUp } from '@mui/icons-material'
 import { IconButton } from '@mui/material'
-import React, { useState, useRef } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import styled from 'styled-components'
 import { closePlayer, openPlayer, setCurrentTime } from '../redux/audioplayerSlice'
 import { openSnackbar } from '../redux/snackbarSlice'
+import { useAudio } from '../context/AudioContext'
 
 const Container = styled.div`
     display: flex;
@@ -162,12 +163,24 @@ const VolumeBar = styled.input.attrs({
   `;
 
 const AudioPlayer = ({ episode, podid, currenttime, index }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
     const [progressWidth, setProgressWidth] = useState(0);
     const [duration, setDuration] = useState(0);
     const [volume, setVolume] = useState(1);
     const audioRef = useRef<HTMLAudioElement>(null);
     const dispatch = useDispatch();
+
+    // Get the audio context
+    const { setAudioRef, isPlaying } = useAudio();
+
+    // Register the audio ref with the context when mounted
+    useEffect(() => {
+        setAudioRef(audioRef);
+
+        // Optional: Add any cleanup if needed
+        return () => {
+            // Cleanup can go here if needed
+        };
+    }, [setAudioRef]);
 
     const handleTimeUpdate = () => {
         if (audioRef.current) {
@@ -263,7 +276,6 @@ const AudioPlayer = ({ episode, podid, currenttime, index }) => {
                         ref={audioRef}
                         onTimeUpdate={handleTimeUpdate}
                         onEnded={() => goToNextPodcast()}
-                        autoPlay
                         controls
                         onPlay={() => { if (audioRef.current) { audioRef.current.currentTime = currenttime } }}
                         src={episode?.file}
