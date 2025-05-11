@@ -8,7 +8,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { useRouter } from 'next/navigation';
 // Import the podcast component with dynamic import (no SSR)
 
-const PodcastList = dynamic(() => import('./podcasts/podcast-list'), {
+const PodcastList = dynamic(() => import('./podcast-list'), {
   ssr: false,
   loading: () => (
     <div className="h-40 w-full flex items-center justify-center">
@@ -28,7 +28,7 @@ export default function Page() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0A] pb-[69px] pt-2">
       <ScrollArea className="flex-1">
-        {/* <div className="px-6 pt-4">
+        <div className="px-6 pt-4">
           <Breadcrumb />
           <Suspense fallback={
             <div className="h-40 w-full flex items-center justify-center">
@@ -38,7 +38,7 @@ export default function Page() {
             <PodcastList />
           </Suspense>
         </div>
-        <ScrollBar orientation="horizontal" /> */}
+        <ScrollBar orientation="horizontal" />
       </ScrollArea>
     </div>
   );

@@ -17,7 +17,7 @@ export const PodcastCard = ({
 }: PodcastCardProps) => {
     return (
         <div className="group relative w-full max-w-[200px]">
-            <Link href={`/podcast/${podcast.id}`} passHref>
+            <Link href={`/podcasts/${podcast.id}`} passHref>
                 <div
                     className="rounded-md overflow-hidden bg-zinc-900 transition-all duration-300 
                     hover:shadow-lg hover:shadow-zinc-800 cursor-pointer flex flex-col h-full"
