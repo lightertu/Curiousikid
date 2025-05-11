@@ -1,70 +1,67 @@
-# Getting Started with Create React App
+# Next.js Music Player
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A nice GUI for playing/viewing local media files.
 
-## Available Scripts
+![CleanShot 2024-09-14 at 15 34 26@2x](https://github.com/user-attachments/assets/d1b747a4-bc0e-45fc-9df9-ecdba5fd0115)
 
-In the project directory, you can run:
+## Getting Started
 
-### `npm start`
+```bash
+git clone https://github.com/leerob/next-music-player
+cd next-music-player
+pnpm install
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Running Locally
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Use the included setup script to create your `.env` file:
 
-### `npm test`
+```bash
+pnpm db:setup
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Add local audio files to a top level `tracks/` folder (git ignored). One option to download files is `yt-dlp`. You can provide arguments to download the song metadata, as well as the cover image, too.
 
-### `npm run build`
+```bash
+yt-dlp -x --audio-format mp3 --add-metadata --embed-thumbnail "https://www.youtube.com/playlist?list=..."
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Then, run the database migrations and seed the database with a songs and playlists:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Finally, run the Next.js development server:
 
-### `npm run eject`
+```bash
+pnpm dev
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+You can view your database contents with Drizzle Studio locally:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+pnpm db:studio
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Open [http://localhost:3000](http://localhost:3000) in your browser to see the app in action.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Features
 
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- ✅ Uses MediaSession API to sync track metadata with system controls
+- ✅ Press space to play/pause from anywhere in the app
+- ✅ View for all tracks
+- ✅ Click on song row to play
+- ✅ Move between songs in tracklist with up/down or j/k
+- ✅ Move between playlists panel and tracklist with h/l
+- ✅ Now playing animation in track row
+- ✅ Support for both local or remote files
+- ✅ Mobile responsiveness
+- ✅ Drag on the progress bar to seek song
+- ✅ Create a new playlist in the UI
+- ✅ Image upload to Vercel Blob for playlist images
+- ✅ Add/remove songs to a playist in the UI
+- ✅ Basic search over songs
+- Persist active song to storage
+- Hook up the volume controls
