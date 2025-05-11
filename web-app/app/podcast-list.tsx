@@ -36,12 +36,6 @@ export function PodcastList() {
 
     const handlePodcastClick = async (id: string) => {
         console.log(`Podcast clicked: ${id}`);
-        try {
-            // Add a view when a podcast is clicked
-            await podcastClient.addPodcastView(id);
-        } catch (err) {
-            console.error('Error adding podcast view:', err);
-        }
     };
 
     if (isLoading) {

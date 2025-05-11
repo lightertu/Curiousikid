@@ -6,6 +6,7 @@ const nextConfig = {
             'images.unsplash.com',
             'localhost',
             'curiousikid.com',
+            'static.feedpress.com',
         ],
     },
     env: {
