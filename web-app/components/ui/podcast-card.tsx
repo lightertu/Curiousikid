@@ -16,7 +16,7 @@ export const PodcastCard = ({
     onClick
 }: PodcastCardProps) => {
     return (
-        <div className="group relative w-full max-w-[200px]">
+        <div className="group relative w-full">
             <Link href={`/podcasts/${podcast.id}`} passHref>
                 <div
                     className="rounded-md overflow-hidden bg-zinc-900 transition-all duration-300 

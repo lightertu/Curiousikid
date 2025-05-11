@@ -7,6 +7,7 @@ const nextConfig = {
             'localhost',
             'curiousikid.com',
             'static.feedpress.com',
+            'megaphone.imgix.net'
         ],
     },
     env: {

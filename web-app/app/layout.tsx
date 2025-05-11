@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import { NowPlaying } from './now-playing';
 import { PlaybackProvider } from './playback-context';
 import { getAllPlaylists } from '@/lib/db/queries';
-import { OptimisticPlaylists } from './side-bar';
+import { SideBar } from './side-bar';
 import { PlaylistProvider } from './hooks/use-playlist';
 import { PlaybackControls } from './playback-controls';
 
@@ -35,7 +35,7 @@ export default function RootLayout({
       <body className="dark flex flex-col md:flex-row h-[100dvh] text-gray-200 bg-[#0A0A0A]">
         <PlaybackProvider>
           <PlaylistProvider playlistsPromise={playlistsPromise}>
-            <OptimisticPlaylists />
+            <SideBar />
             {children}
           </PlaylistProvider>
           <NowPlaying />
