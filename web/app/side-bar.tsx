@@ -7,20 +7,6 @@ import { usePlayback } from '@/app/playback-context';
 import { LayoutGrid, Brain, User, PanelLeftClose, PanelRight, LibraryIcon } from 'lucide-react';
 import { useSidebar } from './sidebar-context';
 
-const DEFAULT_EXPANDED_WIDTH = 224;
-
-// Fixed styling for the expanded state
-const EXPANDED_NAV_STYLING = {
-  fontSize: '0.875rem',
-  iconSize: '24px',
-  padding: '12px',
-  showLabel: true,
-  iconMarginRight: '8px',
-  navContainerPaddingX: 'px-4',
-  navContainerPaddingY: 'py-4',
-  navItemsSpaceY: 'space-y-2',
-};
-
 export function SideBar() {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -32,11 +18,12 @@ export function SideBar() {
     toggleCollapse,
   } = useSidebar();
 
+  const iconSize = "30px";
   const navItemStyling = useMemo(() => {
     if (isCollapsed) {
       return {
         fontSize: '0rem',
-        iconSize: '24px',
+        iconSize: iconSize,
         padding: '12px',
         showLabel: false,
         iconMarginRight: '0px',
@@ -45,7 +32,16 @@ export function SideBar() {
         navItemsSpaceY: 'space-y-2',
       };
     } else {
-      return EXPANDED_NAV_STYLING;
+      return {
+        fontSize: '1.05rem',
+        iconSize: iconSize,
+        padding: '12px',
+        showLabel: true,
+        iconMarginRight: '8px',
+        navContainerPaddingX: 'px-4',
+        navContainerPaddingY: 'py-4',
+        navItemsSpaceY: 'space-y-2',
+      };
     }
   }, [isCollapsed]);
 
@@ -101,30 +97,6 @@ export function SideBar() {
             );
           })}
         </nav>
-
-        <div className={`mt-auto ${isCollapsed ? 'px-2' : 'px-4'} pb-4 w-full flex justify-center`}>
-          <Link
-            href="/login"
-            title={isCollapsed ? "Sign in" : undefined}
-            className={`flex items-center ${isCollapsed ? 'justify-center p-3' : 'justify-center w-full'} bg-[#4169E1] hover:bg-[#365AC7] text-white rounded-full transition-colors duration-200`}
-            style={!isCollapsed ? {
-              fontSize: navItemStyling.fontSize,
-              padding: navItemStyling.padding,
-            } : {
-              padding: '12px',
-            }}
-          >
-            <User
-              className="text-white"
-              style={{
-                width: navItemStyling.iconSize,
-                height: navItemStyling.iconSize,
-                marginRight: navItemStyling.showLabel ? navItemStyling.iconMarginRight : '0px'
-              }}
-            />
-            {navItemStyling.showLabel && <span>Sign in</span>}
-          </Link>
-        </div>
       </div>
     </div>
   );

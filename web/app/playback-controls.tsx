@@ -434,7 +434,7 @@ export function PlaybackControls() {
   ]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 flex items-center justify-between p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[#181818] border-t border-[#282828]">
+    <div className="fixed bottom-0 left-0 right-0 flex items-center justify-between p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[#181818] border-t border-[#282828] z-50">
       <audio ref={audioRef} />
       <TrackInfo />
       <div className="flex flex-col items-center w-1/3">

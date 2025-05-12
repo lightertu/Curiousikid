@@ -26,13 +26,22 @@ export function Breadcrumb() {
 
     // Create breadcrumb items with readable names
     const breadcrumbs = segments.map((segment, index) => {
-        // Check if this segment is an ID (assume IDs are longer than 10 chars or contain hyphens)
-        const isId = segment.length > 10 || segment.includes('-');
+        let displayName;
+        // Check if the current segment is a podcast ID by looking at the previous segment
+        const isPodcastIdSegment = segments[index - 1] === 'podcasts' && index > 0;
 
-        // Get the display name from our map or use the segment itself
-        const displayName = isId
-            ? 'Details'
-            : (pathMap[segment]?.label || segment.charAt(0).toUpperCase() + segment.slice(1));
+        if (isPodcastIdSegment) {
+            displayName = 'Episodes'; // Display "Episodes" for podcast ID segments
+        } else {
+            // Original logic for non-ID segments or other types of dynamic segments
+            // You might still want a generic ID check here for other parts of your site
+            const isPotentiallyOtherId = segment.length > 10 || segment.includes('-');
+            if (isPotentiallyOtherId) {
+                displayName = 'Details'; // Fallback for other generic IDs
+            } else {
+                displayName = pathMap[segment]?.label || segment.charAt(0).toUpperCase() + segment.slice(1);
+            }
+        }
 
         // Create the URL for this breadcrumb by joining all segments up to this one
         const url = `/${segments.slice(0, index + 1).join('/')}`;

@@ -8,10 +8,12 @@ import {
   ReactNode,
   useRef,
   useCallback,
+  Dispatch,
+  SetStateAction,
 } from 'react';
 import { Song } from '@/lib/db/types';
 
-type Panel = 'sidebar' | 'tracklist';
+type Panel = 'sidebar' | 'tracklist' | 'nowPlaying';
 
 type PlaybackContextType = {
   isPlaying: boolean;
@@ -26,10 +28,14 @@ type PlaybackContextType = {
   setDuration: (duration: number) => void;
   setPlaylist: (songs: Song[]) => void;
   audioRef: React.RefObject<HTMLAudioElement>;
-  activePanel: Panel;
-  setActivePanel: (panel: Panel) => void;
+  activePanel: Panel | null;
+  setActivePanel: (panel: Panel | null) => void;
   registerPanelRef: (panel: Panel, ref: React.RefObject<HTMLElement>) => void;
   handleKeyNavigation: (e: React.KeyboardEvent, panel: Panel) => void;
+  isNowPlayingOpen: boolean;
+  toggleNowPlaying: () => void;
+  nowPlayingWidth: number;
+  setNowPlayingWidth: Dispatch<SetStateAction<number>>;
 };
 
 const PlaybackContext = createContext<PlaybackContextType | undefined>(
@@ -37,10 +43,11 @@ const PlaybackContext = createContext<PlaybackContextType | undefined>(
 );
 
 function useKeyboardNavigation() {
-  const [activePanel, setActivePanel] = useState<Panel>('sidebar');
+  const [activePanel, setActivePanel] = useState<Panel | null>(null);
   const panelRefs = useRef<Record<Panel, React.RefObject<HTMLElement> | null>>({
     sidebar: null,
     tracklist: null,
+    nowPlaying: null,
   });
 
   const registerPanelRef = useCallback(
@@ -114,6 +121,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation } =
     useKeyboardNavigation();
 
+  // New states for NowPlaying panel
+  const [isNowPlayingOpen, setIsNowPlayingOpen] = useState(false);
+  const DEFAULT_NOW_PLAYING_WIDTH = 288; // Approx w-72
+  const [nowPlayingWidth, setNowPlayingWidth] = useState(DEFAULT_NOW_PLAYING_WIDTH);
+
   const togglePlayPause = useCallback(() => {
     if (audioRef.current) {
       if (isPlaying) {
@@ -132,9 +144,10 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
       setCurrentTime(0);
       if (audioRef.current) {
         audioRef.current.src = getAudioSrc(track.audioUrl as string);
-        audioRef.current.play();
+        audioRef.current.play().catch(error => console.error("Error playing track:", error));
       }
-      setActivePanel('tracklist');
+      setActivePanel('nowPlaying');
+      setIsNowPlayingOpen(true);
     },
     [setActivePanel]
   );
@@ -167,6 +180,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     }
     return url;
   };
+
+  const toggleNowPlaying = useCallback(() => {
+    setIsNowPlayingOpen(prev => !prev);
+    setActivePanel(prev => prev === 'nowPlaying' ? null : 'nowPlaying');
+  }, []);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -205,6 +223,10 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         setActivePanel,
         registerPanelRef,
         handleKeyNavigation,
+        isNowPlayingOpen,
+        toggleNowPlaying,
+        nowPlayingWidth,
+        setNowPlayingWidth,
       }}
     >
       {children}
