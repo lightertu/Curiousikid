@@ -10,7 +10,7 @@ const MAX_WIDTH = 500;
 export function NowPlaying() {
   const {
     isNowPlayingOpen,
-    toggleNowPlaying, // To close the panel, e.g., with a button inside it
+    // toggleNowPlaying, // Removed as per user request (no close button)
     nowPlayingWidth,
     setNowPlayingWidth,
     currentTrack, // To display track info
@@ -21,14 +21,7 @@ export function NowPlaying() {
   const [initialMouseX, setInitialMouseX] = useState(0);
   const [initialWidth, setInitialWidth] = useState(0);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // Update internal width state if context width changes (e.g. on first load)
-    if (sidebarRef.current && sidebarRef.current.offsetWidth !== nowPlayingWidth) {
-      // This direct DOM manipulation for width is okay for resizable sidebar controlled by state
-    }
-  }, [nowPlayingWidth]);
+  const sidebarRef = useRef<HTMLDivElement>(null); // This ref is for the main div to get its offsetWidth
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -36,15 +29,18 @@ export function NowPlaying() {
       e.preventDefault();
       setIsResizing(true);
       setInitialMouseX(e.clientX);
+      // Capture the width from the sidebarRef (which gets its width from context state)
       setInitialWidth(sidebarRef.current.offsetWidth);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing || !sidebarRef.current) return;
+      if (!isResizing) return;
+      // We need initialWidth to be from the state set on mousedown
+      const currentInitialWidth = initialWidth;
       const deltaX = e.clientX - initialMouseX;
-      const newWidth = initialWidth - deltaX; // Resizing from left edge
+      const newWidth = currentInitialWidth - deltaX;
       const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
       setNowPlayingWidth(constrainedWidth);
     };
@@ -61,9 +57,13 @@ export function NowPlaying() {
       currentResizeHandle.addEventListener('mousedown', handleMouseDown);
     }
 
+    // Add/remove document listeners based on isResizing state
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     }
 
     return () => {
@@ -75,6 +75,7 @@ export function NowPlaying() {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
+    // Dependencies now correctly include initialWidth and initialMouseX which are used in handleMouseMove
   }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth]);
 
   if (!isNowPlayingOpen) {
