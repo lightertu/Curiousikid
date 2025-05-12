@@ -141,7 +141,6 @@ export function Volume() {
   let { audioRef, currentTrack } = usePlayback();
   let [volume, setVolume] = useState(100);
   let [isMuted, setIsMuted] = useState(false);
-  let [isVolumeVisible, setIsVolumeVisible] = useState(false);
   let volumeBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -175,20 +174,13 @@ export function Volume() {
     }
   };
 
-  let toggleVolumeVisibility = () => {
-    setIsVolumeVisible(!isVolumeVisible);
-  };
-
   return (
-    <div className="relative">
+    <div className="flex items-center space-x-2">
       <Button
         variant="ghost"
         size="icon"
         className="h-8 w-8"
-        onClick={() => {
-          toggleMute();
-          toggleVolumeVisibility();
-        }}
+        onClick={toggleMute}
         disabled={!currentTrack}
       >
         {isMuted ? (
@@ -197,20 +189,16 @@ export function Volume() {
           <Volume2 className="w-4 h-4 text-gray-400" />
         )}
       </Button>
-      {isVolumeVisible && (
-        <div className="absolute bottom-full right-0 mb-2 p-2 bg-[#282828] rounded-md shadow-lg">
-          <div
-            ref={volumeBarRef}
-            className="w-20 h-1 bg-[#3E3E3E] rounded-full cursor-pointer relative"
-            onClick={handleVolumeChange}
-          >
-            <div
-              className="absolute top-0 left-0 h-full bg-white rounded-full"
-              style={{ width: `${volume}%` }}
-            ></div>
-          </div>
-        </div>
-      )}
+      <div
+        ref={volumeBarRef}
+        className="w-24 h-1 bg-[#3E3E3E] rounded-full cursor-pointer relative group"
+        onClick={handleVolumeChange}
+      >
+        <div
+          className="absolute top-0 left-0 h-full bg-gray-500 group-hover:bg-white rounded-full transition-colors duration-150"
+          style={{ width: `${isMuted ? 0 : volume}%` }}
+        ></div>
+      </div>
     </div>
   );
 }
@@ -333,7 +321,7 @@ export function PlaybackControls() {
         <PlaybackButtons />
         <ProgressBar />
       </div>
-      <div className="flex items-center justify-end space-x-2 w-1/3">
+      <div className="flex items-center justify-end space-x-2 w-1/3 pr-10">
         <Volume />
       </div>
     </div>

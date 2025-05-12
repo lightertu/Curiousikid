@@ -25,14 +25,16 @@ export default function Page() {
 
   return (
     <ScrollArea className="h-full">
-      <div>
-        <Suspense fallback={
-          <div className="h-40 w-full flex items-center justify-center">
-            <p className="text-zinc-400">Loading podcasts...</p>
-          </div>
-        }>
-          <PodcastList />
-        </Suspense>
+      <div className="container">
+        <div>
+          <Suspense fallback={
+            <div className="h-40 w-full flex items-center justify-center">
+              <p className="text-zinc-400">Loading podcasts...</p>
+            </div>
+          }>
+            <PodcastList />
+          </Suspense>
+        </div>
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>

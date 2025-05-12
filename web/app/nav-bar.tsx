@@ -24,7 +24,6 @@ export function NavBar() {
             style={{
                 left: navBarLeftOffset,
                 width: navBarWidth,
-                transition: 'left 0.3s ease-in-out, width 0.3s ease-in-out', // Smooth transition with sidebar
             }}
         >
             {/* 

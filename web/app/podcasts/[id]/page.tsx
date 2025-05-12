@@ -41,7 +41,7 @@ export default function PodcastDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto">
+      <div className="container">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-white">Loading...</h1>
         </div>
@@ -67,7 +67,7 @@ export default function PodcastDetailPage() {
 
   if (error || !podcast) {
     return (
-      <div className="container mx-auto">
+      <div className="container">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-red-500">Error</h1>
         </div>
@@ -120,7 +120,7 @@ export default function PodcastDetailPage() {
   };
 
   return (
-    <div className="container mx-auto">
+    <div className="container">
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         {/* Podcast cover image */}
         <div className="relative w-48 h-48 self-start rounded-lg overflow-hidden shadow-lg shrink-0">
