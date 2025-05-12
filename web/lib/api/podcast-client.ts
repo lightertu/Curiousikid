@@ -30,10 +30,10 @@ export interface Podcast {
     type: string;
     category: string;
     views: number;
-    episodes: Episode[] | string[]; // Can be array of Episode objects or just IDs
+    episodes: Episode[];
     created_at: string;
     updated_at: string;
-    creator?: PodcastCreator; // This is added when fetching with relations
+    creator?: PodcastCreator;
 }
 
 export interface PodcastWithRelations extends Podcast {

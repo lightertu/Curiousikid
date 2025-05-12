@@ -17,30 +17,7 @@ import {
 import { usePlaylist } from '@/app/hooks/use-playlist';
 import { addToPlaylistAction } from '@/app/actions';
 import Image from 'next/image';
-
-export interface Creator {
-    id: string;
-    name: string;
-}
-
-export interface Episode {
-    id: string;
-    name: string;
-    description?: string;
-    file: string;
-    duration?: number;
-    thumbnail?: string;
-    publishedAt?: string;
-}
-
-export interface Podcast {
-    id: string;
-    name: string;
-    description?: string;
-    thumbnail?: string;
-    creator?: Creator;
-    episodes: Episode[];
-}
+import { Podcast, Episode } from '@/lib/api/podcast-client';
 
 function EpisodeCard({
     episode,
@@ -80,8 +57,8 @@ function EpisodeCard({
     };
 
     let isCurrentTrack = currentTrack?.id === episode.id;
-    const publishDate = episode.publishedAt
-        ? new Date(episode.publishedAt).toLocaleDateString(undefined, {
+    const publishDate = episode.created_at
+        ? new Date(episode.created_at).toLocaleDateString(undefined, {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
@@ -246,9 +223,9 @@ function EpisodeCard({
                     </div>
 
                     {/* Description */}
-                    {episode.description && (
+                    {episode.desc && (
                         <p className="text-xs text-gray-400 line-clamp-2">
-                            {highlightText(episode.description, query)}
+                            {highlightText(episode.desc, query)}
                         </p>
                     )}
                 </div>

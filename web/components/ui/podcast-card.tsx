@@ -35,7 +35,7 @@ export const PodcastCard = ({
 
                         {/* Play button overlay */}
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 bg-black/40 transition-opacity duration-300 group-hover:opacity-100">
-                            <div className="p-3 rounded-full bg-green-500 shadow-lg">
+                            <div className="p-3 rounded-full bg-blue-500 shadow-lg">
                                 <PlayIcon className="w-6 h-6 text-white" />
                             </div>
                         </div>

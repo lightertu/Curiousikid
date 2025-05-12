@@ -2,8 +2,8 @@
 
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Episode as ApiEpisode, Podcast as ApiPodcast, PodcastClient } from '@/lib/api/podcast-client';
-import { PodcastEpisodeSelection, Podcast } from './podcast-episode-selection';
+import { Podcast, PodcastClient } from '@/lib/api/podcast-client';
+import { PodcastEpisodeSelection } from './podcast-episode-selection';
 import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MicVocal } from 'lucide-react';
@@ -14,9 +14,10 @@ export default function PodcastDetailPage() {
   const params = useParams();
   const id = params?.id as string;
 
-  const [podcast, setPodcast] = useState<ApiPodcast | null>(null);
+  const [podcast, setPodcast] = useState<Podcast | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     async function fetchPodcast() {
@@ -89,34 +90,22 @@ export default function PodcastDetailPage() {
   const episodeCount = Array.isArray(podcast.episodes) ? podcast.episodes.length : 0;
 
   // Convert podcast to the format expected by PodcastEpisodePlayer
-  const adaptedPodcast: Podcast = {
-    id: podcast.id,
-    name: podcast.name,
-    description: podcast.desc,
-    thumbnail: podcast.thumbnail,
-    creator: podcast.creator ? {
-      id: podcast.creator_id,
-      name: podcast.creator.name
-    } : undefined,
-    episodes: Array.isArray(podcast.episodes)
-      ? podcast.episodes
-        .filter((ep): ep is ApiEpisode => typeof ep !== 'string')
-        .map(ep => ({
-          id: ep.id,
-          name: ep.name,
-          description: ep.desc,
-          file: ep.file,
-          duration: ep.duration,
-          thumbnail: ep.thumbnail,
-          publishedAt: ep.created_at
-        }))
-      : []
-  };
-
   const handleAIChatClick = () => {
     console.log("AI Chat button clicked for podcast:", podcast?.id);
     // Implement your voice chat initiation logic here
     alert("Initiating AI Voice Chat with the host! (Feature coming soon)");
+  };
+
+  const DESCRIPTION_CHAR_LIMIT = 230;
+  const description = podcast.desc || '';
+  const isLongDescription = description.length > DESCRIPTION_CHAR_LIMIT;
+
+  const displayedDescription = isLongDescription && !isDescriptionExpanded
+    ? `${description.substring(0, DESCRIPTION_CHAR_LIMIT)}...`
+    : description;
+
+  const toggleDescription = () => {
+    setIsDescriptionExpanded(!isDescriptionExpanded);
   };
 
   return (
@@ -173,11 +162,21 @@ export default function PodcastDetailPage() {
             {/* Additional tags could go here */}
           </div>
 
-          <p className="text-gray-300 leading-relaxed">{podcast.desc}</p>
+          <p className="text-gray-300 leading-relaxed whitespace-pre-line">
+            {displayedDescription}
+          </p>
+          {isLongDescription && (
+            <button
+              onClick={toggleDescription}
+              className="text-blue-400 hover:text-blue-300 mt-2 text-sm font-medium"
+            >
+              {isDescriptionExpanded ? 'Show less' : 'Show more'}
+            </button>
+          )}
         </div>
       </div>
 
-      <PodcastEpisodeSelection podcast={adaptedPodcast} />
+      <PodcastEpisodeSelection podcast={podcast} />
     </div>
   );
 }
