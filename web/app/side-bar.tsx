@@ -12,7 +12,7 @@ const DEFAULT_EXPANDED_WIDTH = 224;
 // Fixed styling for the expanded state
 const EXPANDED_NAV_STYLING = {
   fontSize: '0.875rem',
-  iconSize: '20px',
+  iconSize: '24px',
   padding: '12px',
   showLabel: true,
   iconMarginRight: '8px',
