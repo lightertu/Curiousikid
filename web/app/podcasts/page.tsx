@@ -26,20 +26,18 @@ export default function Page() {
   }, [router]);
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#0A0A0A] pb-[69px] pt-2">
-      <ScrollArea className="flex-1">
-        <div className="px-6 pt-4">
-          <Breadcrumb />
-          <Suspense fallback={
-            <div className="h-40 w-full flex items-center justify-center">
-              <p className="text-zinc-400">Loading podcasts...</p>
-            </div>
-          }>
-            <PodcastList />
-          </Suspense>
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </div>
+    <ScrollArea className="h-full">
+      <div>
+        <Breadcrumb />
+        <Suspense fallback={
+          <div className="h-40 w-full flex items-center justify-center">
+            <p className="text-zinc-400">Loading podcasts...</p>
+          </div>
+        }>
+          <PodcastList />
+        </Suspense>
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
   );
 }

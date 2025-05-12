@@ -73,3 +73,23 @@
 tr:focus {
   outline: none;
 }
+
+@layer utilities {
+  @keyframes pulse-glow {
+
+    0%,
+    100% {
+      box-shadow: 0 0 15px 5px rgba(128, 0, 128, 0.4), 0 0 30px 10px rgba(0, 0, 255, 0.3);
+      opacity: 0.8;
+    }
+
+    50% {
+      box-shadow: 0 0 20px 8px rgba(128, 0, 128, 0.6), 0 0 40px 15px rgba(0, 0, 255, 0.4);
+      opacity: 1;
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 3s infinite ease-in-out;
+  }
+}

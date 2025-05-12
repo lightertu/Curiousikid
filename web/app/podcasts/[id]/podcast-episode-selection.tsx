@@ -311,7 +311,7 @@ export function PodcastEpisodeSelection({
     }
 
     return (
-        <div className="w-full" ref={containerRef} onClick={() => setActivePanel('tracklist')}>
+        <div className="w-full pb-24" ref={containerRef} onClick={() => setActivePanel('tracklist')}>
             <div className="podcast-episode-header mb-4">
                 <h2 className="text-lg font-semibold text-white mb-2">Episodes ({podcast.episodes.length})</h2>
                 <p className="text-sm text-gray-400">
@@ -319,7 +319,7 @@ export function PodcastEpisodeSelection({
                 </p>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div className="grid gap-4 grid-cols-1">
                 {podcast.episodes.map((episode) => (
                     <EpisodeCard
                         key={episode.id}

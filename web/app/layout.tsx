@@ -7,6 +7,8 @@ import { getAllPlaylists } from '@/lib/db/queries';
 import { SideBar } from './side-bar';
 import { PlaylistProvider } from './hooks/use-playlist';
 import { PlaybackControls } from './playback-controls';
+import { SidebarProvider } from './sidebar-context';
+import { MainContentWrapper } from './main-content-wrapper';
 
 export const metadata: Metadata = {
   title: 'Podcast App',
@@ -32,14 +34,18 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={inter.className}>
-      <body className="dark flex flex-col md:flex-row h-[100dvh] text-gray-200 bg-[#0A0A0A]">
+      <body className="dark bg-[#0A0A0A] text-gray-200 h-[100dvh] overflow-hidden">
         <PlaybackProvider>
-          <PlaylistProvider playlistsPromise={playlistsPromise}>
-            <SideBar />
-            {children}
-          </PlaylistProvider>
-          <NowPlaying />
-          <PlaybackControls />
+          <SidebarProvider>
+            <PlaylistProvider playlistsPromise={playlistsPromise}>
+              <SideBar />
+              <MainContentWrapper>
+                {children}
+              </MainContentWrapper>
+            </PlaylistProvider>
+            <NowPlaying />
+            <PlaybackControls />
+          </SidebarProvider>
         </PlaybackProvider>
       </body>
     </html>
