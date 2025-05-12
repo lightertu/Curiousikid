@@ -9,49 +9,23 @@ interface SidebarContextType {
     sidebarWidth: number;
     isCollapsed: boolean;
     toggleCollapse: () => void;
-    setSidebarWidth: (width: number) => void; // For resizer
-    isResizing: boolean;
-    setIsResizing: (resizing: boolean) => void;
-    lastExpandedWidth: number;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [currentWidth, setCurrentWidth] = useState(DEFAULT_EXPANDED_WIDTH);
-    const [lastStoredExpandedWidth, setLastStoredExpandedWidth] = useState(DEFAULT_EXPANDED_WIDTH);
-    const [isResizingState, setIsResizingState] = useState(false);
+    const sidebarWidth = isCollapsed ? COLLAPSED_WIDTH : DEFAULT_EXPANDED_WIDTH;
 
     const toggleCollapse = useCallback(() => {
-        setIsCollapsed(prevCollapsed => {
-            const nextCollapsed = !prevCollapsed;
-            if (nextCollapsed) {
-                setLastStoredExpandedWidth(currentWidth);
-                setCurrentWidth(COLLAPSED_WIDTH);
-            } else {
-                setCurrentWidth(lastStoredExpandedWidth);
-            }
-            return nextCollapsed;
-        });
-    }, [currentWidth, lastStoredExpandedWidth]);
-
-    const setSidebarWidthCallback = useCallback((newWidth: number) => {
-        if (!isCollapsed) {
-            setCurrentWidth(newWidth);
-            setLastStoredExpandedWidth(newWidth);
-        }
-    }, [isCollapsed]);
+        setIsCollapsed(prevCollapsed => !prevCollapsed);
+    }, []);
 
     return (
         <SidebarContext.Provider value={{
-            sidebarWidth: currentWidth,
+            sidebarWidth,
             isCollapsed,
             toggleCollapse,
-            setSidebarWidth: setSidebarWidthCallback,
-            isResizing: isResizingState,
-            setIsResizing: setIsResizingState,
-            lastExpandedWidth: lastStoredExpandedWidth,
         }}>
             {children}
         </SidebarContext.Provider>
