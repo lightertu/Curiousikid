@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { usePlayback } from './playback-context'; // Assuming this context now has NowPlaying states
 import { PanelRightClose } from 'lucide-react'; // Example icon for a toggle button
 
-const MIN_WIDTH = 200;
+const MIN_WIDTH = 250;
 const MAX_WIDTH = 500;
 const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
 
@@ -98,7 +98,7 @@ export function NowPlaying() {
   return (
     <div
       ref={sidebarRef}
-      className="fixed right-0 bg-neutral-700 border-l border-[#282828] flex flex-col z-30 shadow-xl"
+      className="fixed right-0 bg-[#181818] border-l border-[#282828] flex flex-col z-30 shadow-xl"
       style={{
         width: `${nowPlayingWidth}px`,
         top: '64px',
