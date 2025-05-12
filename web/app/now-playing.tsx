@@ -2,17 +2,19 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { usePlayback } from './playback-context'; // Assuming this context now has NowPlaying states
-import { PanelRightOpen } from 'lucide-react'; // Example icon for a toggle button
+import { PanelRightClose } from 'lucide-react'; // Example icon for a toggle button
 
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 500;
+const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
 
 export function NowPlaying() {
   const {
     isNowPlayingOpen,
-    // toggleNowPlaying, // Removed as per user request (no close button)
+    toggleNowPlaying, // Ensure toggleNowPlaying is available from context
     nowPlayingWidth,
     setNowPlayingWidth,
+    attemptCollapseNowPlaying, // New function from context
     currentTrack, // To display track info
     setActivePanel,
   } = usePlayback();
@@ -41,8 +43,14 @@ export function NowPlaying() {
       const currentInitialWidth = initialWidth;
       const deltaX = e.clientX - initialMouseX;
       const newWidth = currentInitialWidth - deltaX;
-      const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
-      setNowPlayingWidth(constrainedWidth);
+
+      if (newWidth < NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG) {
+        attemptCollapseNowPlaying(); // Call context function to collapse
+        // No need to setIsResizing(false) here, mouseup will handle it
+      } else {
+        const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
+        setNowPlayingWidth(constrainedWidth);
+      }
     };
 
     const handleMouseUp = () => {
@@ -50,6 +58,11 @@ export function NowPlaying() {
       setIsResizing(false);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
+      // Check if it should be collapsed after drag ends, if not already handled by mousemove
+      // This ensures if the last drag position was below threshold, it collapses.
+      if (nowPlayingWidth < NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG && isNowPlayingOpen) {
+        attemptCollapseNowPlaying();
+      }
     };
 
     const currentResizeHandle = resizeHandleRef.current;
@@ -76,7 +89,7 @@ export function NowPlaying() {
       document.body.style.userSelect = '';
     };
     // Dependencies now correctly include initialWidth and initialMouseX which are used in handleMouseMove
-  }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth]);
+  }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth, attemptCollapseNowPlaying, nowPlayingWidth, isNowPlayingOpen]);
 
   if (!isNowPlayingOpen) {
     return null; // Don't render if panel is closed
@@ -101,8 +114,21 @@ export function NowPlaying() {
         <div className="w-[3px] h-10 bg-gray-600 rounded-full absolute top-1/2 -translate-y-1/2 left-[calc(50%-1.5px)] group-hover:bg-blue-400" />
       </div>
 
-      {/* Panel Content */}
-      <div className="flex-grow p-4 overflow-y-auto">
+      {/* Header with Title and Collapse Button - fixed at the top of the panel, inside padding */}
+      <div className="p-3 pb-0 flex justify-between items-center flex-shrink-0">
+        <h4 className="text-xl font-semibold text-white">Now Playing</h4>
+        <button
+          onClick={toggleNowPlaying}
+          className="p-1.5 hover:bg-neutral-600 rounded-md text-gray-300 hover:text-white"
+          aria-label="Collapse Now Playing panel"
+          title="Collapse Now Playing"
+        >
+          <PanelRightClose size={24} />
+        </button>
+      </div>
+
+      {/* Scrollable Content Area - takes remaining space */}
+      <div className="flex-grow p-3 overflow-y-auto">
         {currentTrack ? (
           <div>
             <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />

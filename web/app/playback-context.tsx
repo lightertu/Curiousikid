@@ -13,6 +13,9 @@ import {
 } from 'react';
 import { Song } from '@/lib/db/types';
 
+const DEFAULT_NOW_PLAYING_WIDTH = 288; // Approx w-72
+const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
+
 type Panel = 'sidebar' | 'tracklist' | 'nowPlaying';
 
 type PlaybackContextType = {
@@ -36,6 +39,7 @@ type PlaybackContextType = {
   toggleNowPlaying: () => void;
   nowPlayingWidth: number;
   setNowPlayingWidth: Dispatch<SetStateAction<number>>;
+  attemptCollapseNowPlaying: () => void;
 };
 
 const PlaybackContext = createContext<PlaybackContextType | undefined>(
@@ -121,9 +125,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   const { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation } =
     useKeyboardNavigation();
 
-  // New states for NowPlaying panel
   const [isNowPlayingOpen, setIsNowPlayingOpen] = useState(false);
-  const DEFAULT_NOW_PLAYING_WIDTH = 288; // Approx w-72
   const [nowPlayingWidth, setNowPlayingWidth] = useState(DEFAULT_NOW_PLAYING_WIDTH);
 
   const togglePlayPause = useCallback(() => {
@@ -146,8 +148,9 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         audioRef.current.src = getAudioSrc(track.audioUrl as string);
         audioRef.current.play().catch(error => console.error("Error playing track:", error));
       }
-      setActivePanel('nowPlaying');
       setIsNowPlayingOpen(true);
+      setNowPlayingWidth(DEFAULT_NOW_PLAYING_WIDTH);
+      setActivePanel('nowPlaying');
     },
     [setActivePanel]
   );
@@ -182,9 +185,24 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleNowPlaying = useCallback(() => {
-    setIsNowPlayingOpen(prev => !prev);
-    setActivePanel(prev => prev === 'nowPlaying' ? null : 'nowPlaying');
-  }, []);
+    setIsNowPlayingOpen(prevOpen => {
+      const nextOpenState = !prevOpen;
+      if (nextOpenState) {
+        setNowPlayingWidth(DEFAULT_NOW_PLAYING_WIDTH);
+        setActivePanel('nowPlaying');
+      } else {
+        setActivePanel(null);
+      }
+      return nextOpenState;
+    });
+  }, [setActivePanel]);
+
+  const attemptCollapseNowPlaying = useCallback(() => {
+    if (isNowPlayingOpen) {
+      setIsNowPlayingOpen(false);
+      setActivePanel(null);
+    }
+  }, [isNowPlayingOpen, setActivePanel]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -227,6 +245,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         toggleNowPlaying,
         nowPlayingWidth,
         setNowPlayingWidth,
+        attemptCollapseNowPlaying,
       }}
     >
       {children}

@@ -4,7 +4,7 @@ import { useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePlayback } from '@/app/playback-context';
-import { LayoutGrid, Brain, User, PanelLeftClose, PanelRight, LibraryIcon } from 'lucide-react';
+import { LayoutGrid, Brain, User, PanelLeftClose, PanelRightOpen, PanelRight, LibraryIcon, PanelLeftOpen } from 'lucide-react';
 import { useSidebar } from './sidebar-context';
 
 export function SideBar() {
@@ -65,7 +65,7 @@ export function SideBar() {
             className={`p-1.5 hover:bg-[#2A2A2A] rounded-md text-gray-300 hover:text-white ${isCollapsed ? 'm-auto' : ''}`}
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
-            {isCollapsed ? <PanelRight size={20} /> : <PanelLeftClose size={20} />}
+            {isCollapsed ? <PanelLeftOpen size={20} /> : <PanelLeftClose size={20} />}
           </button>
         </div>
 

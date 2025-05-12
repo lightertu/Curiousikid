@@ -10,6 +10,7 @@ import { PlaybackControls } from './playback-controls';
 import { SidebarProvider } from './sidebar-context';
 import { MainContentWrapper } from './main-content-wrapper';
 import { NavBar } from './nav-bar';
+import { ExpandNowPlayingButton } from './expand-now-playing-button';
 
 export const metadata: Metadata = {
   title: 'Podcast App',
@@ -44,8 +45,9 @@ export default function RootLayout({
               <MainContentWrapper>
                 {children}
               </MainContentWrapper>
+              <NowPlaying />
+              <ExpandNowPlayingButton />
             </PlaylistProvider>
-            <NowPlaying />
             <PlaybackControls />
           </SidebarProvider>
         </PlaybackProvider>
