@@ -1,7 +1,6 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { useEffect, useState } from 'react';
 import { Episode as ApiEpisode, Podcast as ApiPodcast, PodcastClient } from '@/lib/api/podcast-client';
 import { PodcastEpisodeSelection, Podcast } from './podcast-episode-selection';
@@ -122,8 +121,6 @@ export default function PodcastDetailPage() {
 
   return (
     <div className="container mx-auto">
-      <Breadcrumb />
-
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         {/* Podcast cover image */}
         <div className="relative w-48 h-48 self-start rounded-lg overflow-hidden shadow-lg shrink-0">

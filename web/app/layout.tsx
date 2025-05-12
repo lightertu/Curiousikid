@@ -9,6 +9,7 @@ import { PlaylistProvider } from './hooks/use-playlist';
 import { PlaybackControls } from './playback-controls';
 import { SidebarProvider } from './sidebar-context';
 import { MainContentWrapper } from './main-content-wrapper';
+import { NavBar } from './nav-bar';
 
 export const metadata: Metadata = {
   title: 'Podcast App',
@@ -39,6 +40,7 @@ export default function RootLayout({
           <SidebarProvider>
             <PlaylistProvider playlistsPromise={playlistsPromise}>
               <SideBar />
+              <NavBar />
               <MainContentWrapper>
                 {children}
               </MainContentWrapper>
