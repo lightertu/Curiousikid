@@ -1,9 +1,0 @@
-# List all available recipes
-default:
-    @just --list
-
-# Set strict shell options for all recipes
-set shell := ["bash", "-eux", "-c"]
-
-clean:
-    rm -rf no

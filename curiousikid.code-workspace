@@ -16,7 +16,7 @@
         "editor.formatOnSave": true,
         "editor.bracketPairColorization.enabled": true,
         "window.autoDetectColorScheme": true,
-        "workbench.preferredLightColorTheme": "Solarized Light",
+        "workbench.preferredLightColorTheme": "Atom One Dark",
         "workbench.preferredDarkColorTheme": "Atom One Dark",
         "search.exclude": {
             "**/node_modules": false

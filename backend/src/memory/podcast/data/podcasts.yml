@@ -22,3 +22,51 @@
       creator:
         name: "Vermont Public"
         img: "https://npr.brightspotcdn.com/dims4/default/bded82f/2147483647/strip/true/crop/3096x4128+174+0/resize/150x200!/quality/90/?url=http%3A%2F%2Fnpr-brightspot.s3.amazonaws.com%2Faf%2F8e%2Fe9a8755b40ffbca9bb1b5035572f%2Fjane-lindholm-bishop-2022.jpg"
+- id: "2"
+  name: "The Diary Of A CEO"
+  desc: "I was a broke, university dropout, at 18 I built an industry leading social media marketing company, and at 27 I resigned as CEO. At 28 I co-founded Flight Story – a marketing and communications company, and thirdweb - a software platform, making it easy to build web3 applications. I then launched private equity fund, Flight Fund, to accelerate the next generation of European unicorns. During this time I decided to launch 'The Diary Of A CEO' podcast with the simple mission of providing an unfiltered journey into the remarkable stories and untold dimensions of the world’s most influential people, experts and thinkers. If you enjoy the show, please hit the follow button! That's a small way you can help us carry on doing this, thank you for listening."
+  thumbnail: "https://megaphone.imgix.net/podcasts/0d8f9f54-48cd-11ee-ab9b-c7fa92fe264e/image/2102caeb3135d6a32849d114c8b97242.png"
+  category: "Business"
+  type: "Podcast"
+  views: 1000
+  tags:
+    - "Business"
+    - "Entrepreneurship"
+    - "Leadership"
+    - "Innovation"
+  createdAt: "2021-01-01"
+  creator:
+    name: "Steven Bartlett"
+    img: "https://www.southsummit.io/wp-content/uploads/2024/02/Bartlett.jpg"
+  episodes:
+    - id: "1"
+      name: "The Woman That Makes Millionaires: They're Lying About Work Life Balance! I Built SKIMS Without Fashion Knowledge!"
+      file: "https://pdst.fm/e/pscrb.fm/rss/p/mgln.ai/e/1390/traffic.megaphone.fm/FLIGHTSTUDIOGROUPLTD4873856956.mp3"
+      desc: "She turned hustle into a $4 billion brand, Emma Grede breaks down how she built Kardashian fashion empires  Emma Grede is the founding partner behind the globally successful brands SKIMS, Good American, and Safely, all launched with the Kardashian family. She is also Chairwoman of The Fifteen Percent Pledge, is a board member at Baby2Baby, and was named one of Forbes ‘Richest Self-Made Women in America’."
+      creator:
+        name: "Steven Bartlett"
+        img: "https://www.southsummit.io/wp-content/uploads/2024/02/Bartlett.jpg"
+- id: "3"
+  name: "Huberman Lab"
+  desc: "The Huberman Lab podcast is hosted by Andrew Huberman, Ph.D., a neuroscientist and tenured professor in the department of neurobiology, and by courtesy, psychiatry and behavioral sciences at Stanford School of Medicine. The podcast discusses neuroscience and science-based tools, including how our brain and its connections with the organs of our body control our perceptions, our behaviors, and our health, as well as existing and emerging tools for measuring and changing how our nervous system works. Huberman has made numerous significant contributions to the fields of brain development, brain function, and neural plasticity, which is the ability of our nervous system to rewire and learn new behaviors, skills, and cognitive functioning. He is a McKnight Foundation and Pew Foundation Fellow and was awarded the Cogan Award, given to the scientist making the most significant discoveries in the study of vision, in 2017.  Work from the Huberman Laboratory at Stanford School of Medicine has been published in top journals, including Nature, Science, and Cell, and has been featured in TIME, BBC, Scientific American, Discover, and other top media outlets. In 2021, Dr. Huberman launched the Huberman Lab podcast. The podcast is frequently ranked in the top 10 of all podcasts globally and is often ranked #1 in the categories of Science, Education, and Health & Fitness."
+  thumbnail: "https://megaphone.imgix.net/podcasts/13d9fbe4-725e-11ec-8756-fbe9b3f39704/image/Huberman-Lab-Podcast-Thumbnail-2000x2000.jpg"
+  category: "Science"
+  type: "Podcast"
+  views: 1000
+  tags:
+    - "Science"
+    - "Health"
+    - "Education"
+    - "Technology"
+  createdAt: "2021-01-01"
+  creator:
+    name: "Andrew Huberman"
+    img: "https://yt3.googleusercontent.com/Y8lhyl8aHY42phxwoAwUqwLGDp-z8nmtj3Z7_JB-Oh4yIZ1OFYb-MlJRuz_oygqsYQU-VgGqiOM=s900-c-k-c0x00ffffff-no-rj"
+  episodes:
+    - id: "1"
+      name: "Essentials: How Hearing & Balance Enhance Focus & Learning"
+      file: "https://www.podtrac.com/pts/redirect.mp3/traffic.megaphone.fm/SCIM1135697510.mp3"
+      desc: "In this Huberman Lab Essentials episode, I explore how the auditory and vestibular (balance) systems are essential for enhancing learning and improving focus. I explain how the auditory system captures sound waves and how the brain interprets these signals to make sense of the environment. I also discuss the use of white noise and binaural beats to support brain states conducive to learning, focus and relaxation. Additionally, I explain how the vestibular system helps maintain balance and examine practical tools to enhance auditory learning, cognitive performance and mood. Read the episode show notes at hubermanlab.com."
+      creator:
+        name: "Andrew Huberman"
+        img: "https://yt3.googleusercontent.com/Y8lhyl8aHY42phxwoAwUqwLGDp-z8nmtj3Z7_JB-Oh4yIZ1OFYb-MlJRuz_oygqsYQU-VgGqiOM=s900-c-k-c0x00ffffff-no-rj"
