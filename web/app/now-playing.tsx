@@ -115,7 +115,7 @@ export function NowPlaying() {
       </div>
 
       {/* Header with Title and Collapse Button - fixed at the top of the panel, inside padding */}
-      <div className="p-3 pb-0 flex justify-between items-center flex-shrink-0">
+      <div className="p-3 flex justify-between items-center flex-shrink-0">
         <h4 className="text-xl font-semibold text-white">Now Playing</h4>
         <button
           onClick={toggleNowPlaying}
@@ -128,7 +128,7 @@ export function NowPlaying() {
       </div>
 
       {/* Scrollable Content Area - takes remaining space */}
-      <div className="flex-grow p-3 overflow-y-auto">
+      <div className="flex-grow p-3 pt-0 overflow-y-auto">
         {currentTrack ? (
           <div>
             <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />
