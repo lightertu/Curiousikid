@@ -116,7 +116,6 @@ export function NowPlaying() {
 
       {/* Header with Title and Collapse Button - fixed at the top of the panel, inside padding */}
       <div className="p-3 flex justify-between items-center flex-shrink-0">
-        <h4 className="text-xl font-semibold text-white">Now Playing</h4>
         <button
           onClick={toggleNowPlaying}
           className="p-1.5 hover:bg-neutral-600 rounded-md text-gray-300 hover:text-white"
@@ -125,6 +124,7 @@ export function NowPlaying() {
         >
           <PanelRightClose size={24} />
         </button>
+        <h4 className="text-xl font-semibold text-white">Now Playing</h4>
       </div>
 
       {/* Scrollable Content Area - takes remaining space */}
