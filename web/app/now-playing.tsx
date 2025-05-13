@@ -1,29 +1,27 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { usePlayback } from './playback-context'; // Assuming this context now has NowPlaying states
-import { PanelRightClose } from 'lucide-react'; // Example icon for a toggle button
+import { usePlayback } from './playback-context';
+import { useAppStore } from '@/lib/store';
+import { PanelRightClose } from 'lucide-react';
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 500;
-const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
 
 export function NowPlaying() {
-  const {
-    isNowPlayingOpen,
-    toggleNowPlaying, // Ensure toggleNowPlaying is available from context
-    nowPlayingWidth,
-    setNowPlayingWidth,
-    attemptCollapseNowPlaying, // New function from context
-    currentTrack, // To display track info
-    setActivePanel,
-  } = usePlayback();
+  const isNowPlayingOpen = useAppStore((state) => state.isNowPlayingOpen);
+  const toggleNowPlaying = useAppStore((state) => state.toggleNowPlaying);
+  const nowPlayingWidth = useAppStore((state) => state.nowPlayingWidth);
+  const setNowPlayingWidth = useAppStore((state) => state.setNowPlayingWidth);
+  const attemptCollapseNowPlaying = useAppStore((state) => state.attemptCollapseNowPlaying);
+
+  const { currentTrack, setActivePanel } = usePlayback();
 
   const [isResizing, setIsResizing] = useState(false);
   const [initialMouseX, setInitialMouseX] = useState(0);
   const [initialWidth, setInitialWidth] = useState(0);
   const resizeHandleRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null); // This ref is for the main div to get its offsetWidth
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleMouseDown = (e: MouseEvent) => {
@@ -31,7 +29,6 @@ export function NowPlaying() {
       e.preventDefault();
       setIsResizing(true);
       setInitialMouseX(e.clientX);
-      // Capture the width from the sidebarRef (which gets its width from context state)
       setInitialWidth(sidebarRef.current.offsetWidth);
       document.body.style.cursor = 'col-resize';
       document.body.style.userSelect = 'none';
@@ -39,17 +36,16 @@ export function NowPlaying() {
 
     const handleMouseMove = (e: MouseEvent) => {
       if (!isResizing) return;
-      // We need initialWidth to be from the state set on mousedown
       const currentInitialWidth = initialWidth;
       const deltaX = e.clientX - initialMouseX;
       const newWidth = currentInitialWidth - deltaX;
 
-      if (newWidth < NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG) {
-        attemptCollapseNowPlaying(); // Call context function to collapse
-        // No need to setIsResizing(false) here, mouseup will handle it
-      } else {
-        const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
-        setNowPlayingWidth(constrainedWidth);
+      attemptCollapseNowPlaying(newWidth);
+
+      const storeState = useAppStore.getState();
+      if (storeState.isNowPlayingOpen) {
+          const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
+          setNowPlayingWidth(constrainedWidth);
       }
     };
 
@@ -58,11 +54,8 @@ export function NowPlaying() {
       setIsResizing(false);
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
-      // Check if it should be collapsed after drag ends, if not already handled by mousemove
-      // This ensures if the last drag position was below threshold, it collapses.
-      if (nowPlayingWidth < NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG && isNowPlayingOpen) {
-        attemptCollapseNowPlaying();
-      }
+      const currentWidth = sidebarRef.current?.offsetWidth ?? nowPlayingWidth;
+      attemptCollapseNowPlaying(currentWidth);
     };
 
     const currentResizeHandle = resizeHandleRef.current;
@@ -70,7 +63,6 @@ export function NowPlaying() {
       currentResizeHandle.addEventListener('mousedown', handleMouseDown);
     }
 
-    // Add/remove document listeners based on isResizing state
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
@@ -88,11 +80,10 @@ export function NowPlaying() {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     };
-    // Dependencies now correctly include initialWidth and initialMouseX which are used in handleMouseMove
-  }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth, attemptCollapseNowPlaying, nowPlayingWidth, isNowPlayingOpen]);
+  }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth, attemptCollapseNowPlaying]);
 
   if (!isNowPlayingOpen) {
-    return null; // Don't render if panel is closed
+    return null;
   }
 
   return (
@@ -106,7 +97,6 @@ export function NowPlaying() {
       }}
       onClick={() => setActivePanel('nowPlaying')}
     >
-      {/* Resize Handle (on the left) */}
       <div
         ref={resizeHandleRef}
         className="absolute left-0 top-0 h-full w-2 cursor-col-resize group z-10"
@@ -114,7 +104,6 @@ export function NowPlaying() {
         <div className="w-[3px] h-10 bg-gray-600 rounded-full absolute top-1/2 -translate-y-1/2 left-[calc(50%-1.5px)] group-hover:bg-blue-400" />
       </div>
 
-      {/* Header with Title and Collapse Button - fixed at the top of the panel, inside padding */}
       <div className="p-3 flex justify-between items-center flex-shrink-0">
         <button
           onClick={toggleNowPlaying}
@@ -127,20 +116,17 @@ export function NowPlaying() {
         <h4 className="text-xl font-semibold text-white">Now Playing</h4>
       </div>
 
-      {/* Scrollable Content Area - takes remaining space */}
       <div className="flex-grow p-3 pt-0 overflow-y-auto">
         {currentTrack ? (
           <div>
             <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />
             <h3 className="text-lg font-medium text-white">{currentTrack.name}</h3>
             <p className="text-sm text-gray-400">{currentTrack.artist}</p>
-            {/* Add more details or lyrics component here */}
           </div>
         ) : (
           <p className="text-gray-500">No track playing.</p>
         )}
 
-        {/* Placeholder for more content to test scrollability */}
         <div className="mt-8 space-y-2">
           {[...Array(20)].map((_, i) => (
             <div key={i} className="h-10 bg-neutral-700 rounded flex items-center justify-center text-neutral-500 text-xs">

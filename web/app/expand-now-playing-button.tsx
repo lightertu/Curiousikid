@@ -1,10 +1,21 @@
 'use client';
 
+// Remove old context import if only used for these variables
+// import { usePlayback } from './playback-context';
+import { useAppStore } from '@/lib/store';
+// Keep playback context if needed for currentTrack (will be refactored later)
 import { usePlayback } from './playback-context';
+
 import { PanelRightOpen } from 'lucide-react'; // Icon for expanding
 
 export function ExpandNowPlayingButton() {
-    const { isNowPlayingOpen, toggleNowPlaying, currentTrack } = usePlayback();
+    // Get state and actions from Zustand store
+    const isNowPlayingOpen = useAppStore((state) => state.isNowPlayingOpen);
+    const toggleNowPlaying = useAppStore((state) => state.toggleNowPlaying);
+    // Get currentTrack from PlaybackContext for now
+    const { currentTrack } = usePlayback();
+
+    // const { isNowPlayingOpen, toggleNowPlaying, currentTrack } = usePlayback(); // Old way
 
     if (isNowPlayingOpen || !currentTrack) {
         return null; // Don't show if the panel is already open or if there is no current track

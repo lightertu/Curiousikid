@@ -6,7 +6,8 @@ import { usePlayback } from './playback-context';
 
 export function MainContentWrapper({ children }: { children: ReactNode }) {
     const leftSidebarWidth = useAppStore((state) => state.sidebarWidth);
-    const { isNowPlayingOpen, nowPlayingWidth } = usePlayback();
+    const isNowPlayingOpen = useAppStore((state) => state.isNowPlayingOpen);
+    const nowPlayingWidth = useAppStore((state) => state.nowPlayingWidth);
     const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {

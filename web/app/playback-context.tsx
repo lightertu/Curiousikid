@@ -8,10 +8,9 @@ import {
   ReactNode,
   useRef,
   useCallback,
-  Dispatch,
-  SetStateAction,
 } from 'react';
 import { Song } from '@/lib/db/types';
+import { useAppStore } from '@/lib/store';
 
 const DEFAULT_NOW_PLAYING_WIDTH = 288; // Approx w-72
 const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
@@ -35,11 +34,6 @@ type PlaybackContextType = {
   setActivePanel: (panel: Panel | null) => void;
   registerPanelRef: (panel: Panel, ref: React.RefObject<HTMLElement>) => void;
   handleKeyNavigation: (e: React.KeyboardEvent, panel: Panel) => void;
-  isNowPlayingOpen: boolean;
-  toggleNowPlaying: () => void;
-  nowPlayingWidth: number;
-  setNowPlayingWidth: Dispatch<SetStateAction<number>>;
-  attemptCollapseNowPlaying: () => void;
 };
 
 const PlaybackContext = createContext<PlaybackContextType | undefined>(
@@ -47,12 +41,22 @@ const PlaybackContext = createContext<PlaybackContextType | undefined>(
 );
 
 function useKeyboardNavigation() {
-  const [activePanel, setActivePanel] = useState<Panel | null>(null);
+  const [activePanel, setActivePanel_local] = useState<Panel | null>(null);
   const panelRefs = useRef<Record<Panel, React.RefObject<HTMLElement> | null>>({
     sidebar: null,
     tracklist: null,
     nowPlaying: null,
   });
+
+  const storeSetActivePanel = useAppStore((state) => state.setActivePanel);
+
+  const setActivePanel = useCallback(
+    (panel: Panel | null) => {
+      setActivePanel_local(panel);
+      storeSetActivePanel(panel);
+    },
+    [storeSetActivePanel]
+  );
 
   const registerPanelRef = useCallback(
     (panel: Panel, ref: React.RefObject<HTMLElement>) => {
@@ -108,7 +112,7 @@ function useKeyboardNavigation() {
           break;
       }
     },
-    []
+    [setActivePanel]
   );
 
   return { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation };
@@ -124,9 +128,6 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
 
   const { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation } =
     useKeyboardNavigation();
-
-  const [isNowPlayingOpen, setIsNowPlayingOpen] = useState(false);
-  const [nowPlayingWidth, setNowPlayingWidth] = useState(DEFAULT_NOW_PLAYING_WIDTH);
 
   const togglePlayPause = useCallback(() => {
     if (audioRef.current) {
@@ -148,11 +149,13 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         audioRef.current.src = getAudioSrc(track.audioUrl as string);
         audioRef.current.play().catch(error => console.error("Error playing track:", error));
       }
-      setIsNowPlayingOpen(true);
-      setNowPlayingWidth(DEFAULT_NOW_PLAYING_WIDTH);
-      setActivePanel('nowPlaying');
+      useAppStore.setState({
+        isNowPlayingOpen: true,
+        nowPlayingWidth: useAppStore.getState().nowPlayingWidth,
+        activePanel: 'nowPlaying',
+      });
     },
-    [setActivePanel]
+    []
   );
 
   const playNextTrack = useCallback(() => {
@@ -183,26 +186,6 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     }
     return url;
   };
-
-  const toggleNowPlaying = useCallback(() => {
-    setIsNowPlayingOpen(prevOpen => {
-      const nextOpenState = !prevOpen;
-      if (nextOpenState) {
-        setNowPlayingWidth(DEFAULT_NOW_PLAYING_WIDTH);
-        setActivePanel('nowPlaying');
-      } else {
-        setActivePanel(null);
-      }
-      return nextOpenState;
-    });
-  }, [setActivePanel]);
-
-  const attemptCollapseNowPlaying = useCallback(() => {
-    if (isNowPlayingOpen) {
-      setIsNowPlayingOpen(false);
-      setActivePanel(null);
-    }
-  }, [isNowPlayingOpen, setActivePanel]);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -241,11 +224,6 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         setActivePanel,
         registerPanelRef,
         handleKeyNavigation,
-        isNowPlayingOpen,
-        toggleNowPlaying,
-        nowPlayingWidth,
-        setNowPlayingWidth,
-        attemptCollapseNowPlaying,
       }}
     >
       {children}
