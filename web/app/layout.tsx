@@ -7,7 +7,6 @@ import { getAllPlaylists } from '@/lib/db/queries';
 import { SideBar } from './side-bar';
 import { PlaylistProvider } from './hooks/use-playlist';
 import { PlaybackControls } from './playback-controls';
-import { SidebarProvider } from './sidebar-context';
 import { MainContentWrapper } from './main-content-wrapper';
 import { NavBar } from './nav-bar';
 import { ExpandNowPlayingButton } from './expand-now-playing-button';
@@ -38,18 +37,16 @@ export default function RootLayout({
     <html lang="en" className={inter.className}>
       <body className="dark bg-[#0A0A0A] text-gray-200 h-[100dvh] overflow-hidden">
         <PlaybackProvider>
-          <SidebarProvider>
-            <PlaylistProvider playlistsPromise={playlistsPromise}>
-              <SideBar />
-              <NavBar />
-              <MainContentWrapper>
-                {children}
-              </MainContentWrapper>
-              <NowPlaying />
-              <ExpandNowPlayingButton />
-            </PlaylistProvider>
-            <PlaybackControls />
-          </SidebarProvider>
+          <PlaylistProvider playlistsPromise={playlistsPromise}>
+            <SideBar />
+            <NavBar />
+            <MainContentWrapper>
+              {children}
+            </MainContentWrapper>
+            <NowPlaying />
+            <ExpandNowPlayingButton />
+          </PlaylistProvider>
+          <PlaybackControls />
         </PlaybackProvider>
       </body>
     </html>

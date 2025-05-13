@@ -5,18 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { usePlayback } from '@/app/playback-context';
 import { LayoutGrid, Brain, User, PanelLeftClose, PanelRightOpen, PanelRight, LibraryIcon, PanelLeftOpen } from 'lucide-react';
-import { useSidebar } from './sidebar-context';
+import { useAppStore } from '@/lib/store';
 
 export function SideBar() {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const { setActivePanel } = usePlayback();
 
-  const {
-    sidebarWidth,
-    isCollapsed,
-    toggleCollapse,
-  } = useSidebar();
+  const sidebarWidth = useAppStore((state) => state.sidebarWidth);
+  const isCollapsed = useAppStore((state) => state.isCollapsed);
+  const toggleCollapse = useAppStore((state) => state.toggleCollapse);
 
   const iconSize = "30px";
   const navItemStyling = useMemo(() => {

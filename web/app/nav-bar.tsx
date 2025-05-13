@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { useSidebar } from './sidebar-context';
+import { useAppStore } from '@/lib/store';
 import { User } from 'lucide-react';
 
 export function NavBar() {
-    const { sidebarWidth } = useSidebar();
+    const sidebarWidth = useAppStore((state) => state.sidebarWidth);
     const [isMobileView, setIsMobileView] = useState(false);
 
     useEffect(() => {

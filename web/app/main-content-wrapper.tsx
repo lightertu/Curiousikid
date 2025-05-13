@@ -1,11 +1,11 @@
 'use client';
 
 import { ReactNode, useState, useEffect } from 'react';
-import { useSidebar } from './sidebar-context';
+import { useAppStore } from '@/lib/store';
 import { usePlayback } from './playback-context';
 
 export function MainContentWrapper({ children }: { children: ReactNode }) {
-    const { sidebarWidth: leftSidebarWidth } = useSidebar();
+    const leftSidebarWidth = useAppStore((state) => state.sidebarWidth);
     const { isNowPlayingOpen, nowPlayingWidth } = usePlayback();
     const [isMobileView, setIsMobileView] = useState(false);
 
