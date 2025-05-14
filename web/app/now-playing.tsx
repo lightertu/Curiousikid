@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { usePlayback } from './playback-context';
 import { useAppStore } from '@/lib/store';
 import { PanelRightClose } from 'lucide-react';
+import VoiceConsole from '../components/ui/voice-animation';
 
 const MIN_WIDTH = 250;
 const MAX_WIDTH = 500;
@@ -44,8 +45,8 @@ export function NowPlaying() {
 
       const storeState = useAppStore.getState();
       if (storeState.isNowPlayingOpen) {
-          const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
-          setNowPlayingWidth(constrainedWidth);
+        const constrainedWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, newWidth));
+        setNowPlayingWidth(constrainedWidth);
       }
     };
 
@@ -106,7 +107,10 @@ export function NowPlaying() {
 
       <div className="p-3 flex justify-between items-center flex-shrink-0">
         <button
-          onClick={toggleNowPlaying}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent onClick from parent div if toggleNowPlaying is also an action
+            toggleNowPlaying();
+          }}
           className="p-1.5 hover:bg-neutral-600 rounded-md text-gray-300 hover:text-white"
           aria-label="Collapse Now Playing panel"
           title="Collapse Now Playing"
@@ -116,23 +120,25 @@ export function NowPlaying() {
         <h4 className="text-xl font-semibold text-white">Now Playing</h4>
       </div>
 
-      <div className="flex-grow p-3 pt-0 overflow-y-auto">
-        {currentTrack ? (
-          <div>
-            <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />
-            <h3 className="text-lg font-medium text-white">{currentTrack.name}</h3>
-            <p className="text-sm text-gray-400">{currentTrack.artist}</p>
-          </div>
-        ) : (
-          <p className="text-gray-500">No track playing.</p>
-        )}
-
-        <div className="mt-8 space-y-2">
-          {[...Array(20)].map((_, i) => (
-            <div key={i} className="h-10 bg-neutral-700 rounded flex items-center justify-center text-neutral-500 text-xs">
-              Scrollable Content {i + 1}
+      <div className="flex-grow p-3 pt-0 overflow-y-auto flex flex-col">
+        <div className="flex-shrink-0"> {/* Ensures this part doesn't grow excessively */}
+          {currentTrack ? (
+            <div className="mb-4">
+              <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />
+              <h3 className="text-lg font-medium text-white">{currentTrack.name}</h3>
+              <p className="text-sm text-gray-400">{currentTrack.artist}</p>
             </div>
-          ))}
+          ) : (
+            <p className="text-gray-500 mb-4">No track playing.</p>
+          )}
+        </div>
+
+        <div className="flex-grow flex flex-col"> {/* This container fills space below track info */}
+          <div className="flex-grow-[2]"></div> {/* Spacer above VoiceConsole (takes 2/3 of remaining flex space) */}
+          <div className="flex-shrink-0 py-2">      {/* VoiceConsole container (does not grow, some vertical padding) */}
+            <VoiceConsole theme="ios9" />
+          </div>
+          <div className="flex-grow-[1]"></div> {/* Spacer below VoiceConsole (takes 1/3 of remaining flex space) */}
         </div>
       </div>
     </div>
