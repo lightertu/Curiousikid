@@ -130,29 +130,6 @@ export default function PodcastDetailPage() {
               <h1 className="text-3xl font-bold text-white mb-2">{podcast.name}</h1>
               <p className="text-gray-400 mb-4">By {podcast.creator?.name}</p>
             </div>
-
-            {/* Aurora Orb AI Chat Button - Positioned right where user circled */}
-            <div className="shrink-0 ml-4 -mt-1">
-              <button
-                onClick={handleAIChatClick}
-                className="
-                  w-14 h-14 md:w-16 md:h-16 
-                  rounded-full
-                  bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 
-                  p-2.5 md:p-3
-                  shadow-[0_0_15px_5px_rgba(128,0,128,0.4),_0_0_30px_10px_rgba(0,0,255,0.3)] 
-                  animate-pulse-glow 
-                  hover:shadow-[0_0_20px_8px_rgba(128,0,128,0.6),_0_0_40px_15px_rgba(0,0,255,0.4)] 
-                  hover:scale-105 
-                  transition-all duration-300 ease-in-out
-                  flex items-center justify-center
-                "
-                aria-label="Chat with AI Host via Voice"
-                title="Chat with AI Host"
-              >
-                <MicVocal className="w-7 h-7 md:w-8 md:h-8 text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]" />
-              </button>
-            </div>
           </div>
 
           <div className="flex items-center gap-2 mb-6">

@@ -98,47 +98,20 @@ export function NowPlaying() {
       }}
       onClick={() => setActivePanel('nowPlaying')}
     >
-      <div
+      {/* <div
         ref={resizeHandleRef}
         className="absolute left-0 top-0 h-full w-2 cursor-col-resize group z-10"
       >
         <div className="w-[3px] h-10 bg-gray-600 rounded-full absolute top-1/2 -translate-y-1/2 left-[calc(50%-1.5px)] group-hover:bg-blue-400" />
-      </div>
-
-      <div className="p-3 flex justify-between items-center flex-shrink-0">
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // Prevent onClick from parent div if toggleNowPlaying is also an action
-            toggleNowPlaying();
-          }}
-          className="p-1.5 hover:bg-neutral-600 rounded-md text-gray-300 hover:text-white"
-          aria-label="Collapse Now Playing panel"
-          title="Collapse Now Playing"
-        >
-          <PanelRightClose size={24} />
-        </button>
-        <h4 className="text-xl font-semibold text-white">Now Playing</h4>
-      </div>
+      </div> */}
 
       <div className="flex-grow p-3 pt-0 overflow-y-auto flex flex-col">
-        <div className="flex-shrink-0"> {/* Ensures this part doesn't grow excessively */}
-          {currentTrack ? (
-            <div className="mb-4">
-              <img src={currentTrack.imageUrl || '/placeholder.svg'} alt={currentTrack.name} className="w-full aspect-square object-cover rounded-md mb-4" />
-              <h3 className="text-lg font-medium text-white">{currentTrack.name}</h3>
-              <p className="text-sm text-gray-400">{currentTrack.artist}</p>
-            </div>
-          ) : (
-            <p className="text-gray-500 mb-4">No track playing.</p>
-          )}
-        </div>
 
-        <div className="flex-grow flex flex-col"> {/* This container fills space below track info */}
-          <div className="flex-grow-[2]"></div> {/* Spacer above VoiceConsole (takes 2/3 of remaining flex space) */}
-          <div className="flex-shrink-0 py-2">      {/* VoiceConsole container (does not grow, some vertical padding) */}
-            <VoiceConsole theme="ios9" />
-          </div>
-          <div className="flex-grow-[1]"></div> {/* Spacer below VoiceConsole (takes 1/3 of remaining flex space) */}
+        {/* This container will now simply center VoiceConsole, which will manage its internal layout */}
+        <div className="flex-grow flex flex-col justify-center items-center">
+          {/* Removed explicit spacers. VoiceConsole wrapper will handle its own height/content. */}
+          {/* The py-2 can be on VoiceConsole's root or removed if VoiceConsole handles all padding. */}
+          <VoiceConsole theme="ios9" />
         </div>
       </div>
     </div>
