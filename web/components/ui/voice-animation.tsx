@@ -4,23 +4,27 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MicVocal, PhoneOff, Loader2 } from 'lucide-react';
 import ReactSiriwave, { IReactSiriwaveProps } from 'react-siriwave';
 import { motion } from 'framer-motion';
-import useVapi from '@/components/hooks/use-vapi'; // Adjust the import path as needed
 
 // Define CurveStyle type
 type CurveStyle = "ios" | "ios9";
 
-interface SiriProps {
+interface VoiceConsoleProps {
     theme: CurveStyle;
+    volumeLevel: number;
+    userVolumeLevel: number;
+    isSessionActive: boolean;
+    isConnecting: boolean;
+    toggleCall: () => void;
 }
 
-const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
-    const {
-        volumeLevel,      // AI Assistant's volume
-        userVolumeLevel,  // User's microphone volume
-        isSessionActive,
-        isConnecting,
-        toggleCall
-    } = useVapi();
+const VoiceConsole: React.FC<VoiceConsoleProps> = ({
+    theme,
+    volumeLevel,
+    userVolumeLevel,
+    isSessionActive,
+    isConnecting,
+    toggleCall
+}) => {
     const siriWaveContainerRef = useRef<HTMLDivElement>(null);
 
     const [siriWaveConfig, setSiriWaveConfig] = useState<IReactSiriwaveProps>({
@@ -32,7 +36,7 @@ const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
         color: '#9E9E9E',
         cover: true,
         width: 300,
-        height: 100,
+        height: 80,
         autostart: true,
         pixelDepth: 1,
         lerpSpeed: 0.05,  // Reduced lerpSpeed for smoother transitions
@@ -73,17 +77,17 @@ const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
             if (activeVolume > 0.01) { // Significant speech detected
                 baseSpeed = 0.1;     // Consistent, moderate speed for speech
                 baseFrequency = 3;   // Consistent, moderate frequency for speech
-                baseAmplitude = 80;  // Your preferred amplitude
+                baseAmplitude = 50;  // Your preferred amplitude
             } else { // Session active, but quiet (pause)
                 baseSpeed = 0.05;    // Slower speed for quiet moments
                 baseFrequency = 2;   // Lower frequency for quiet moments
-                baseAmplitude = 80;  // Maintain amplitude if you want a visible quiet pulse
+                baseAmplitude = 50;  // Maintain amplitude if you want a visible quiet pulse
             }
         } else if (isConnecting) { // Just connecting
             activeVolume = 0.01;
             baseSpeed = 0.1;
             baseFrequency = 2;
-            baseAmplitude = 80;   // Your preferred amplitude for connecting pulse
+            baseAmplitude = 50;   // Your preferred amplitude for connecting pulse
         }
 
         const calculatedAmplitude = activeVolume > 0 ? baseAmplitude * Math.min(activeVolume * 7.5, 1.5) : 0;
@@ -112,7 +116,7 @@ const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
     };
 
     // Define button base classes that are always present
-    const baseButtonClasses = "w-14 h-14 md:w-16 md:h-16 rounded-full p-2.5 md:p-3 flex items-center justify-center relative z-10 flex-shrink-0 mt-2 transition-all duration-300 ease-in-out";
+    const baseButtonClasses = "w-12 h-12 md:w-14 md:h-14 rounded-full p-2 md:p-2.5 flex items-center justify-center relative z-10 flex-shrink-0 transition-all duration-300 ease-in-out";
 
     // Determine dynamic classes based on state
     let dynamicButtonClasses = "";
@@ -149,9 +153,8 @@ const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
                 </motion.div>
             )}
 
-            {/* Wrapper for button and text, to be centered when SiriWave is hidden */}
-            {/* Or pushed down when SiriWave is visible */}
-            <div className={`flex flex-col items-center ${(isConnecting || isSessionActive) ? 'mt-4 flex-shrink-0' : 'flex-grow-[1] justify-center'}`}>
+            {/* Wrapper for button and text, adjust top margin when active */}
+            <div className={`flex flex-col items-center ${ (isConnecting || isSessionActive) ? 'mt-1 flex-shrink-0' : 'flex-grow-[1] justify-center' }`}>
                 <button
                     onClick={handleToggleCall}
                     className={`${baseButtonClasses} ${dynamicButtonClasses}`}
@@ -160,15 +163,16 @@ const VoiceConsole: React.FC<SiriProps> = ({ theme }) => {
                     disabled={isConnecting}
                 >
                     {isConnecting ? (
-                        <Loader2 className="w-7 h-7 md:w-8 md:h-8 text-white animate-spin" />
+                        <Loader2 className="w-6 h-6 md:w-7 md:h-7 text-white animate-spin" />
                     ) : !isSessionActive ? (
-                        <MicVocal className="w-7 h-7 md:w-8 md:h-8 text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]" />
+                        <MicVocal className="w-6 h-6 md:w-7 md:h-7 text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]" />
                     ) : (
-                        <PhoneOff className="w-7 h-7 md:w-8 md:h-8 text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]" />
+                        <PhoneOff className="w-6 h-6 md:w-7 md:h-7 text-white filter drop-shadow-[0_0_5px_rgba(255,255,255,0.7)]" />
                     )}
                 </button>
 
-                <p className="text-xs text-neutral-400 mt-3">
+                {/* Adjusted top margin for the text */}
+                <p className="text-xs text-neutral-400 mt-1.5">
                     {isConnecting ? "Connecting..." : isSessionActive ? "Hang Up" : "Chat with Host"}
                 </p>
             </div>
