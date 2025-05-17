@@ -15,13 +15,19 @@ import { useAppStore } from '@/lib/store';
 const DEFAULT_NOW_PLAYING_WIDTH = 288; // Approx w-72
 const NOW_PLAYING_COLLAPSE_THRESHOLD_DRAG = 100; // If dragged smaller than this, it collapses
 
+// Audio fade configuration
+const FADE_OUT_DURATION = 500; // Duration of fade-out in milliseconds
+const FADE_OUT_CURVE = 'linear'; // 'linear' | 'ease-in' | 'ease-out' | 'ease-in-out'
+const FADE_OUT_MIN_VOLUME = 0; // Minimum volume during fade-out (0-1)
+
 type Panel = 'sidebar' | 'tracklist' | 'nowPlaying';
 
 type PlaybackContextType = {
-  isPlaying: boolean;
+  isPlayingIntent: boolean;
   currentTrack: Song | null;
   currentTime: number;
   duration: number;
+  pausePlayback: () => void;
   togglePlayPause: () => void;
   playTrack: (track: Song) => void;
   playNextTrack: () => void;
@@ -29,6 +35,7 @@ type PlaybackContextType = {
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   setPlaylist: (songs: Song[]) => void;
+  seekTo: (time: number) => void;
   audioRef: React.RefObject<HTMLAudioElement>;
   activePanel: Panel | null;
   setActivePanel: (panel: Panel | null) => void;
@@ -119,36 +126,30 @@ function useKeyboardNavigation() {
 }
 
 export function PlaybackProvider({ children }: { children: ReactNode }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<Song | null>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [isPlayingIntent, setIsPlayingIntent] = useState(false);
+  const [currentTrack, setCurrentTrackInternal] = useState<Song | null>(null);
+  const [currentTime, setCurrentTimeInternal] = useState(0);
+  const [duration, setDurationInternal] = useState(0);
   const [playlist, setPlaylist] = useState<Song[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const { activePanel, setActivePanel, registerPanelRef, handleKeyNavigation } =
     useKeyboardNavigation();
 
+  const pausePlayback = useCallback(() => {
+    setIsPlayingIntent(false);
+  }, []);
+
   const togglePlayPause = useCallback(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  }, [isPlaying]);
+    setIsPlayingIntent((prevIsPlaying) => !prevIsPlaying);
+  }, []);
 
   const playTrack = useCallback(
     (track: Song) => {
-      setCurrentTrack(track);
-      setIsPlaying(true);
-      setCurrentTime(0);
-      if (audioRef.current) {
-        audioRef.current.src = getAudioSrc(track.audioUrl as string);
-        audioRef.current.play().catch(error => console.error("Error playing track:", error));
-      }
+      setCurrentTrackInternal(track);
+      setIsPlayingIntent(true);
+      setCurrentTimeInternal(0);
+
       useAppStore.setState({
         isNowPlayingOpen: true,
         nowPlayingWidth: useAppStore.getState().nowPlayingWidth,
@@ -179,13 +180,23 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
     }
   }, [currentTrack, playlist, playTrack]);
 
-  const getAudioSrc = (url: string) => {
-    if (url.startsWith('file://')) {
-      const filename = url.split('/').pop();
-      return `/api/audio/${encodeURIComponent(filename || '')}`;
-    }
-    return url;
-  };
+  const setCurrentTime = useCallback((time: number) => {
+    setCurrentTimeInternal(time);
+  }, []);
+
+  const setDuration = useCallback((newDuration: number) => {
+    setDurationInternal(newDuration);
+  }, []);
+
+  // Placeholder for seekTo - actual implementation will be in PlaybackControls
+  // This function in the context will be overridden by PlaybackControls if it needs to provide one,
+  // or PlaybackControls can directly handle seek actions triggered by ProgressBar without needing this.
+  // For now, let's provide a no-op here. The component actually performing seek will manage it.
+  const seekTo = useCallback((time: number) => {
+    console.warn("PlaybackContext: seekTo called, but not implemented at context level. Should be handled by player component.");
+    // The component owning the audio element should handle seeking directly.
+    // It can still call setCurrentTime from context if needed after a successful seek.
+  }, []);
 
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
@@ -208,10 +219,11 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
   return (
     <PlaybackContext.Provider
       value={{
-        isPlaying,
+        isPlayingIntent,
         currentTrack,
         currentTime,
         duration,
+        pausePlayback,
         togglePlayPause,
         playTrack,
         playNextTrack,
@@ -219,6 +231,7 @@ export function PlaybackProvider({ children }: { children: ReactNode }) {
         setCurrentTime,
         setDuration,
         setPlaylist,
+        seekTo,
         audioRef,
         activePanel,
         setActivePanel,

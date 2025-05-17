@@ -154,7 +154,7 @@ const VoiceConsole: React.FC<VoiceConsoleProps> = ({
             )}
 
             {/* Wrapper for button and text, adjust top margin when active */}
-            <div className={`flex flex-col items-center ${ (isConnecting || isSessionActive) ? 'mt-1 flex-shrink-0' : 'flex-grow-[1] justify-center' }`}>
+            <div className={`flex flex-col items-center ${(isConnecting || isSessionActive) ? 'mt-1 flex-shrink-0' : 'flex-grow-[1] justify-center'}`}>
                 <button
                     onClick={handleToggleCall}
                     className={`${baseButtonClasses} ${dynamicButtonClasses}`}

@@ -1,10 +1,12 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useAppStore } from '@/lib/store';
 import VoiceConsole from '../components/ui/voice-animation';
 import useVapi from '@/components/hooks/use-vapi';
 import TranscriptionDisplay from '../components/ui/transcription-display';
+import { usePlayback } from '@/app/playback-context';
+import { Button } from '@/components/ui/button';
 
 const MIN_WIDTH = 350;
 const MAX_WIDTH = 500;
@@ -21,8 +23,12 @@ export function NowPlaying() {
     isSessionActive,
     isConnecting,
     conversation,
-    toggleCall,
+    toggleCall: vapiToggleCall,
   } = useVapi();
+
+  const {
+    pausePlayback,
+  } = usePlayback();
 
   const [isResizing, setIsResizing] = useState(false);
   const [initialMouseX, setInitialMouseX] = useState(0);
@@ -85,11 +91,18 @@ export function NowPlaying() {
     };
   }, [isResizing, initialMouseX, initialWidth, setNowPlayingWidth, attemptCollapseNowPlaying]);
 
+  const handleToggleCall = useCallback(async () => {
+    if (!isSessionActive) {
+      pausePlayback();
+    }
+    await vapiToggleCall();
+  }, [isSessionActive, pausePlayback, vapiToggleCall]);
+
+  const showTranscription = isConnecting || isSessionActive;
+
   if (!isNowPlayingOpen) {
     return null;
   }
-
-  const showTranscription = isConnecting || isSessionActive;
 
   return (
     <div
@@ -122,7 +135,7 @@ export function NowPlaying() {
             userVolumeLevel={userVolumeLevel}
             isSessionActive={isSessionActive}
             isConnecting={isConnecting}
-            toggleCall={toggleCall}
+            toggleCall={handleToggleCall}
           />
         </div>
       </div>
