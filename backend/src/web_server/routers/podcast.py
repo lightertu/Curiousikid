@@ -109,7 +109,7 @@ async def get_podcasts():
     return podcasts
 
 
-@router.get("/get/{id}")
+@router.get("/{id}")
 async def get_podcast_by_id(id: str):
     podcast = podcast_service.get_podcast_by_id(id)
     return podcast

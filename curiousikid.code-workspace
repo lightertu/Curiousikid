@@ -4,9 +4,6 @@
             "path": "backend"
         },
         {
-            "path": "device"
-        },
-        {
             "path": "web"
         },
     ],
@@ -16,7 +13,7 @@
         "editor.formatOnSave": true,
         "editor.bracketPairColorization.enabled": true,
         "window.autoDetectColorScheme": true,
-        "workbench.preferredLightColorTheme": "Atom One Dark",
+        "workbench.preferredLightColorTheme": "Solarized Light",
         "workbench.preferredDarkColorTheme": "Atom One Dark",
         "search.exclude": {
             "**/node_modules": false

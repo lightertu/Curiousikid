@@ -36,25 +36,15 @@ export interface Podcast {
     creator?: PodcastCreator;
 }
 
-export interface PodcastWithRelations extends Podcast {
-    creator: PodcastCreator;
-    episodes: Episode[];
-}
 
 export class PodcastClient {
-    private baseUrl: string;
-
-    constructor() {
-        // Get API URL from environment variables with fallback
-        this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-    }
-
     /**
      * Get all podcasts
+     * Calls Next.js API route which proxies to backend
      */
-    async getAllPodcasts(): Promise<PodcastWithRelations[]> {
+    async getAllPodcasts(): Promise<Podcast[]> {
         try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/`);
+            const response = await fetch('/api/podcasts');
             if (!response.ok) {
                 throw new Error(`Error fetching podcasts: ${response.statusText}`);
             }
@@ -67,114 +57,17 @@ export class PodcastClient {
 
     /**
      * Get a specific podcast by ID
+     * Calls Next.js API route which proxies to backend
      */
-    async getPodcastById(id: string): Promise<PodcastWithRelations> {
+    async getPodcastById(id: string): Promise<Podcast> {
         try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/get/${id}`);
+            const response = await fetch(`/api/podcasts/${id}`);
             if (!response.ok) {
                 throw new Error(`Error fetching podcast: ${response.statusText}`);
             }
             return await response.json();
         } catch (error) {
             console.error(`Failed to fetch podcast with ID ${id}:`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Get most popular podcasts
-     */
-    async getMostPopularPodcasts(): Promise<PodcastWithRelations[]> {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/mostpopular`);
-            if (!response.ok) {
-                throw new Error(`Error fetching popular podcasts: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Failed to fetch popular podcasts:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Get random podcasts
-     */
-    async getRandomPodcasts(): Promise<PodcastWithRelations[]> {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/random`);
-            if (!response.ok) {
-                throw new Error(`Error fetching random podcasts: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Failed to fetch random podcasts:', error);
-            throw error;
-        }
-    }
-
-    /**
-     * Search podcasts by query
-     */
-    async searchPodcasts(query: string): Promise<PodcastWithRelations[]> {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/search?q=${encodeURIComponent(query)}`);
-            if (!response.ok) {
-                throw new Error(`Error searching podcasts: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error(`Failed to search podcasts with query "${query}":`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Get podcasts by category
-     */
-    async getPodcastsByCategory(category: string): Promise<PodcastWithRelations[]> {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/category?q=${encodeURIComponent(category)}`);
-            if (!response.ok) {
-                throw new Error(`Error fetching podcasts by category: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error(`Failed to fetch podcasts in category "${category}":`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Get podcasts by tags
-     */
-    async getPodcastsByTags(tags: string[]): Promise<PodcastWithRelations[]> {
-        try {
-            const tagsString = tags.join(',');
-            const response = await fetch(`${this.baseUrl}/api/podcasts/tags?tags=${encodeURIComponent(tagsString)}`);
-            if (!response.ok) {
-                throw new Error(`Error fetching podcasts by tags: ${response.statusText}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error(`Failed to fetch podcasts with tags "${tags}":`, error);
-            throw error;
-        }
-    }
-
-    /**
-     * Add view to a podcast
-     */
-    async addPodcastView(id: string): Promise<void> {
-        try {
-            const response = await fetch(`${this.baseUrl}/api/podcasts/addview/${id}`, {
-                method: 'POST',
-            });
-            if (!response.ok) {
-                throw new Error(`Error adding view to podcast: ${response.statusText}`);
-            }
-        } catch (error) {
-            console.error(`Failed to add view to podcast with ID ${id}:`, error);
             throw error;
         }
     }
