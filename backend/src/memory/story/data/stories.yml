@@ -37,3 +37,13 @@
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   pixelArtCoverFile: assets/pixel_art/5ad4b570-e8c3-436c-9322-83d588e89a4b/cover.yml
+
+- id: "5"
+  title: "Ancient Olympics Part Deux"
+  description: "Oh Muses! We are once again dipping a toe in history and talking about ancient sport heroes! In this episode we encounter ground breaking athletes, pioneering villains, statue lore, the rage of fandom, and a sporting event which shall not be named."
+  artist: "National Geographic Kids"
+  audioUrl: "http://localhost:8000/api/v1/stories/5/audio"
+  duration: 1613
+  thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  pixelArtCoverFile: assets/pixel_art/a1286473-76e8-497e-9d6e-62820a9b66b3/cover.png

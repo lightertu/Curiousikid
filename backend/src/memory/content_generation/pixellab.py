@@ -119,7 +119,7 @@ def generate_pixel_art(
 
 if __name__ == "__main__":
     generate_pixel_art(
-        """A child stands in front of a large rainbow in the sky.""",
+        """Generate a pixel art image of a Greek statue of a victorious athlete with olympic like background""",
         height=32,
         width=32,
     )
