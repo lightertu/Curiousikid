@@ -18,3 +18,5 @@ secrets.*
 *.zip
 *.tar.bz2
 *.tar.xz
+src/environment/local.yml
+src/environment/prod.yml
