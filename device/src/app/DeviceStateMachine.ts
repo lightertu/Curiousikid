@@ -227,13 +227,13 @@ export const deviceMachine = createMachine(
                             STOP_PLAYBACK: { target: 'paused' }, // External signal to pause
                             SET_PROACTIVE_QUESTION_POINT: { actions: ['setProactiveQuestionPoint'] },
                             SET_CURRENT_STORY: [
-                                {
-                                    // First, check if the condition is met AFTER updating the story
-                                    guard: 'isAtProactiveQuestionPoint',
-                                    target: 'startingProactiveQuestionSession',
-                                    // Apply the update AND transition
-                                    actions: ['setCurrentStory']
-                                },
+                                // {
+                                //     // First, check if the condition is met AFTER updating the story
+                                //     guard: 'isAtProactiveQuestionPoint',
+                                //     target: 'startingProactiveQuestionSession',
+                                //     // Apply the update AND transition
+                                //     actions: ['setCurrentStory']
+                                // },
                                 {
                                     // Otherwise (guard fails), just apply the update
                                     actions: ['setCurrentStory']
