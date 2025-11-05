@@ -1,22 +1,22 @@
 - id: "1"
-  title: "Birdy on the Ski Slopes"
-  description: "A journey through the magical forest begins with a single step."
-  artist: "Storynory"
+  title: "Ancient Olympics Part Deux"
+  description: "Oh Muses! We are once again dipping a toe in history and talking about ancient sport heroes! In this episode we encounter ground breaking athletes, pioneering villains, statue lore, the rage of fandom, and a sporting event which shall not be named."
+  artist: "National Geographic Kids"
   audioUrl: "http://localhost:8000/api/v1/stories/1/audio"
-  duration: 856.842449
+  duration: 1613
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
-  pixelArtCoverFile: "assets/pixel_art/b9d61e44-5f0c-461c-9ebd-08f6fbcebb69/cover.yml"
+  pixelArtCoverFile: assets/pixel_art/a1286473-76e8-497e-9d6e-62820a9b66b3/cover.png
 
 - id: "2"
-  title: "The Deep Blue Discovery"
-  description: "Something cool"
-  artist: "Storynory"
+  title: "Who decides what robots look like?"
+  description: "Who decides what robots look like? How do robots work and move? How are they controlled? And are robots alive? We tackle all your robot questions in this episode, and we’re taking a field trip to a local factory that uses hundreds of robots to help humans do their jobs. GlobalFoundries, in Essex Junction, Vermont makes microchips that go in all kinds of electronics. In fact, if your adults have a smartphone, more than likely it has a chip made at this very facility. Engineers Adrien Plouffe and Lucy White work with the robots at GlobalFoundries and answer your questions about robots, including: Why are robots made of metal? Why do people like robots? Do robots cry?"
+  artist: "Vermont Public"
   audioUrl: "http://localhost:8000/api/v1/stories/2/audio"
-  duration: 856.842449
+  duration: 1613
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
-  pixelArtCoverFile: assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml
+  pixelArtCoverFile: assets/pixel_art/8e86fb9b-f94a-4bce-9f35-d64bea0490ce/cover.png
 
 - id: "3"
   title: "The Rainbow Puddle Adventure"
@@ -39,11 +39,21 @@
   pixelArtCoverFile: assets/pixel_art/5ad4b570-e8c3-436c-9322-83d588e89a4b/cover.yml
 
 - id: "5"
-  title: "Ancient Olympics Part Deux"
-  description: "Oh Muses! We are once again dipping a toe in history and talking about ancient sport heroes! In this episode we encounter ground breaking athletes, pioneering villains, statue lore, the rage of fandom, and a sporting event which shall not be named."
-  artist: "National Geographic Kids"
+  title: "Birdy on the Ski Slopes"
+  description: "A journey through the magical forest begins with a single step."
+  artist: "Storynory"
   audioUrl: "http://localhost:8000/api/v1/stories/5/audio"
-  duration: 1613
+  duration: 856.842449
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
-  pixelArtCoverFile: assets/pixel_art/a1286473-76e8-497e-9d6e-62820a9b66b3/cover.png
+  pixelArtCoverFile: "assets/pixel_art/b9d61e44-5f0c-461c-9ebd-08f6fbcebb69/cover.yml"
+
+- id: "6"
+  title: "The Deep Blue Discovery"
+  description: "Something cool"
+  artist: "Storynory"
+  audioUrl: "http://localhost:8000/api/v1/stories/6/audio"
+  duration: 856.842449
+  thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  pixelArtCoverFile: assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml
