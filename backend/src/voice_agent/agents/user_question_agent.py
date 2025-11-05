@@ -2,6 +2,8 @@ import logging
 from typing import Any, Dict
 from livekit.agents.voice.agent import Agent
 from livekit.plugins import deepgram, openai, silero
+from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
 from livekit.agents import llm
 from memory.story.service import StoryService
 from memory.story.models import UserQuestionPoint
@@ -9,6 +11,7 @@ from mem0 import AsyncMemoryClient
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
 
 logger = logging.getLogger(__name__)
+
 
 class UserQuestionConnectionMetadata(ParticipantConnectionMetadata):
     metadata: UserQuestionPoint
@@ -46,6 +49,7 @@ absolutely not spoil the story for the child.""",
                 voice="nova",
                 instructions="You are a friendly voice assistant built by LiveKit.",
             ),
+            turn_detection=MultilingualModel(),
         )
 
     async def on_enter(self):

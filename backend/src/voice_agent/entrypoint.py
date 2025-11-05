@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from voice_agent.agents.agent_factory import AgentFactory
+from huggingface_hub import hf_hub_download
 from livekit.agents import (
     AgentSession,
     JobContext,
@@ -10,6 +11,19 @@ from livekit.agents import (
 # from voice_agent.inactivity_monitor import InactivityMonitor
 
 logger = logging.getLogger("voice-assistant")
+
+
+hf_hub_download(
+    "livekit/turn-detector",
+    "languages.json",
+    **{"revision": "v0.4.0-intl", "local_files_only": False},
+)
+
+hf_hub_download(
+    "livekit/turn-detector",
+    "model_q8.onnx",
+    **{"subfolder": "onnx", "revision": "v0.4.0-intl", "local_files_only": False},
+)
 
 
 async def entrypoint(ctx: JobContext):

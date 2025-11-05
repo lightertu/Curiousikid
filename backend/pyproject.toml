@@ -37,6 +37,7 @@ dependencies = [
     "langchain-community>=0.3.21",
     "mem0ai>=0.1.81",
     "pillow>=11.1.0",
+    "livekit-plugins-turn-detector>=1.2.18",
 ]
 
 [tool.pytest.ini_options]
