@@ -7,7 +7,7 @@ from livekit.agents import (
     WorkerOptions,
     cli,
 )
-from voice_agent.inactivity_monitor import InactivityMonitor
+# from voice_agent.inactivity_monitor import InactivityMonitor
 
 logger = logging.getLogger("voice-assistant")
 
@@ -23,11 +23,11 @@ async def entrypoint(ctx: JobContext):
 
     session = AgentSession()
 
-    monitor = InactivityMonitor(session, ctx)
+    # monitor = InactivityMonitor(session, ctx)
 
     await session.start(agent=agent, room=ctx.room)
     # Make sure the monitor is running after the session is started
-    asyncio.create_task(monitor.monitor_interaction())
+    # asyncio.create_task(monitor.monitor_interaction())
 
 
 if __name__ == "__main__":
