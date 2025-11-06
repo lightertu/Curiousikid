@@ -12,6 +12,7 @@ from memory.story.models import UserQuestionPoint
 # from mem0 import AsyncMemoryClient
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
 from environment.config import ENV
+from voice_agent.agents.fsmemory import DialogueSession, FileSystemMemory, MemoryMessage
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,11 @@ class UserQuestionAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         logger.info(f"Loading participant metadata: {metadata}")
         self.story_service = StoryService()
+        self.memory = FileSystemMemory()
         self.connection_metadata = UserQuestionConnectionMetadata(**metadata)
+        self.story_metadata = self.story_service.get_story(
+            self.connection_metadata.metadata.storyId
+        )
         story_context = self.story_service.get_question_point_context(
             self.connection_metadata.metadata
         )
@@ -63,8 +68,8 @@ You will listen to the user's question and answer it based on the story context.
 Your answer should use simple language any 6 year old can understand and short sentences instead of sophastical language.
 You should ask following up questions in the context of the story to keep the conversation engaging, instead of going off topic.
 If children asked improper questions, don't answer them at all, you should gently guide them back on track.
-Here is what the child has listened so far: {story_context} , and here is the story text: {story_text}, remember to 
-absolutely not spoil the story for the child.""",
+Here is the story text: {story_text}, Here is what the child has listened so far: {story_context} , and remember to 
+absolutely not spoil the story for the child. NEVER output emojis in your responses. And keep your responses short and concise.""",
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
@@ -86,7 +91,47 @@ absolutely not spoil the story for the child.""",
 
     async def on_exit(self):
         """Called when the task is exited"""
-        pass
+        self.memory.add_session(
+            DialogueSession(
+                story_name=self.story_metadata.title,
+                story_description=self.story_metadata.description,
+                messages=[
+                    MemoryMessage(role=message.role, message=message.content)
+                    for message in self.chat_ctx.items
+                    if message.role != "system"
+                ],
+            )
+        )
+
+    async def on_user_turn_completed(
+        self, turn_ctx: llm.ChatContext, new_message: llm.ChatMessage
+    ) -> None:
+        """Called when the user has finished speaking, and the LLM is about to respond
+
+        This is a good opportunity to update the chat context or edit the new message before it is
+        sent to the LLM.
+        """
+        # callback when user input is transcribed
+        chat_ctx = turn_ctx.copy()
+        chat_ctx.items.append(
+            llm.ChatMessage(
+                role="system",
+                content=[
+                    f"""
+                    This section contains the current user's entire conversation history cross other stories, 
+                    if applicable. Use this to maintain continuity in your conversations with the child.
+                    <long_term_memory>
+                    {self.memory.get()}
+                    </long_term_memory>
+                    """
+                ],
+            )
+        )
+        chat_ctx.items.append(new_message)
+        await self.update_chat_ctx(chat_ctx)
+        logger.info(
+            "Add user message to chat context", extra={"content": new_message.content}
+        )
 
     async def on_end_of_turn(
         self,
@@ -104,5 +149,5 @@ absolutely not spoil the story for the child.""",
         chat_ctx.items.append(new_message)
         await self.update_chat_ctx(chat_ctx)
         logger.info(
-            "add user message to chat context", extra={"content": new_message.content}
+            "add LLM message to chat context", extra={"content": new_message.content}
         )

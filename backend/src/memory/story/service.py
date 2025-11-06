@@ -254,7 +254,7 @@ class StoryService:
         if device is None:
             # Check if we're in a multiprocessing context
             current_process = torch.multiprocessing.current_process()
-            if hasattr(current_process, '_identity') and current_process._identity:
+            if hasattr(current_process, "_identity") and current_process._identity:
                 process_id = current_process._identity[0] if self.NUM_GPUS > 0 else 0
             else:
                 # We're in the main process
