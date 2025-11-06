@@ -23,6 +23,7 @@ dependencies = [
     "livekit-plugins-anthropic>=1.2.18",
     "openai-whisper==20240930",
     "pygame>=2.6.1",
+    "pydub>=0.25.1",
     "pipecat>=0.3.0",
     "pydantic>=2.10.2",
     "pyyaml>=6.0.2",

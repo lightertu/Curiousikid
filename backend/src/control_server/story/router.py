@@ -1,9 +1,10 @@
 import logging
 import os
+import ffmpeg
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import StreamingResponse
 
 from control_server.story.dependencies import get_story_service
 from memory.story.service import StoryService
@@ -22,6 +23,7 @@ router = APIRouter(prefix="/api/v1/stories", tags=["stories"])
 async def get_story_audio(
     id: str,
     story_service: Annotated[StoryService, Depends(get_story_service)],
+    start_time: int = Query(68, description="Start time in seconds"),
 ):
     """
     Serves an MP3 audio file.
@@ -37,4 +39,18 @@ async def get_story_audio(
         logger.error(f"Audio file not found: {file_path}")
         raise HTTPException(status_code=404, detail="Audio file not found")
 
-    return FileResponse(path=file_path, media_type="audio/mpeg", filename="audio.mp3")
+    async def iterfile():
+        process = (
+            ffmpeg
+            .input(file_path, ss=start_time)
+            .output('pipe:', format='mp3')
+            .run_async(pipe_stdout=True, pipe_stderr=True)
+        )
+        while True:
+            chunk = process.stdout.read(8192)
+            if not chunk:
+                break
+            yield chunk
+        process.wait()
+
+    return StreamingResponse(iterfile(), media_type="audio/mpeg")
