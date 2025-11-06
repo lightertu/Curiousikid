@@ -39,7 +39,7 @@ class ProactiveQuestionAgent(Agent):
 
         logger.info("User ID: ", user.id)
 
-        results = mem0_sync.get_all(user_id=user.id)
+        # results = mem0_sync.get_all(user_id=user.id)
 
         if results:
             memories = "\n -".join(
@@ -221,7 +221,6 @@ class ProactiveQuestionAgent(Agent):
             DO NOT ASK TOO MANY QUESTIONS - YOU ARE A STORYTELLER, NOT A CHIT CHATTER BOT!!!
             YOU NEED TO ROUTE BACK TO THE STORY AFTER A FEW ROUNDS OF QUESTIONS AND ANSWERS
             DO NOT LEAK THE STORY BEYONG THE CURENT_STORY_CONTEXT IN YOUR CONVERSATION""",
-
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
@@ -270,21 +269,26 @@ class ProactiveQuestionAgent(Agent):
         # callback when user input is transcribed
         chat_ctx = chat_ctx.copy()
         chat_ctx.items.append(new_message)
-        
+
         # Count user messages in the chat context
         user_turns = sum(1 for message in chat_ctx.items if message.role == "user")
         logger.info(f"Conversation turns: {user_turns}")
 
         user_turn_message = new_message.copy()
         user_turn_message.role = "system"
-        
+
         user_turn_message.content = [f"Conversational Turn count: {user_turns}"]
         chat_ctx.items.append(user_turn_message)
-        
+
         logger.info(f"user_turn_message: {user_turn_message.content}")
-        
-        logger.info("add user_turn_message to chat context", extra={"content": user_turn_message.content})
-        logger.info("add user message to chat context", extra={"content": new_message.content})
+
+        logger.info(
+            "add user_turn_message to chat context",
+            extra={"content": user_turn_message.content},
+        )
+        logger.info(
+            "add user message to chat context", extra={"content": new_message.content}
+        )
 
         try:
             # Store the message using the correct format

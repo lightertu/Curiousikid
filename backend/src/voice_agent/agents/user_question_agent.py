@@ -1,14 +1,15 @@
 import logging
 from typing import Any, Dict
 from livekit.agents.voice.agent import Agent
-from livekit.plugins import deepgram, openai, silero, elevenlabs
+from livekit.plugins import deepgram, openai, silero, elevenlabs, aws
 # from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from livekit.agents import llm
 from livekit.plugins.elevenlabs import Voice, VoiceSettings
 from memory.story.service import StoryService
 from memory.story.models import UserQuestionPoint
-from mem0 import AsyncMemoryClient
+
+# from mem0 import AsyncMemoryClient
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
 from environment.config import ENV
 
@@ -67,7 +68,12 @@ absolutely not spoil the story for the child.""",
             vad=silero.VAD.load(),
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
-            llm=openai.LLM(model="gpt-4o-mini"),
+            llm=aws.LLM(
+                model="us.anthropic.claude-haiku-4-5-20251001-v1:0",
+                region="us-west-2",
+                temperature=0.7,
+            ),
+            # preemptive_generation=True,
             # turn_detection=MultilingualModel(),
             tts=tts_plugin,
         )

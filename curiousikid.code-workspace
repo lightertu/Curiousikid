@@ -6,6 +6,9 @@
         {
             "path": "device"
         },
+        {
+            "path": "parent-dashboard"
+        },
     ],
     "settings": {
         "files.autoSave": "afterDelay",

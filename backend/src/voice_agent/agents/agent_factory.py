@@ -1,8 +1,8 @@
 import json
 from typing import Any, Dict
 
-from voice_agent.agents.proactive_question_agent import ProactiveQuestionAgent
-from voice_agent.agents.chat_character_agent import ChatCharacterAgent
+# from voice_agent.agents.proactive_question_agent import ProactiveQuestionAgent
+# from voice_agent.agents.chat_character_agent import ChatCharacterAgent
 from voice_agent.agents.user_question_agent import UserQuestionAgent
 from voice_agent.agents.connection_metadata import (
     ParticipantConnectionMetadata,
@@ -13,8 +13,8 @@ from voice_agent.agents.connection_metadata import (
 class AgentFactory:
     def __init__(self):
         self.agent_creators = {
-            AgentType.PROACTIVE_QUESTION: self._create_proactive_question_agent,
-            AgentType.CHAT_CHARACTER: self._create_chat_character_agent,
+            # AgentType.PROACTIVE_QUESTION: self._create_proactive_question_agent,
+            # AgentType.CHAT_CHARACTER: self._create_chat_character_agent,
             AgentType.USER_QUESTION: self._create_user_question_agent,
         }
 
@@ -26,11 +26,11 @@ class AgentFactory:
 
         return self.agent_creators[agent_type](metadata)
 
-    def _create_proactive_question_agent(self, metadata: Dict[str, Any]):
-        return ProactiveQuestionAgent(metadata)
+    # def _create_proactive_question_agent(self, metadata: Dict[str, Any]):
+    #     return ProactiveQuestionAgent(metadata)
 
     def _create_user_question_agent(self, metadata: Dict[str, Any]):
         return UserQuestionAgent(metadata)
 
-    def _create_chat_character_agent(self, metadata: Dict[str, Any]):
-        return ChatCharacterAgent(metadata)
+    # def _create_chat_character_agent(self, metadata: Dict[str, Any]):
+    #     return ChatCharacterAgent(metadata)
