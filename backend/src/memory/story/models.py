@@ -16,6 +16,7 @@ class StoryMetadata(BaseModel):
     duration: float
     thumbnailUrl: str
     transcriptUrl: str
+    voiceId: Optional[str] = None
     # Internal field to store the relative path, excluded from serialization
     pixelArtCoverFile: str
 

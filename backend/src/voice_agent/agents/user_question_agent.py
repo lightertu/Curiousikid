@@ -1,14 +1,16 @@
 import logging
 from typing import Any, Dict
 from livekit.agents.voice.agent import Agent
-from livekit.plugins import deepgram, openai, silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from livekit.plugins import deepgram, openai, silero, elevenlabs
+# from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from livekit.agents import llm
+from livekit.plugins.elevenlabs import Voice, VoiceSettings
 from memory.story.service import StoryService
 from memory.story.models import UserQuestionPoint
 from mem0 import AsyncMemoryClient
 from voice_agent.agents.connection_metadata import ParticipantConnectionMetadata
+from environment.config import ENV
 
 logger = logging.getLogger(__name__)
 
@@ -21,9 +23,6 @@ class UserQuestionAgent(Agent):
     def __init__(self, metadata: Dict[str, Any]):
         logger.info(f"Loading participant metadata: {metadata}")
         self.story_service = StoryService()
-        print("=============================")
-        print(metadata)
-        print("=============================")
         self.connection_metadata = UserQuestionConnectionMetadata(**metadata)
         story_context = self.story_service.get_question_point_context(
             self.connection_metadata.metadata
@@ -31,6 +30,30 @@ class UserQuestionAgent(Agent):
         story_text = self.story_service.get_story_text(
             self.connection_metadata.metadata.storyId
         )
+
+        story = self.story_service.get_story(self.connection_metadata.metadata.storyId)
+        if story and story.voiceId:
+            logger.info(f"Using cloned voice ID: {story.voiceId}")
+            tts_plugin = elevenlabs.TTS(
+                voice_id=story.voiceId,
+                model="eleven_multilingual_v2",
+                api_key=ENV.ELEVENLABS_API_KEY,
+                voice_settings=VoiceSettings(
+                    speed=1,
+                    stability=0.5,
+                    similarity_boost=0.75,
+                    style=0.5,
+                    use_speaker_boost=True,
+                ),
+            )
+        else:
+            tts_plugin = (
+                openai.TTS(
+                    voice="nova",
+                    instructions="You are a friendly voice assistant built by LiveKit.",
+                ),
+            )
+
         super().__init__(
             instructions=f"""
 You are a very cute and empathetic story listening companion for children range from 5 - 9 years old. 
@@ -45,11 +68,8 @@ absolutely not spoil the story for the child.""",
             # any combination of STT, LLM, TTS, or realtime API can be used
             stt=deepgram.STT(model="nova-3"),
             llm=openai.LLM(model="gpt-4o-mini"),
-            tts=openai.TTS(
-                voice="nova",
-                instructions="You are a friendly voice assistant built by LiveKit.",
-            ),
-            turn_detection=MultilingualModel(),
+            # turn_detection=MultilingualModel(),
+            tts=tts_plugin,
         )
 
     async def on_enter(self):

@@ -6,6 +6,7 @@
   duration: 1613
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "1Olne34EJIJsozDwbaD7"
   pixelArtCoverFile: assets/pixel_art/a1286473-76e8-497e-9d6e-62820a9b66b3/cover.yml
 
 - id: "2"
@@ -16,6 +17,7 @@
   duration: 1613
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "gpvPg29bKHX38YmdrsQP"
   pixelArtCoverFile: assets/pixel_art/8e86fb9b-f94a-4bce-9f35-d64bea0490ce/cover.yml
 
 - id: "3"
@@ -26,6 +28,7 @@
   duration: 856.842449
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "e9BO3g6plMiVem3f1QEv"
   pixelArtCoverFile: assets/pixel_art/4479b068-c71f-4e8e-b6c4-52da00322247/cover.yml
 
 - id: "4"
@@ -36,6 +39,7 @@
   duration: 856.842449
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "OMfgx0ffZ0UpXwJJcnRy"
   pixelArtCoverFile: assets/pixel_art/5ad4b570-e8c3-436c-9322-83d588e89a4b/cover.yml
 
 - id: "5"
@@ -46,6 +50,7 @@
   duration: 856.842449
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "5jWurJcFQBPw7gBuKm3M"
   pixelArtCoverFile: "assets/pixel_art/b9d61e44-5f0c-461c-9ebd-08f6fbcebb69/cover.yml"
 
 - id: "6"
@@ -56,4 +61,5 @@
   duration: 856.842449
   thumbnailUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
   transcriptUrl: "https://www.storynory.com/wp-content/uploads/2025/03/jake-ski-videoart-600x336.jpg?"
+  voiceId: "XqajefCPCMIcQp21iCHU"
   pixelArtCoverFile: assets/pixel_art/a6bdfaf5-091d-4b1a-b616-f17f38ad06d8/cover.yml

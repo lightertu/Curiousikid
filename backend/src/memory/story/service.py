@@ -34,7 +34,6 @@ class StoryService:
         self.id_to_story = self._load_stories_from_yaml()
         self.story_id_to_question_points = self._load_question_points_from_yaml()
         self.story_id_to_transcription = self._load_transcriptions()
-
         # Transcription settings
         self.whisper_model_name = whisper_model_name
         self.NUM_GPUS = torch.cuda.device_count()
@@ -81,6 +80,12 @@ class StoryService:
 
     def get_story_transcription(self, storyId: str) -> Optional[StoryTranscription]:
         return self.story_id_to_transcription.get(storyId)
+
+    def get_story_voice_id(self, storyId: str) -> Optional[str]:
+        story = self.id_to_story.get(storyId)
+        if story:
+            return story.voiceId
+        return None
 
     def _load_stories_from_yaml(
         self, file_path: Path = DEFAULT_STORIES_FILE
